@@ -29,10 +29,8 @@ def train(config: DictConfig) -> Optional[float]:
 
     # Convert relative ckpt path to absolute path if necessary
     ckpt_path = config.trainer.get("resume_from_checkpoint")
-    if ckpt_path and not os.path.isabs(ckpt_path):
-        config.trainer.resume_from_checkpoint = os.path.join(
-            hydra.utils.get_original_cwd(), ckpt_path
-        )
+    if ckpt_path:
+        config.trainer.resume_from_checkpoint = hydra.utils.to_absolute_path(ckpt_path)
 
     # TODO: implement pie.data.DatasetDict
     # Init pytorch-ie dataset
@@ -83,6 +81,9 @@ def train(config: DictConfig) -> Optional[float]:
         config.trainer, callbacks=callbacks, logger=logger, _convert_="partial"
     )
 
+    # TODO: add parameter "save_dir" to config (with "." as default?)
+    save_dir = hydra.utils.to_absolute_path(config["save_dir"])
+
     # Send some parameters from config to all lightning loggers
     log.info("Logging hyperparameters!")
     utils.log_hyperparameters(
@@ -95,10 +96,6 @@ def train(config: DictConfig) -> Optional[float]:
         logger=logger,
     )
 
-    # TODO: add parameter "save_dir" to config (with "." as default?)
-    save_dir = config["save_dir"]
-    if not os.path.isabs(save_dir):
-        config.save_dir = os.path.join(hydra.utils.get_original_cwd(), save_dir)
     # TODO: add parameter "push_to_hub" to config
     log.info(f"Save taskmodule to {save_dir} [push_to_hub={config.push_to_hub}]")
     taskmodule.save_pretrained(save_directory=save_dir, push_to_hub=config.push_to_hub)

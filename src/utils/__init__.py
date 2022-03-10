@@ -143,6 +143,8 @@ def log_hyperparameters(
     if "callbacks" in config:
         hparams["callbacks"] = config["callbacks"]
 
+    hparams["save_dir"] = config["save_dir"]
+
     # send hparams to all loggers
     trainer.logger.log_hyperparams(hparams)
 
