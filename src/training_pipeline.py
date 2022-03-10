@@ -2,14 +2,9 @@ import os
 from typing import List, Optional
 
 import hydra
+import pytorch_ie as pie
 from omegaconf import DictConfig
-from pytorch_lightning import (
-    Callback,
-    LightningDataModule,
-    LightningModule,
-    Trainer,
-    seed_everything,
-)
+from pytorch_lightning import Callback, Trainer, seed_everything
 from pytorch_lightning.loggers import LightningLoggerBase
 
 from src import utils
@@ -39,13 +34,32 @@ def train(config: DictConfig) -> Optional[float]:
             hydra.utils.get_original_cwd(), ckpt_path
         )
 
-    # Init lightning datamodule
-    log.info(f"Instantiating datamodule <{config.datamodule._target_}>")
-    datamodule: LightningDataModule = hydra.utils.instantiate(config.datamodule)
+    # TODO: implement pie.data.DatasetDict
+    # Init pytorch-ie dataset
+    log.info(f"Instantiating dataset <{config.dataset._target_}>")
+    dataset: pie.data.DatasetDict = hydra.utils.instantiate(config.dataset)
 
+    # Init pytorch-ie taskmodule
+    log.info(f"Instantiating taskmodule <{config.taskmodule._target_}>")
+    taskmodule: pie.taskmodules.taskmodule.TaskModule = hydra.utils.instantiate(
+        config.taskmodule, dataset=dataset
+    )
+
+    # TODO: add parameter "train_split" to config
+    log.info(f"Prepare taskmodule with train data split: {config.train_split}")
+    taskmodule.prepare(dataset[config.train_split])
+
+    # TODO: implement pie.datamodule.DataModule
+    # Init pytorch-ie datamodule
+    log.info(f"Instantiating datamodule <{config.datamodule._target_}>")
+    datamodule: pie.datamodule.DataModule = hydra.utils.instantiate(
+        config.datamodule, dataset=dataset, taskmodule=taskmodule
+    )
+
+    # TODO: how to pass parameters from taskmodule to the model?
     # Init lightning model
     log.info(f"Instantiating model <{config.model._target_}>")
-    model: LightningModule = hydra.utils.instantiate(config.model)
+    model: pie.core.pytorch_ie.PyTorchIEModel = hydra.utils.instantiate(config.model)
 
     # Init lightning callbacks
     callbacks: List[Callback] = []
@@ -73,12 +87,21 @@ def train(config: DictConfig) -> Optional[float]:
     log.info("Logging hyperparameters!")
     utils.log_hyperparameters(
         config=config,
+        taskmodule=taskmodule,
         model=model,
         datamodule=datamodule,
         trainer=trainer,
         callbacks=callbacks,
         logger=logger,
     )
+
+    # TODO: add parameter "save_dir" to config (with "." as default?)
+    save_dir = config["save_dir"]
+    if not os.path.isabs(save_dir):
+        config.save_dir = os.path.join(hydra.utils.get_original_cwd(), save_dir)
+    # TODO: add parameter "push_to_hub" to config
+    log.info(f"Save taskmodule to {save_dir} [push_to_hub={config.push_to_hub}]")
+    taskmodule.save_pretrained(save_directory=save_dir, push_to_hub=config.push_to_hub)
 
     # Train the model
     if config.get("train"):
@@ -106,6 +129,7 @@ def train(config: DictConfig) -> Optional[float]:
     log.info("Finalizing!")
     utils.finish(
         config=config,
+        taskmodule=taskmodule,
         model=model,
         datamodule=datamodule,
         trainer=trainer,
@@ -116,6 +140,9 @@ def train(config: DictConfig) -> Optional[float]:
     # Print path to best checkpoint
     if not config.trainer.get("fast_dev_run") and config.get("train"):
         log.info(f"Best model ckpt at {trainer.checkpoint_callback.best_model_path}")
+        model.load_from_checkpoint(trainer.checkpoint_callback.best_model_path)
+        log.info(f"Save best model to {save_dir} [push_to_hub={config.push_to_hub}]")
+        model.save_pretrained(save_directory=save_dir, push_to_hub=config.push_to_hub)
 
     # Return metric score for hyperparameter optimization
     return score

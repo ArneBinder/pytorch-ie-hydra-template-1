@@ -2,6 +2,7 @@ import logging
 import warnings
 from typing import List, Sequence
 
+import pytorch_ie as pie
 import pytorch_lightning as pl
 import rich.syntax
 import rich.tree
@@ -57,6 +58,7 @@ def print_config(
     config: DictConfig,
     print_order: Sequence[str] = (
         "datamodule",
+        "taskmodule",
         "model",
         "callbacks",
         "logger",
@@ -104,7 +106,8 @@ def print_config(
 @rank_zero_only
 def log_hyperparameters(
     config: DictConfig,
-    model: pl.LightningModule,
+    taskmodule: pie.taskmodules.taskmodule.TaskModule,
+    model: pie.core.pytorch_ie.PyTorchIEModel,
     datamodule: pl.LightningDataModule,
     trainer: pl.Trainer,
     callbacks: List[pl.Callback],
@@ -119,6 +122,8 @@ def log_hyperparameters(
     hparams = {}
 
     # choose which parts of hydra config will be saved to loggers
+    hparams["taskmodule"] = config["taskmodule"]
+
     hparams["model"] = config["model"]
 
     # save number of model parameters
@@ -145,6 +150,7 @@ def log_hyperparameters(
 def finish(
     config: DictConfig,
     model: pl.LightningModule,
+    taskmodule: pie.taskmodules.taskmodule.TaskModule,
     datamodule: pl.LightningDataModule,
     trainer: pl.Trainer,
     callbacks: List[pl.Callback],
