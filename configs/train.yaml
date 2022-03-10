@@ -55,3 +55,9 @@ seed: null
 # default name for the experiment, determines logging folder path
 # (you can overwrite this name in experiment configs)
 name: "default"
+
+# push the model and taskmodule to the huggingface model hub when training has finished
+push_to_hub: False
+
+# where to save the trained model and taskmodule
+save_dir: ???

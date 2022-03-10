@@ -43,16 +43,16 @@ def train(config: DictConfig) -> Optional[float]:
         config.taskmodule, dataset=dataset
     )
 
-    # TODO: add parameter "train_split" to config
-    log.info(f"Prepare taskmodule with train data split: {config.train_split}")
-    taskmodule.prepare(dataset[config.train_split])
-
     # TODO: implement pie.datamodule.DataModule
     # Init pytorch-ie datamodule
     log.info(f"Instantiating datamodule <{config.datamodule._target_}>")
     datamodule: pie.datamodule.DataModule = hydra.utils.instantiate(
         config.datamodule, dataset=dataset, taskmodule=taskmodule
     )
+
+    # NOTE: this uses datamodule.train_split
+    log.info(f"Prepare taskmodule with train data split: {datamodule.train_split}")
+    taskmodule.prepare(dataset[datamodule.train_split])
 
     # TODO: how to pass parameters from taskmodule to the model?
     # Init lightning model
@@ -81,7 +81,6 @@ def train(config: DictConfig) -> Optional[float]:
         config.trainer, callbacks=callbacks, logger=logger, _convert_="partial"
     )
 
-    # TODO: add parameter "save_dir" to config (with "." as default?)
     save_dir = hydra.utils.to_absolute_path(config["save_dir"])
 
     # Send some parameters from config to all lightning loggers
@@ -96,7 +95,6 @@ def train(config: DictConfig) -> Optional[float]:
         logger=logger,
     )
 
-    # TODO: add parameter "push_to_hub" to config
     log.info(f"Save taskmodule to {save_dir} [push_to_hub={config.push_to_hub}]")
     taskmodule.save_pretrained(save_directory=save_dir, push_to_hub=config.push_to_hub)
 
