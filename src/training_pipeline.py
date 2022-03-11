@@ -1,9 +1,10 @@
-import os
 from typing import List, Optional
 
 import hydra
 import pytorch_ie as pie
 from omegaconf import DictConfig
+from pytorch_ie.core.pytorch_ie import PyTorchIEModel
+from pytorch_ie.taskmodules.taskmodule import TaskModule
 from pytorch_lightning import Callback, Trainer, seed_everything
 from pytorch_lightning.loggers import LightningLoggerBase
 
@@ -32,23 +33,20 @@ def train(config: DictConfig) -> Optional[float]:
     if ckpt_path:
         config.trainer.resume_from_checkpoint = hydra.utils.to_absolute_path(ckpt_path)
 
-    # TODO: implement pie.data.DatasetDict
     # Init pytorch-ie dataset
     log.info(f"Instantiating dataset <{config.dataset._target_}>")
     dataset: pie.data.DatasetDict = hydra.utils.instantiate(config.dataset)
 
     # Init pytorch-ie taskmodule
     log.info(f"Instantiating taskmodule <{config.taskmodule._target_}>")
-    taskmodule: pie.taskmodules.taskmodule.TaskModule = hydra.utils.instantiate(
-        config.taskmodule, dataset=dataset
-    )
+    taskmodule: TaskModule = hydra.utils.instantiate(config.taskmodule, dataset=dataset)
 
-    # TODO: implement pie.datamodule.DataModule
     # Init pytorch-ie datamodule
     log.info(f"Instantiating datamodule <{config.datamodule._target_}>")
-    datamodule: pie.datamodule.DataModule = hydra.utils.instantiate(
+    datamodule: pie.data.DataModule = hydra.utils.instantiate(
         config.datamodule, dataset=dataset, taskmodule=taskmodule
     )
+    datamodule.setup(stage="fit")
 
     # NOTE: this uses datamodule.train_split
     log.info(f"Prepare taskmodule with train data split: {datamodule.train_split}")
@@ -57,7 +55,7 @@ def train(config: DictConfig) -> Optional[float]:
     # TODO: how to pass parameters from taskmodule to the model?
     # Init lightning model
     log.info(f"Instantiating model <{config.model._target_}>")
-    model: pie.core.pytorch_ie.PyTorchIEModel = hydra.utils.instantiate(config.model)
+    model: PyTorchIEModel = hydra.utils.instantiate(config.model)
 
     # Init lightning callbacks
     callbacks: List[Callback] = []

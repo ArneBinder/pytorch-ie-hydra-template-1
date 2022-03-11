@@ -4,6 +4,7 @@ from typing import List
 import hydra
 import pytorch_ie as pie
 from omegaconf import DictConfig
+from pytorch_ie.taskmodules.taskmodule import TaskModule
 from pytorch_lightning import LightningModule, Trainer, seed_everything
 from pytorch_lightning.loggers import LightningLoggerBase
 
@@ -31,23 +32,20 @@ def test(config: DictConfig) -> None:
     if not os.path.isabs(config.ckpt_path):
         config.ckpt_path = os.path.join(hydra.utils.get_original_cwd(), config.ckpt_path)
 
-    # TODO: implement pie.data.DatasetDict
     # Init PIE dataset
     log.info(f"Instantiating dataset <{config.dataset._target_}>")
     dataset: pie.data.DatasetDict = hydra.utils.instantiate(config.dataset)
 
     # Init taskmodule
     log.info(f"Instantiating taskmodule <{config.taskmodule._target_}>")
-    taskmodule: pie.taskmodules.taskmodule.TaskModule = hydra.utils.instantiate(
-        config.taskmodule, dataset=dataset
-    )
+    taskmodule: TaskModule = hydra.utils.instantiate(config.taskmodule, dataset=dataset)
 
-    # TODO: implement pie.datamodule.DataModule
     # Init PIE datamodule
     log.info(f"Instantiating datamodule <{config.datamodule._target_}>")
-    datamodule: pie.datamodule.DataModule = hydra.utils.instantiate(
+    datamodule: pie.data.DataModule = hydra.utils.instantiate(
         config.datamodule, dataset=dataset, taskmodule=taskmodule
     )
+    datamodule.setup(stage="test")
 
     # Init lightning model
     log.info(f"Instantiating model <{config.model._target_}>")
