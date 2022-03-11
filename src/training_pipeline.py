@@ -4,6 +4,7 @@ import hydra
 import pytorch_ie as pie
 from omegaconf import DictConfig
 from pytorch_ie.core.pytorch_ie import PyTorchIEModel
+from pytorch_ie.data.datamodules.datamodule import DataModule
 from pytorch_ie.taskmodules.taskmodule import TaskModule
 from pytorch_lightning import Callback, Trainer, seed_everything
 from pytorch_lightning.loggers import LightningLoggerBase
@@ -43,7 +44,7 @@ def train(config: DictConfig) -> Optional[float]:
 
     # Init pytorch-ie datamodule
     log.info(f"Instantiating datamodule <{config.datamodule._target_}>")
-    datamodule: pie.data.DataModule = hydra.utils.instantiate(
+    datamodule: DataModule = hydra.utils.instantiate(
         config.datamodule, dataset=dataset, taskmodule=taskmodule
     )
     datamodule.setup(stage="fit")
