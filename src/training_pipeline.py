@@ -47,14 +47,11 @@ def train(config: DictConfig) -> Optional[float]:
     datamodule: DataModule = hydra.utils.instantiate(
         config.datamodule, dataset=dataset, taskmodule=taskmodule
     )
+    # This calls taskmodule.prepare() on the train split.
     datamodule.setup(stage="fit")
 
-    # NOTE: this uses datamodule.train_split
-    log.info(f"Prepare taskmodule with train data split: {datamodule.train_split}")
-    taskmodule.prepare(dataset[datamodule.train_split])
-
     # TODO: how to pass parameters from taskmodule to the model?
-    # Init lightning model
+    # Init pytorch-ie model
     log.info(f"Instantiating model <{config.model._target_}>")
     model: PyTorchIEModel = hydra.utils.instantiate(config.model)
 
