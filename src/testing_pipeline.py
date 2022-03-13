@@ -39,7 +39,7 @@ def test(config: DictConfig) -> None:
 
     # Init taskmodule
     log.info(f"Instantiating taskmodule <{config.taskmodule._target_}>")
-    taskmodule: TaskModule = hydra.utils.instantiate(config.taskmodule, dataset=dataset)
+    taskmodule: TaskModule = hydra.utils.instantiate(config.taskmodule)
 
     # Init PIE datamodule
     log.info(f"Instantiating datamodule <{config.datamodule._target_}>")

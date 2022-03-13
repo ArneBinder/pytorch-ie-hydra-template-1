@@ -40,7 +40,7 @@ def train(config: DictConfig) -> Optional[float]:
 
     # Init pytorch-ie taskmodule
     log.info(f"Instantiating taskmodule <{config.taskmodule._target_}>")
-    taskmodule: TaskModule = hydra.utils.instantiate(config.taskmodule, dataset=dataset)
+    taskmodule: TaskModule = hydra.utils.instantiate(config.taskmodule)
 
     # Init pytorch-ie datamodule
     log.info(f"Instantiating datamodule <{config.datamodule._target_}>")
@@ -51,9 +51,10 @@ def train(config: DictConfig) -> Optional[float]:
     datamodule.setup(stage="fit")
 
     # TODO: how to pass parameters from taskmodule to the model?
+    #  For now, we use <Model>.from_taskmodule construct (see model config).
     # Init pytorch-ie model
     log.info(f"Instantiating model <{config.model._target_}>")
-    model: PyTorchIEModel = hydra.utils.instantiate(config.model)
+    model: PyTorchIEModel = hydra.utils.instantiate(config.model, taskmodule=taskmodule)
 
     # Init lightning callbacks
     callbacks: List[Callback] = []
