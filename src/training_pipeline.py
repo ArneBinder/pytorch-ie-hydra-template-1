@@ -1,10 +1,10 @@
 from typing import List, Optional
 
 import hydra
-import pytorch_ie as pie
 from omegaconf import DictConfig
 from pytorch_ie.core.pytorch_ie import PyTorchIEModel
 from pytorch_ie.data.datamodules.datamodule import DataModule
+from pytorch_ie.data.datasets import PIEDatasetDict
 from pytorch_ie.taskmodules.taskmodule import TaskModule
 from pytorch_lightning import Callback, Trainer, seed_everything
 from pytorch_lightning.loggers import LightningLoggerBase
@@ -36,7 +36,7 @@ def train(config: DictConfig) -> Optional[float]:
 
     # Init pytorch-ie dataset
     log.info(f"Instantiating dataset <{config.dataset._target_}>")
-    dataset: pie.data.DatasetDict = hydra.utils.instantiate(config.dataset)
+    dataset: PIEDatasetDict = hydra.utils.instantiate(config.dataset)
 
     # Init pytorch-ie taskmodule
     log.info(f"Instantiating taskmodule <{config.taskmodule._target_}>")
