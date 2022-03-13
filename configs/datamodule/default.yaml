@@ -1,0 +1,5 @@
+_target_: pytorch_ie.data.datamodules.datamodule.DataModule
+
+batch_size: 64
+num_workers: 0
+pin_memory: False

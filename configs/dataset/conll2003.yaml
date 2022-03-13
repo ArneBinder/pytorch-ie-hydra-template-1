@@ -1,0 +1,4 @@
+_target_: pytorch_ie.data.datasets.conll2003.convert_conll2003_hf_to_document_dataset
+
+dataset_hf:
+  _target_: pytorch_ie.data.datasets.conll2003.load_conll2003_hf

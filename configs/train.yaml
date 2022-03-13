@@ -3,8 +3,10 @@
 # specify here default training configuration
 defaults:
   - _self_
-  - datamodule: mnist.yaml
-  - model: mnist.yaml
+  - dataset: ???
+  - datamodule: default.yaml
+  - taskmodule: ???
+  - model: ???
   - callbacks: default.yaml
   - logger: null # set logger here or use command line (e.g. `python train.py logger=tensorboard`)
   - trainer: default.yaml
