@@ -30,6 +30,7 @@ datamodule:
 
 logger:
   wandb:
+    project: conll2003-example
     name: ${name}
     tags: ["conll2003", "${name}"]
 
