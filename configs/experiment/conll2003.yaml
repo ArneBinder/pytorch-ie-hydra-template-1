@@ -30,6 +30,7 @@ datamodule:
 
 logger:
   wandb:
+    name: ${name}
     tags: ["conll2003", "${name}"]
 
 save_dir: models/conll2003/transformer_token_classification
