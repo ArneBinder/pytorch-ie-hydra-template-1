@@ -30,6 +30,8 @@ name: "default"
 
 # this should be the value of save_dir from the train config
 # or the url to huggingface hub where the taskmodule and model was pushed to
+# IMPORTANT: For now, this has to be an absolute path when pointing to a local location because hydra changes
+# the working directory during execution.
 pretrained_model_name_or_path: ???
 
 # specify the taskmodule
