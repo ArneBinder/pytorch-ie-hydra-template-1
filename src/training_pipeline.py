@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 
 import hydra
 from omegaconf import DictConfig
@@ -50,11 +50,12 @@ def train(config: DictConfig) -> Optional[float]:
     # This calls taskmodule.prepare() on the train split.
     datamodule.setup(stage="fit")
 
-    # TODO: how to pass parameters from taskmodule to the model?
-    #  For now, we use <Model>.from_taskmodule construct (see model config).
+    # Init taskmodule-model-bridge
+    additional_model_kwargs: Dict[str, Any] = hydra.utils.instantiate(config.bridge, taskmodule=taskmodule)
+
     # Init pytorch-ie model
     log.info(f"Instantiating model <{config.model._target_}>")
-    model: PyTorchIEModel = hydra.utils.instantiate(config.model, taskmodule=taskmodule)
+    model: PyTorchIEModel = hydra.utils.instantiate(config.model, **additional_model_kwargs)
 
     # Init lightning callbacks
     callbacks: List[Callback] = []
