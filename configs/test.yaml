@@ -3,8 +3,8 @@
 # specify here default evaluation configuration
 defaults:
   - _self_
-  - datamodule: mnist.yaml # choose the datamodule for evaluation
-  - model: mnist.yaml
+  - dataset: conll2003
+  - datamodule: conll2003
   - callbacks: null
   - logger: null
   - trainer: default.yaml
@@ -28,5 +28,19 @@ seed: null
 
 name: "default"
 
-# passing checkpoint path is necessary
-ckpt_path: ???
+# this should be the value of save_dir from the train config
+# or the url to huggingface hub where the taskmodule and model was pushed to
+pretrained_model_name_or_path: ???
+
+# specify the taskmodule
+taskmodule:
+  _target_: pytorch_ie.taskmodules.TransformerTokenClassificationTaskModule.from_pretrained
+  pretrained_model_name_or_path: ${pretrained_model_name_or_path}
+
+# specify the model
+model:
+  _target_: pytorch_ie.models.transformer_token_classification.TransformerTokenClassificationModel.from_pretrained
+  pretrained_model_name_or_path: ${pretrained_model_name_or_path}
+
+# to override model weights with content of a checkpoint
+ckpt_path: null
