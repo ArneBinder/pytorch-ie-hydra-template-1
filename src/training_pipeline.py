@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict, Any
+from typing import Any, Dict, List, Optional
 
 import hydra
 from omegaconf import DictConfig
@@ -51,7 +51,9 @@ def train(config: DictConfig) -> Optional[float]:
     datamodule.setup(stage="fit")
 
     # Init taskmodule-model-bridge
-    additional_model_kwargs: Dict[str, Any] = hydra.utils.instantiate(config.bridge, taskmodule=taskmodule)
+    additional_model_kwargs: Dict[str, Any] = hydra.utils.instantiate(
+        config.bridge, taskmodule=taskmodule
+    )
 
     # Init pytorch-ie model
     log.info(f"Instantiating model <{config.model._target_}>")

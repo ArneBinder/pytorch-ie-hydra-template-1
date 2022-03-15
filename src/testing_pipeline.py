@@ -69,7 +69,17 @@ def test(config: DictConfig) -> None:
     trainer: Trainer = hydra.utils.instantiate(config.trainer, logger=logger)
 
     # Log hyperparameters
-    trainer.logger.log_hyperparams({"ckpt_path": config.ckpt_path, "model": model._config, "taskmodule": taskmodule._config, "dataset": config.datase})
+    trainer.logger.log_hyperparams(
+        {
+            "pretrained_model_name_or_path": config.pretrained_model_name_or_path,
+            "ckpt_path": config.ckpt_path,
+            "dataset": config.datase,
+            # Note: we log the config from the instantiated objects to log the real hparams,
+            # the hydra configs just contain the path and the object types
+            "model": model._config,
+            "taskmodule": taskmodule._config,
+        }
+    )
 
     log.info("Starting testing!")
     trainer.test(model=model, datamodule=datamodule, ckpt_path=config.ckpt_path)
