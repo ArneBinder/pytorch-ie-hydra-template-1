@@ -73,7 +73,7 @@ def test(config: DictConfig) -> None:
         {
             "pretrained_model_name_or_path": config.pretrained_model_name_or_path,
             "ckpt_path": config.ckpt_path,
-            "dataset": config.datase,
+            "dataset": config.dataset,
             # Note: we log the config from the instantiated objects to log the real hparams,
             # the hydra configs just contain the path and the object types
             "model": model._config,
