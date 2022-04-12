@@ -57,12 +57,7 @@ def test(config: DictConfig) -> None:
     model: PyTorchIEModel = hydra.utils.instantiate(config.model)
 
     # Init lightning loggers
-    logger: List[LightningLoggerBase] = []
-    if "logger" in config:
-        for _, lg_conf in config.logger.items():
-            if "_target_" in lg_conf:
-                log.info(f"Instantiating logger <{lg_conf._target_}>")
-                logger.append(hydra.utils.instantiate(lg_conf))
+    logger = utils.instantiate_dict_entries(config, "logger")
 
     # Init lightning trainer
     log.info(f"Instantiating trainer <{config.trainer._target_}>")

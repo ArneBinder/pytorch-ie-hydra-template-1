@@ -1,7 +1,8 @@
 import logging
 import warnings
-from typing import List, Sequence
+from typing import List, Optional, Sequence
 
+import hydra
 import pytorch_ie as pie
 import pytorch_lightning as pl
 import rich.syntax
@@ -166,3 +167,13 @@ def finish(
             import wandb
 
             wandb.finish()
+
+
+def instantiate_dict_entries(config, key: str, entry_description: Optional[str] = None) -> List:
+    entries = []
+    if key in config:
+        for _, lg_conf in config.logger.items():
+            if "_target_" in lg_conf:
+                log.info(f"Instantiating {entry_description or key} <{lg_conf._target_}>")
+                entries.append(hydra.utils.instantiate(lg_conf))
+    return entries
