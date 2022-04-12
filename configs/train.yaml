@@ -55,7 +55,7 @@ test: False
 # seed for random number generators in pytorch, numpy and python.random
 seed: null
 
-# default name for the experiment, determines logging folder path
+# default name for the experiment, determines logging folder path and trained model location
 # (you can overwrite this name in experiment configs)
 name: "default"
 
@@ -63,4 +63,4 @@ name: "default"
 push_to_hub: False
 
 # where to save the trained model and taskmodule
-save_dir: ???
+save_dir: models/${name}/${now:%Y-%m-%d_%H-%M-%S}

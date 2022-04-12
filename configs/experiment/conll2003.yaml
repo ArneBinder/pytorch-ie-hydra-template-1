@@ -35,4 +35,4 @@ logger:
     name: ${name}
     tags: ["conll2003", "${name}"]
 
-save_dir: models/conll2003/transformer_token_classification
+# save_dir: models/${name}/debug
