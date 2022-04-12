@@ -1,6 +1,3 @@
-import os
-from typing import List
-
 import hydra
 from omegaconf import DictConfig
 from pytorch_ie.core.pytorch_ie import PyTorchIEModel
@@ -8,7 +5,6 @@ from pytorch_ie.data.datamodules.datamodule import DataModule
 from pytorch_ie.data.datasets import PIEDatasetDict
 from pytorch_ie.taskmodules.taskmodule import TaskModule
 from pytorch_lightning import Trainer, seed_everything
-from pytorch_lightning.loggers import LightningLoggerBase
 
 from src import utils
 
@@ -34,8 +30,7 @@ def test(config: DictConfig) -> None:
     # However, ckpt_path can be used to load different weights from any checkpoint.
     if config.ckpt_path is not None:
         # Convert relative ckpt path to absolute path if necessary
-        if not os.path.isabs(config.ckpt_path):
-            config.ckpt_path = os.path.join(hydra.utils.get_original_cwd(), config.ckpt_path)
+        config.ckpt_path = hydra.utils.to_absolute_path(config.ckpt_path)
 
     # Init pytorch-ie dataset
     log.info(f"Instantiating dataset <{config.dataset._target_}>")
