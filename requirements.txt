@@ -1,6 +1,5 @@
 # --------- pytorch-ie --------- #
-git+ssh://git@github.com/ChristophAlt/pytorch-ie.git@template2#egg=pytorch-ie
-#pytorch-ie==0.3.1
+pytorch-ie==0.3.2
 
 # --------- pytorch --------- #
 torch>=1.10.0
