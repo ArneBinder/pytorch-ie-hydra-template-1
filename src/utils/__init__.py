@@ -169,7 +169,9 @@ def finish(
             wandb.finish()
 
 
-def instantiate_dict_entries(config: DictConfig, key: str, entry_description: Optional[str] = None) -> List:
+def instantiate_dict_entries(
+    config: DictConfig, key: str, entry_description: Optional[str] = None
+) -> List:
     entries = []
     if key in config:
         for _, entry_conf in config[key].items():
