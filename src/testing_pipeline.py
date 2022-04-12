@@ -39,7 +39,7 @@ def test(config: DictConfig) -> None:
 
     # Init pytorch-ie documents
     log.info(f"Instantiating documents <{config.documents._target_}>")
-    dataset: PIEDatasetDict = hydra.utils.instantiate(config.documents)
+    documents: PIEDatasetDict = hydra.utils.instantiate(config.documents)
 
     # Init pytorch-ie taskmodule
     log.info(f"Instantiating taskmodule <{config.taskmodule._target_}>")
@@ -50,7 +50,7 @@ def test(config: DictConfig) -> None:
     # Init pytorch-ie datamodule
     log.info(f"Instantiating datamodule <{config.datamodule._target_}>")
     datamodule: DataModule = hydra.utils.instantiate(
-        config.datamodule, dataset=dataset, taskmodule=taskmodule
+        config.datamodule, dataset=documents, taskmodule=taskmodule
     )
     datamodule.setup(stage="test")
 
