@@ -5,7 +5,7 @@
 
 defaults:
   - override /dataset: conll2003.yaml
-  - override /datamodule: conll2003.yaml
+  - override /datamodule: default.yaml
   - override /taskmodule: transformer_token_classification.yaml
   - override /bridge: transformer_token_classification.yaml
   - override /model: transformer_token_classification.yaml

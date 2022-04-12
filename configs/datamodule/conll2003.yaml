@@ -1,5 +1,0 @@
-defaults:
-  - default.yaml
-
-# the val split in the conll2003 dataset is called "validation"
-val_split: validation
