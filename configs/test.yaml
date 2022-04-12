@@ -4,7 +4,7 @@
 defaults:
   - _self_
   - documents: conll2003
-  - datamodule: conll2003
+  - datamodule: default
   - callbacks: null
   - logger: null
   - trainer: default.yaml
