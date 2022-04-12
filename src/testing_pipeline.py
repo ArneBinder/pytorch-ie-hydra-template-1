@@ -26,6 +26,11 @@ def test(config: DictConfig) -> None:
     if config.get("seed"):
         seed_everything(config.seed, workers=True)
 
+    # Convert to absolute path if necessary
+    config.pretrained_model_name_or_path = hydra.utils.to_absolute_path(
+        config.pretrained_model_name_or_path
+    )
+
     # Per default, the model is loaded with .from_pretrained() which already loads the weights.
     # However, ckpt_path can be used to load different weights from any checkpoint.
     if config.ckpt_path is not None:
@@ -38,7 +43,9 @@ def test(config: DictConfig) -> None:
 
     # Init pytorch-ie taskmodule
     log.info(f"Instantiating taskmodule <{config.taskmodule._target_}>")
-    taskmodule: TaskModule = hydra.utils.instantiate(config.taskmodule)
+    taskmodule: TaskModule = hydra.utils.instantiate(
+        config.taskmodule, pretrained_model_name_or_path=config.pretrained_model_name_or_path
+    )
 
     # Init pytorch-ie datamodule
     log.info(f"Instantiating datamodule <{config.datamodule._target_}>")
@@ -49,7 +56,9 @@ def test(config: DictConfig) -> None:
 
     # Init pytorch-ie model
     log.info(f"Instantiating model <{config.model._target_}>")
-    model: PyTorchIEModel = hydra.utils.instantiate(config.model)
+    model: PyTorchIEModel = hydra.utils.instantiate(
+        config.model, pretrained_model_name_or_path=config.pretrained_model_name_or_path
+    )
 
     # Init lightning loggers
     logger = utils.instantiate_dict_entries(config, "logger")

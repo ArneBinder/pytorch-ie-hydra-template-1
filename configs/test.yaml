@@ -30,19 +30,17 @@ name: "default"
 
 # this should be the value of save_dir from the train config
 # or the url to huggingface hub where the taskmodule and model was pushed to
-# IMPORTANT: For now, this has to be an absolute path when pointing to a local location because hydra changes
-# the working directory during execution.
 pretrained_model_name_or_path: ???
 
 # specify the taskmodule
+# Note: this should not be necessary anymore when AutoTaskmodule is implemented
 taskmodule:
   _target_: pytorch_ie.taskmodules.TransformerTokenClassificationTaskModule.from_pretrained
-  pretrained_model_name_or_path: ${pretrained_model_name_or_path}
 
 # specify the model
+# Note: this should not be necessary anymore when AutoModel is implemented
 model:
   _target_: pytorch_ie.models.transformer_token_classification.TransformerTokenClassificationModel.from_pretrained
-  pretrained_model_name_or_path: ${pretrained_model_name_or_path}
 
 # to override model weights with content of a checkpoint
 ckpt_path: null
