@@ -169,11 +169,11 @@ def finish(
             wandb.finish()
 
 
-def instantiate_dict_entries(config, key: str, entry_description: Optional[str] = None) -> List:
+def instantiate_dict_entries(config: DictConfig, key: str, entry_description: Optional[str] = None) -> List:
     entries = []
     if key in config:
-        for _, lg_conf in config.logger.items():
-            if "_target_" in lg_conf:
-                log.info(f"Instantiating {entry_description or key} <{lg_conf._target_}>")
-                entries.append(hydra.utils.instantiate(lg_conf))
+        for _, entry_conf in config[key].items():
+            if "_target_" in entry_conf:
+                log.info(f"Instantiating {entry_description or key} <{entry_conf._target_}>")
+                entries.append(hydra.utils.instantiate(entry_conf))
     return entries
