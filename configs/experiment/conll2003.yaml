@@ -4,7 +4,7 @@
 # python train.py experiment=conll2003
 
 defaults:
-  - override /dataset: conll2003.yaml
+  - override /documents: conll2003.yaml
   - override /datamodule: default.yaml
   - override /taskmodule: transformer_token_classification.yaml
   - override /bridge: transformer_token_classification.yaml

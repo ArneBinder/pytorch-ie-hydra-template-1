@@ -34,9 +34,9 @@ def train(config: DictConfig) -> Optional[float]:
     if ckpt_path:
         config.trainer.resume_from_checkpoint = hydra.utils.to_absolute_path(ckpt_path)
 
-    # Init pytorch-ie dataset
-    log.info(f"Instantiating dataset <{config.dataset._target_}>")
-    dataset: PIEDatasetDict = hydra.utils.instantiate(config.dataset)
+    # Init pytorch-ie documents
+    log.info(f"Instantiating documents <{config.documents._target_}>")
+    documents: PIEDatasetDict = hydra.utils.instantiate(config.documents)
 
     # Init pytorch-ie taskmodule
     log.info(f"Instantiating taskmodule <{config.taskmodule._target_}>")
@@ -45,7 +45,7 @@ def train(config: DictConfig) -> Optional[float]:
     # Init pytorch-ie datamodule
     log.info(f"Instantiating datamodule <{config.datamodule._target_}>")
     datamodule: DataModule = hydra.utils.instantiate(
-        config.datamodule, dataset=dataset, taskmodule=taskmodule
+        config.datamodule, dataset=documents, taskmodule=taskmodule
     )
     # This calls taskmodule.prepare() on the train split.
     datamodule.setup(stage="fit")

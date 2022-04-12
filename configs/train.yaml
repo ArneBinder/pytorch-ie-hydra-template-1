@@ -3,7 +3,7 @@
 # specify here default training configuration
 defaults:
   - _self_
-  - dataset: ???
+  - documents: ???
   - datamodule: default.yaml
   - taskmodule: ???
   - bridge: ???

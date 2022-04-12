@@ -37,9 +37,9 @@ def test(config: DictConfig) -> None:
         # Convert relative ckpt path to absolute path if necessary
         config.ckpt_path = hydra.utils.to_absolute_path(config.ckpt_path)
 
-    # Init pytorch-ie dataset
-    log.info(f"Instantiating dataset <{config.dataset._target_}>")
-    dataset: PIEDatasetDict = hydra.utils.instantiate(config.dataset)
+    # Init pytorch-ie documents
+    log.info(f"Instantiating documents <{config.documents._target_}>")
+    dataset: PIEDatasetDict = hydra.utils.instantiate(config.documents)
 
     # Init pytorch-ie taskmodule
     log.info(f"Instantiating taskmodule <{config.taskmodule._target_}>")
@@ -72,7 +72,7 @@ def test(config: DictConfig) -> None:
         {
             "pretrained_model_name_or_path": config.pretrained_model_name_or_path,
             "ckpt_path": config.ckpt_path,
-            "dataset": config.dataset,
+            "documents": config.documents,
             # Note: we log the config from the instantiated objects to log the real hparams,
             # the hydra configs just contain the path and the object types
             "model": model._config,
