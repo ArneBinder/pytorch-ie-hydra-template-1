@@ -1,13 +1,12 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 import hydra
 from omegaconf import DictConfig
+from pytorch_ie import Dataset
 from pytorch_ie.core.pytorch_ie import PyTorchIEModel
 from pytorch_ie.data.datamodules.datamodule import DataModule
-from pytorch_ie.data.datasets import PIEDatasetDict
 from pytorch_ie.taskmodules.taskmodule import TaskModule
-from pytorch_lightning import Callback, Trainer, seed_everything
-from pytorch_lightning.loggers import LightningLoggerBase
+from pytorch_lightning import Trainer, seed_everything
 
 from src import utils
 
@@ -34,9 +33,9 @@ def train(config: DictConfig) -> Optional[float]:
     if ckpt_path:
         config.trainer.resume_from_checkpoint = hydra.utils.to_absolute_path(ckpt_path)
 
-    # Init pytorch-ie documents
-    log.info(f"Instantiating documents <{config.documents._target_}>")
-    documents: PIEDatasetDict = hydra.utils.instantiate(config.documents)
+    # Init pytorch-ie dataset
+    log.info(f"Instantiating dataset <{config.dataset._target_}>")
+    dataset: Dict[str, Dataset] = hydra.utils.instantiate(config.dataset)
 
     # Init pytorch-ie taskmodule
     log.info(f"Instantiating taskmodule <{config.taskmodule._target_}>")
@@ -45,7 +44,7 @@ def train(config: DictConfig) -> Optional[float]:
     # Init pytorch-ie datamodule
     log.info(f"Instantiating datamodule <{config.datamodule._target_}>")
     datamodule: DataModule = hydra.utils.instantiate(
-        config.datamodule, dataset=documents, taskmodule=taskmodule
+        config.datamodule, dataset=dataset, taskmodule=taskmodule
     )
     # This calls taskmodule.prepare() on the train split.
     datamodule.setup(stage="fit")
@@ -57,7 +56,9 @@ def train(config: DictConfig) -> Optional[float]:
 
     # Init pytorch-ie model
     log.info(f"Instantiating model <{config.model._target_}>")
-    model: PyTorchIEModel = hydra.utils.instantiate(config.model, **additional_model_kwargs)
+    model: PyTorchIEModel = hydra.utils.instantiate(
+        config.model, _convert_="partial", **additional_model_kwargs
+    )
 
     # Init lightning callbacks
     callbacks = utils.instantiate_dict_entries(config, "callbacks")

@@ -4,13 +4,13 @@
 # python train.py experiment=conll2003
 
 defaults:
-  - override /documents: conll2003.yaml
+  - override /dataset: conll2003.yaml
   - override /datamodule: default.yaml
   - override /taskmodule: transformer_token_classification.yaml
   - override /bridge: transformer_token_classification.yaml
   - override /model: transformer_token_classification.yaml
   - override /callbacks: default.yaml
-  - override /logger: null
+  - override /logger: wandb.yaml
   - override /trainer: default.yaml
 
 # all parameters below will be merged with parameters from default configurations set above
@@ -22,8 +22,8 @@ name: "conll2003/transformer_token_classification"
 seed: 12345
 
 trainer:
-  min_epochs: 10
-  max_epochs: 50
+  min_epochs: 5
+  max_epochs: 20
   # gradient_clip_val: 0.5
 
 datamodule:
@@ -33,6 +33,5 @@ logger:
   wandb:
     project: pie-example-conll2003
     name: ${name}
-    tags: ["conll2003", "${name}"]
-
+    tags: ["conll2003", "transformer_token_classification"]
 # save_dir: models/${name}/debug

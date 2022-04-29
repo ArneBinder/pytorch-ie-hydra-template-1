@@ -3,7 +3,7 @@
 # specify here default evaluation configuration
 defaults:
   - _self_
-  - documents: conll2003
+  - dataset: conll2003
   - datamodule: default
   - callbacks: null
   - logger: null

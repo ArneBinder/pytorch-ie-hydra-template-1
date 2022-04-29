@@ -147,7 +147,10 @@ def log_hyperparameters(
     hparams["save_dir"] = config["save_dir"]
 
     # send hparams to all loggers
-    trainer.logger.log_hyperparams(hparams)
+    if trainer.logger:
+        trainer.logger.log_hyperparams(hparams)
+    else:
+        log.warning("can not log hyperparameters because no logger is configured")
 
 
 def finish(

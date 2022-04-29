@@ -1,8 +1,10 @@
+from typing import Dict
+
 import hydra
 from omegaconf import DictConfig
+from pytorch_ie import Dataset
 from pytorch_ie.core.pytorch_ie import PyTorchIEModel
 from pytorch_ie.data.datamodules.datamodule import DataModule
-from pytorch_ie.data.datasets import PIEDatasetDict
 from pytorch_ie.taskmodules.taskmodule import TaskModule
 from pytorch_lightning import Trainer, seed_everything
 
@@ -37,9 +39,9 @@ def test(config: DictConfig) -> None:
         # Convert relative ckpt path to absolute path if necessary
         config.ckpt_path = hydra.utils.to_absolute_path(config.ckpt_path)
 
-    # Init pytorch-ie documents
-    log.info(f"Instantiating documents <{config.documents._target_}>")
-    documents: PIEDatasetDict = hydra.utils.instantiate(config.documents)
+    # Init pytorch-ie dataset
+    log.info(f"Instantiating dataset <{config.dataset._target_}>")
+    dataset: Dict[str, Dataset] = hydra.utils.instantiate(config.dataset)
 
     # Init pytorch-ie taskmodule
     log.info(f"Instantiating taskmodule <{config.taskmodule._target_}>")
@@ -50,7 +52,7 @@ def test(config: DictConfig) -> None:
     # Init pytorch-ie datamodule
     log.info(f"Instantiating datamodule <{config.datamodule._target_}>")
     datamodule: DataModule = hydra.utils.instantiate(
-        config.datamodule, dataset=documents, taskmodule=taskmodule
+        config.datamodule, dataset=dataset, taskmodule=taskmodule
     )
     datamodule.setup(stage="test")
 
@@ -68,17 +70,20 @@ def test(config: DictConfig) -> None:
     trainer: Trainer = hydra.utils.instantiate(config.trainer, logger=logger)
 
     # Log hyperparameters
-    trainer.logger.log_hyperparams(
-        {
-            "pretrained_model_name_or_path": config.pretrained_model_name_or_path,
-            "ckpt_path": config.ckpt_path,
-            "documents": config.documents,
-            # Note: we log the config from the instantiated objects to log the real hparams,
-            # the hydra configs just contain the path and the object types
-            "model": model._config,
-            "taskmodule": taskmodule._config,
-        }
-    )
+    if trainer.logger:
+        trainer.logger.log_hyperparams(
+            {
+                "pretrained_model_name_or_path": config.pretrained_model_name_or_path,
+                "ckpt_path": config.ckpt_path,
+                "dataset": config.dataset,
+                # Note: we log the config from the instantiated objects to log the real hparams,
+                # the hydra configs just contain the path and the object types
+                "model": model._config,
+                "taskmodule": taskmodule._config,
+            }
+        )
+    else:
+        log.warning("can not log hyperparameters because no logger is configured")
 
     log.info("Starting testing!")
     trainer.test(model=model, datamodule=datamodule, ckpt_path=config.ckpt_path)

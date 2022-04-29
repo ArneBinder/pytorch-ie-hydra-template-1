@@ -1,5 +1,0 @@
-_target_: pytorch_ie.data.datasets.conll2003.from_hf
-
-hf_dataset_dict:
-  _target_: datasets.load_dataset
-  path: conll2003
