@@ -1,10 +1,12 @@
-import os
-from typing import List
+from typing import Dict
 
 import hydra
 from omegaconf import DictConfig
-from pytorch_lightning import LightningDataModule, LightningModule, Trainer, seed_everything
-from pytorch_lightning.loggers import LightningLoggerBase
+from pytorch_ie import Dataset
+from pytorch_ie.core.pytorch_ie import PyTorchIEModel
+from pytorch_ie.data.datamodules.datamodule import DataModule
+from pytorch_ie.taskmodules.taskmodule import TaskModule
+from pytorch_lightning import Trainer, seed_everything
 
 from src import utils
 
@@ -26,32 +28,62 @@ def test(config: DictConfig) -> None:
     if config.get("seed"):
         seed_everything(config.seed, workers=True)
 
-    # Convert relative ckpt path to absolute path if necessary
-    if not os.path.isabs(config.ckpt_path):
-        config.ckpt_path = os.path.join(hydra.utils.get_original_cwd(), config.ckpt_path)
+    # Convert to absolute path if necessary
+    config.pretrained_model_name_or_path = hydra.utils.to_absolute_path(
+        config.pretrained_model_name_or_path
+    )
 
-    # Init lightning datamodule
+    # Per default, the model is loaded with .from_pretrained() which already loads the weights.
+    # However, ckpt_path can be used to load different weights from any checkpoint.
+    if config.ckpt_path is not None:
+        # Convert relative ckpt path to absolute path if necessary
+        config.ckpt_path = hydra.utils.to_absolute_path(config.ckpt_path)
+
+    # Init pytorch-ie dataset
+    log.info(f"Instantiating dataset <{config.dataset._target_}>")
+    dataset: Dict[str, Dataset] = hydra.utils.instantiate(config.dataset)
+
+    # Init pytorch-ie taskmodule
+    log.info(f"Instantiating taskmodule <{config.taskmodule._target_}>")
+    taskmodule: TaskModule = hydra.utils.instantiate(
+        config.taskmodule, pretrained_model_name_or_path=config.pretrained_model_name_or_path
+    )
+
+    # Init pytorch-ie datamodule
     log.info(f"Instantiating datamodule <{config.datamodule._target_}>")
-    datamodule: LightningDataModule = hydra.utils.instantiate(config.datamodule)
+    datamodule: DataModule = hydra.utils.instantiate(
+        config.datamodule, dataset=dataset, taskmodule=taskmodule
+    )
+    datamodule.setup(stage="test")
 
-    # Init lightning model
+    # Init pytorch-ie model
     log.info(f"Instantiating model <{config.model._target_}>")
-    model: LightningModule = hydra.utils.instantiate(config.model)
+    model: PyTorchIEModel = hydra.utils.instantiate(
+        config.model, pretrained_model_name_or_path=config.pretrained_model_name_or_path
+    )
 
     # Init lightning loggers
-    logger: List[LightningLoggerBase] = []
-    if "logger" in config:
-        for _, lg_conf in config.logger.items():
-            if "_target_" in lg_conf:
-                log.info(f"Instantiating logger <{lg_conf._target_}>")
-                logger.append(hydra.utils.instantiate(lg_conf))
+    logger = utils.instantiate_dict_entries(config, "logger")
 
     # Init lightning trainer
     log.info(f"Instantiating trainer <{config.trainer._target_}>")
     trainer: Trainer = hydra.utils.instantiate(config.trainer, logger=logger)
 
     # Log hyperparameters
-    trainer.logger.log_hyperparams({"ckpt_path": config.ckpt_path})
+    if trainer.logger:
+        trainer.logger.log_hyperparams(
+            {
+                "pretrained_model_name_or_path": config.pretrained_model_name_or_path,
+                "ckpt_path": config.ckpt_path,
+                "dataset": config.dataset,
+                # Note: we log the config from the instantiated objects to log the real hparams,
+                # the hydra configs just contain the path and the object types
+                "model": model._config,
+                "taskmodule": taskmodule._config,
+            }
+        )
+    else:
+        log.warning("can not log hyperparameters because no logger is configured")
 
     log.info("Starting testing!")
     trainer.test(model=model, datamodule=datamodule, ckpt_path=config.ckpt_path)

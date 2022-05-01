@@ -9,7 +9,7 @@
 <a href="https://black.readthedocs.io/en/stable/"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-black.svg?style=for-the-badge&labelColor=gray"></a>
 
 A clean and scalable template to kickstart your deep learning project 🚀⚡🔥<br>
-Click on [<kbd>Use this template</kbd>](https://github.com/ashleve/lightning-hydra-template/generate) to initialize new repository.
+Click on [<kbd>Use this template</kbd>](https://github.com/ChristophAlt/pytorch-ie-hydra-template/generate) to initialize new repository.
 
 _Suggestions are always welcome!_
 

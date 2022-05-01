@@ -3,8 +3,11 @@
 # specify here default training configuration
 defaults:
   - _self_
-  - datamodule: mnist.yaml
-  - model: mnist.yaml
+  - dataset: ???
+  - datamodule: default.yaml
+  - taskmodule: ???
+  - bridge: ???
+  - model: ???
   - callbacks: default.yaml
   - logger: null # set logger here or use command line (e.g. `python train.py logger=tensorboard`)
   - trainer: default.yaml
@@ -47,11 +50,17 @@ train: True
 
 # evaluate on test set, using best model weights achieved during training
 # lightning chooses best weights based on the metric specified in checkpoint callback
-test: True
+test: False
 
 # seed for random number generators in pytorch, numpy and python.random
 seed: null
 
-# default name for the experiment, determines logging folder path
+# default name for the experiment, determines logging folder path and trained model location
 # (you can overwrite this name in experiment configs)
 name: "default"
+
+# push the model and taskmodule to the huggingface model hub when training has finished
+push_to_hub: False
+
+# where to save the trained model and taskmodule
+save_dir: models/${name}/${now:%Y-%m-%d_%H-%M-%S}

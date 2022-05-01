@@ -1,7 +1,9 @@
 import logging
 import warnings
-from typing import List, Sequence
+from typing import List, Optional, Sequence
 
+import hydra
+import pytorch_ie as pie
 import pytorch_lightning as pl
 import rich.syntax
 import rich.tree
@@ -57,6 +59,7 @@ def print_config(
     config: DictConfig,
     print_order: Sequence[str] = (
         "datamodule",
+        "taskmodule",
         "model",
         "callbacks",
         "logger",
@@ -104,7 +107,8 @@ def print_config(
 @rank_zero_only
 def log_hyperparameters(
     config: DictConfig,
-    model: pl.LightningModule,
+    taskmodule: pie.taskmodules.taskmodule.TaskModule,
+    model: pie.core.pytorch_ie.PyTorchIEModel,
     datamodule: pl.LightningDataModule,
     trainer: pl.Trainer,
     callbacks: List[pl.Callback],
@@ -119,6 +123,8 @@ def log_hyperparameters(
     hparams = {}
 
     # choose which parts of hydra config will be saved to loggers
+    hparams["taskmodule"] = config["taskmodule"]
+
     hparams["model"] = config["model"]
 
     # save number of model parameters
@@ -138,13 +144,19 @@ def log_hyperparameters(
     if "callbacks" in config:
         hparams["callbacks"] = config["callbacks"]
 
+    hparams["save_dir"] = config["save_dir"]
+
     # send hparams to all loggers
-    trainer.logger.log_hyperparams(hparams)
+    if trainer.logger:
+        trainer.logger.log_hyperparams(hparams)
+    else:
+        log.warning("can not log hyperparameters because no logger is configured")
 
 
 def finish(
     config: DictConfig,
     model: pl.LightningModule,
+    taskmodule: pie.taskmodules.taskmodule.TaskModule,
     datamodule: pl.LightningDataModule,
     trainer: pl.Trainer,
     callbacks: List[pl.Callback],
@@ -158,3 +170,15 @@ def finish(
             import wandb
 
             wandb.finish()
+
+
+def instantiate_dict_entries(
+    config: DictConfig, key: str, entry_description: Optional[str] = None
+) -> List:
+    entries = []
+    if key in config:
+        for _, entry_conf in config[key].items():
+            if "_target_" in entry_conf:
+                log.info(f"Instantiating {entry_description or key} <{entry_conf._target_}>")
+                entries.append(hydra.utils.instantiate(entry_conf))
+    return entries

@@ -1,16 +1,12 @@
-import os
-from typing import List, Optional
+from typing import Any, Dict, Optional
 
 import hydra
 from omegaconf import DictConfig
-from pytorch_lightning import (
-    Callback,
-    LightningDataModule,
-    LightningModule,
-    Trainer,
-    seed_everything,
-)
-from pytorch_lightning.loggers import LightningLoggerBase
+from pytorch_ie import Dataset
+from pytorch_ie.core.pytorch_ie import PyTorchIEModel
+from pytorch_ie.data.datamodules.datamodule import DataModule
+from pytorch_ie.taskmodules.taskmodule import TaskModule
+from pytorch_lightning import Trainer, seed_everything
 
 from src import utils
 
@@ -34,34 +30,41 @@ def train(config: DictConfig) -> Optional[float]:
 
     # Convert relative ckpt path to absolute path if necessary
     ckpt_path = config.trainer.get("resume_from_checkpoint")
-    if ckpt_path and not os.path.isabs(ckpt_path):
-        config.trainer.resume_from_checkpoint = os.path.join(
-            hydra.utils.get_original_cwd(), ckpt_path
-        )
+    if ckpt_path:
+        config.trainer.resume_from_checkpoint = hydra.utils.to_absolute_path(ckpt_path)
 
-    # Init lightning datamodule
+    # Init pytorch-ie dataset
+    log.info(f"Instantiating dataset <{config.dataset._target_}>")
+    dataset: Dict[str, Dataset] = hydra.utils.instantiate(config.dataset)
+
+    # Init pytorch-ie taskmodule
+    log.info(f"Instantiating taskmodule <{config.taskmodule._target_}>")
+    taskmodule: TaskModule = hydra.utils.instantiate(config.taskmodule)
+
+    # Init pytorch-ie datamodule
     log.info(f"Instantiating datamodule <{config.datamodule._target_}>")
-    datamodule: LightningDataModule = hydra.utils.instantiate(config.datamodule)
+    datamodule: DataModule = hydra.utils.instantiate(
+        config.datamodule, dataset=dataset, taskmodule=taskmodule
+    )
+    # This calls taskmodule.prepare() on the train split.
+    datamodule.setup(stage="fit")
 
-    # Init lightning model
+    # Init taskmodule-model-bridge
+    additional_model_kwargs: Dict[str, Any] = hydra.utils.instantiate(
+        config.bridge, taskmodule=taskmodule
+    )
+
+    # Init pytorch-ie model
     log.info(f"Instantiating model <{config.model._target_}>")
-    model: LightningModule = hydra.utils.instantiate(config.model)
+    model: PyTorchIEModel = hydra.utils.instantiate(
+        config.model, _convert_="partial", **additional_model_kwargs
+    )
 
     # Init lightning callbacks
-    callbacks: List[Callback] = []
-    if "callbacks" in config:
-        for _, cb_conf in config.callbacks.items():
-            if "_target_" in cb_conf:
-                log.info(f"Instantiating callback <{cb_conf._target_}>")
-                callbacks.append(hydra.utils.instantiate(cb_conf))
+    callbacks = utils.instantiate_dict_entries(config, "callbacks")
 
     # Init lightning loggers
-    logger: List[LightningLoggerBase] = []
-    if "logger" in config:
-        for _, lg_conf in config.logger.items():
-            if "_target_" in lg_conf:
-                log.info(f"Instantiating logger <{lg_conf._target_}>")
-                logger.append(hydra.utils.instantiate(lg_conf))
+    logger = utils.instantiate_dict_entries(config, "logger")
 
     # Init lightning trainer
     log.info(f"Instantiating trainer <{config.trainer._target_}>")
@@ -69,16 +72,22 @@ def train(config: DictConfig) -> Optional[float]:
         config.trainer, callbacks=callbacks, logger=logger, _convert_="partial"
     )
 
+    save_dir = hydra.utils.to_absolute_path(config["save_dir"])
+
     # Send some parameters from config to all lightning loggers
     log.info("Logging hyperparameters!")
     utils.log_hyperparameters(
         config=config,
+        taskmodule=taskmodule,
         model=model,
         datamodule=datamodule,
         trainer=trainer,
         callbacks=callbacks,
         logger=logger,
     )
+
+    log.info(f"Save taskmodule to {save_dir} [push_to_hub={config.push_to_hub}]")
+    taskmodule.save_pretrained(save_directory=save_dir, push_to_hub=config.push_to_hub)
 
     # Train the model
     if config.get("train"):
@@ -106,6 +115,7 @@ def train(config: DictConfig) -> Optional[float]:
     log.info("Finalizing!")
     utils.finish(
         config=config,
+        taskmodule=taskmodule,
         model=model,
         datamodule=datamodule,
         trainer=trainer,
@@ -116,6 +126,9 @@ def train(config: DictConfig) -> Optional[float]:
     # Print path to best checkpoint
     if not config.trainer.get("fast_dev_run") and config.get("train"):
         log.info(f"Best model ckpt at {trainer.checkpoint_callback.best_model_path}")
+        model.load_from_checkpoint(trainer.checkpoint_callback.best_model_path)
+        log.info(f"Save best model to {save_dir} [push_to_hub={config.push_to_hub}]")
+        model.save_pretrained(save_directory=save_dir, push_to_hub=config.push_to_hub)
 
     # Return metric score for hyperparameter optimization
     return score
