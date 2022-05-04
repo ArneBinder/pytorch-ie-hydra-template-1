@@ -76,7 +76,7 @@ def test(config: DictConfig) -> None:
     if trainer.logger:
         trainer.logger.log_hyperparams(
             {
-                "pretrained_model": config.pretrained_model,
+                "model_name_or_path": config.model_name_or_path,
                 "ckpt_path": config.ckpt_path,
                 "dataset": config.dataset,
                 # Note: we log the config from the instantiated objects to log the real hparams,
