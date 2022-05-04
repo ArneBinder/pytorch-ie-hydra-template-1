@@ -1,5 +1,5 @@
 # --------- pytorch-ie --------- #
-pytorch-ie>=0.4.0,<0.5
+pytorch-ie>=0.4.1,<0.5
 
 # --------- pytorch --------- #
 torch>=1.10.0

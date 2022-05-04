@@ -1,5 +1,4 @@
 _target_: datasets.load_dataset
 
 path: pie/conll2003
-# this is required until https://github.com/ChristophAlt/pytorch-ie/pull/155 is merged
-revision: 12f9b0022d3fc50d6739b11490d9e1718c021437
+revision: 85ef67cb6c38bde109ef39dd133306dcb56ea2f4
