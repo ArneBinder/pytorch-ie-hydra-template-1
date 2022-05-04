@@ -1,3 +1,4 @@
+import os.path
 from typing import Dict
 
 import hydra
@@ -28,10 +29,12 @@ def test(config: DictConfig) -> None:
     if config.get("seed"):
         seed_everything(config.seed, workers=True)
 
-    # Convert to absolute path if necessary
-    config.pretrained_model_name_or_path = hydra.utils.to_absolute_path(
-        config.pretrained_model_name_or_path
-    )
+    # Convert to absolute path
+    absolute_path = hydra.utils.to_absolute_path(config.pretrained_model_name_or_path)
+    # If the converted path exists locally, use it.
+    # Otherwise, pretrained_model_name_or_path may point to a resource at Huggingface model hub.
+    if os.path.exists(absolute_path):
+        config.pretrained_model_name_or_path = absolute_path
 
     # Per default, the model is loaded with .from_pretrained() which already loads the weights.
     # However, ckpt_path can be used to load different weights from any checkpoint.
