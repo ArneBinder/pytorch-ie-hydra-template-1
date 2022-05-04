@@ -30,11 +30,11 @@ def test(config: DictConfig) -> None:
         seed_everything(config.seed, workers=True)
 
     # Convert to absolute path
-    absolute_path = hydra.utils.to_absolute_path(config.pretrained_model_name_or_path)
+    absolute_path = hydra.utils.to_absolute_path(config.model_name_or_path)
     # If the converted path exists locally, use it.
-    # Otherwise, pretrained_model_name_or_path may point to a resource at Huggingface model hub.
+    # Otherwise, model_name_or_path may point to a resource at Huggingface model hub.
     if os.path.exists(absolute_path):
-        config.pretrained_model_name_or_path = absolute_path
+        config.model_name_or_path = absolute_path
 
     # Per default, the model is loaded with .from_pretrained() which already loads the weights.
     # However, ckpt_path can be used to load different weights from any checkpoint.
@@ -49,7 +49,7 @@ def test(config: DictConfig) -> None:
     # Init pytorch-ie taskmodule
     log.info(f"Instantiating taskmodule <{config.taskmodule._target_}>")
     taskmodule: TaskModule = hydra.utils.instantiate(
-        config.taskmodule, pretrained_model_name_or_path=config.pretrained_model_name_or_path
+        config.taskmodule, pretrained_model_name_or_path=config.model_name_or_path
     )
 
     # Init pytorch-ie datamodule
@@ -62,7 +62,7 @@ def test(config: DictConfig) -> None:
     # Init pytorch-ie model
     log.info(f"Instantiating model <{config.model._target_}>")
     model: PyTorchIEModel = hydra.utils.instantiate(
-        config.model, pretrained_model_name_or_path=config.pretrained_model_name_or_path
+        config.model, pretrained_model_name_or_path=config.model_name_or_path
     )
 
     # Init lightning loggers
@@ -76,7 +76,7 @@ def test(config: DictConfig) -> None:
     if trainer.logger:
         trainer.logger.log_hyperparams(
             {
-                "pretrained_model_name_or_path": config.pretrained_model_name_or_path,
+                "pretrained_model": config.pretrained_model,
                 "ckpt_path": config.ckpt_path,
                 "dataset": config.dataset,
                 # Note: we log the config from the instantiated objects to log the real hparams,

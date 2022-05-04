@@ -30,7 +30,7 @@ name: "default"
 
 # this should be the value of save_dir from the train config
 # or the url to huggingface hub where the taskmodule and model was pushed to
-pretrained_model_name_or_path: ???
+model_name_or_path: ???
 
 # specify the taskmodule
 taskmodule:
