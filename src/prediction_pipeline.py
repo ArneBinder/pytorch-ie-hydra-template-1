@@ -64,7 +64,9 @@ def predict(config: DictConfig) -> None:
     if config.ckpt_path is not None:
         # Convert relative ckpt path to absolute path if necessary
         config.ckpt_path = hydra.utils.to_absolute_path(config.ckpt_path)
-        pipeline.model.load_from_checkpoint(checkpoint_path=config.ckpt_path)
+        pipeline.model = pipeline.model.load_from_checkpoint(checkpoint_path=config.ckpt_path).to(
+            pipeline.device
+        )
 
     # if no dataset split is defined, but only one is available, we take this one
     if config.dataset_split is None:
