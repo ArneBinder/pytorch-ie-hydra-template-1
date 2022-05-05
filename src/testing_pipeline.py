@@ -1,11 +1,11 @@
+import os.path
 from typing import Dict
 
 import hydra
 from omegaconf import DictConfig
-from pytorch_ie import Dataset
-from pytorch_ie.core.pytorch_ie import PyTorchIEModel
+from pytorch_ie.core import PyTorchIEModel, TaskModule
+from pytorch_ie.data import Dataset
 from pytorch_ie.data.datamodules.datamodule import DataModule
-from pytorch_ie.taskmodules.taskmodule import TaskModule
 from pytorch_lightning import Trainer, seed_everything
 
 from src import utils
@@ -28,10 +28,12 @@ def test(config: DictConfig) -> None:
     if config.get("seed"):
         seed_everything(config.seed, workers=True)
 
-    # Convert to absolute path if necessary
-    config.pretrained_model_name_or_path = hydra.utils.to_absolute_path(
-        config.pretrained_model_name_or_path
-    )
+    # Convert to absolute path
+    absolute_path = hydra.utils.to_absolute_path(config.model_name_or_path)
+    # If the converted path exists locally, use it.
+    # Otherwise, model_name_or_path may point to a resource at Huggingface model hub.
+    if os.path.exists(absolute_path):
+        config.model_name_or_path = absolute_path
 
     # Per default, the model is loaded with .from_pretrained() which already loads the weights.
     # However, ckpt_path can be used to load different weights from any checkpoint.
@@ -46,7 +48,7 @@ def test(config: DictConfig) -> None:
     # Init pytorch-ie taskmodule
     log.info(f"Instantiating taskmodule <{config.taskmodule._target_}>")
     taskmodule: TaskModule = hydra.utils.instantiate(
-        config.taskmodule, pretrained_model_name_or_path=config.pretrained_model_name_or_path
+        config.taskmodule, pretrained_model_name_or_path=config.model_name_or_path
     )
 
     # Init pytorch-ie datamodule
@@ -59,7 +61,7 @@ def test(config: DictConfig) -> None:
     # Init pytorch-ie model
     log.info(f"Instantiating model <{config.model._target_}>")
     model: PyTorchIEModel = hydra.utils.instantiate(
-        config.model, pretrained_model_name_or_path=config.pretrained_model_name_or_path
+        config.model, pretrained_model_name_or_path=config.model_name_or_path
     )
 
     # Init lightning loggers
@@ -73,7 +75,7 @@ def test(config: DictConfig) -> None:
     if trainer.logger:
         trainer.logger.log_hyperparams(
             {
-                "pretrained_model_name_or_path": config.pretrained_model_name_or_path,
+                "model_name_or_path": config.model_name_or_path,
                 "ckpt_path": config.ckpt_path,
                 "dataset": config.dataset,
                 # Note: we log the config from the instantiated objects to log the real hparams,

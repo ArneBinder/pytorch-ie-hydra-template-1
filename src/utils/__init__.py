@@ -107,8 +107,8 @@ def print_config(
 @rank_zero_only
 def log_hyperparameters(
     config: DictConfig,
-    taskmodule: pie.taskmodules.taskmodule.TaskModule,
-    model: pie.core.pytorch_ie.PyTorchIEModel,
+    taskmodule: pie.core.TaskModule,
+    model: pie.core.PyTorchIEModel,
     datamodule: pl.LightningDataModule,
     trainer: pl.Trainer,
     callbacks: List[pl.Callback],
@@ -155,8 +155,8 @@ def log_hyperparameters(
 
 def finish(
     config: DictConfig,
-    model: pl.LightningModule,
-    taskmodule: pie.taskmodules.taskmodule.TaskModule,
+    model: pie.core.PyTorchIEModel,
+    taskmodule: pie.core.TaskModule,
     datamodule: pl.LightningDataModule,
     trainer: pl.Trainer,
     callbacks: List[pl.Callback],

@@ -2,10 +2,9 @@ from typing import Any, Dict, Optional
 
 import hydra
 from omegaconf import DictConfig
-from pytorch_ie import Dataset
-from pytorch_ie.core.pytorch_ie import PyTorchIEModel
+from pytorch_ie.core import PyTorchIEModel, TaskModule
+from pytorch_ie.data import Dataset
 from pytorch_ie.data.datamodules.datamodule import DataModule
-from pytorch_ie.taskmodules.taskmodule import TaskModule
 from pytorch_lightning import Trainer, seed_everything
 
 from src import utils
