@@ -1,0 +1,46 @@
+# @package _global_
+
+# specify here default prediction configuration
+defaults:
+  - _self_
+  - dataset: ???
+  - serializer: json
+
+  # enable color logging
+  - override hydra/hydra_logging: colorlog
+  - override hydra/job_logging: colorlog
+
+original_work_dir: ${hydra:runtime.cwd}
+
+data_dir: ${original_work_dir}/data/
+
+print_config: True
+
+ignore_warnings: True
+
+seed: null
+
+name: "default"
+
+# this should be the value of save_dir from the train config
+# or the url to huggingface hub where the taskmodule and model was pushed to
+model_name_or_path: ???
+
+# specify the taskmodule
+pipeline:
+  _target_: pytorch_ie.auto.AutoPipeline.from_pretrained
+  predict_field: ???
+
+# to override model weights with content of a checkpoint
+ckpt_path: null
+
+# which split from the loaded dataset will be used. If the dataset does contain
+# only one, this is chosen by default.
+dataset_split: null
+
+# if true, remove all annotations from the annotation field with name "predict_field"
+# before executing the pipeline
+remove_annotations: true
+
+# this will be passed to the serializer
+out_path: ???
