@@ -3,8 +3,8 @@ from typing import Dict
 
 import hydra
 from omegaconf import DictConfig
-from pytorch_ie.data import Dataset
 from pytorch_ie.core import PyTorchIEModel, TaskModule
+from pytorch_ie.data import Dataset
 from pytorch_ie.data.datamodules.datamodule import DataModule
 from pytorch_lightning import Trainer, seed_everything
 
