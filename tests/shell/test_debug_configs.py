@@ -20,6 +20,7 @@ def test_debug_overfit():
     run_command(command)
 
 
+@pytest.mark.skip(reason="this takes too much time")
 @pytest.mark.slow
 def test_debug_profiler():
     command = ["train.py", "debug=profiler"]
