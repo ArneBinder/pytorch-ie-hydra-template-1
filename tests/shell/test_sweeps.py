@@ -20,7 +20,8 @@ def test_experiments():
         "-m",
         "experiment=glob(*)",
         "++trainer.max_epochs=1",
-        "++trainer.gpus=0",
+        "++trainer.gpus=1",
+        "logger=null",
     ]
     run_command(command)
 
