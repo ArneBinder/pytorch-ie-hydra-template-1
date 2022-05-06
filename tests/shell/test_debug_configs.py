@@ -1,11 +1,13 @@
 import pytest
 
 from tests.helpers.run_command import run_command
+from tests.helpers.runif import RunIf
 
 
+@RunIf(min_gpus=1)
 @pytest.mark.slow
 def test_debug_default():
-    command = ["train.py", "debug=default"]
+    command = ["train.py", "debug=default", "++trainer.gpus=1"]
     run_command(command)
 
 
