@@ -1,6 +1,7 @@
 import pytest
 
 from tests.helpers.run_command import run_command
+from tests.helpers.runif import RunIf
 
 """
 A couple of tests executing hydra sweeps.
@@ -10,10 +11,17 @@ Use the following command to skip slow tests:
 """
 
 
+@RunIf(min_gpus=1)
 @pytest.mark.slow
 def test_experiments():
     """Test running all available experiment configs for 1 epoch."""
-    command = ["train.py", "-m", "experiment=glob(*)", "++trainer.max_epochs=1"]
+    command = [
+        "train.py",
+        "-m",
+        "experiment=glob(*)",
+        "++trainer.max_epochs=1",
+        "++trainer.max_epochs=1",
+    ]
     run_command(command)
 
 
