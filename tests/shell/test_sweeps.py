@@ -21,7 +21,7 @@ def test_experiments():
         "experiment=glob(*)",
         "++trainer.max_epochs=1",
         "++trainer.gpus=1",
-        "logger=null",
+        "logger=none",
     ]
     run_command(command)
 
@@ -36,7 +36,7 @@ def test_default_sweep():
         "++model.learning_rate=0.01,0.02",
         "trainer=default",
         "++trainer.fast_dev_run=true",
-        "logger=null",
+        "logger=none",
     ]
     run_command(command)
 
@@ -51,6 +51,6 @@ def test_optuna_sweep():
         "hparams_search=mnist_optuna",
         "trainer=default",
         "++trainer.fast_dev_run=true",
-        "logger=null",
+        "logger=none",
     ]
     run_command(command)
