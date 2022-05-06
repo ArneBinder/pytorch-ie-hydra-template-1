@@ -48,12 +48,14 @@ def test_mixed_precision():
     run_command(command)
 
 
+@RunIf(min_gpus=1)
 @pytest.mark.slow
 def test_double_validation_loop():
     """Test running 1 epoch with validation loop twice per epoch."""
     command = [
         "train.py",
         "++trainer.max_epochs=1",
+        "++trainer.gpus=1",
         "++trainer.val_check_interval=0.5",
     ]
     run_command(command)
