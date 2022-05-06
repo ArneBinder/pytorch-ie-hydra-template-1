@@ -71,7 +71,8 @@ def train(config: DictConfig) -> Optional[float]:
         config.trainer, callbacks=callbacks, logger=logger, _convert_="partial"
     )
 
-    save_dir = hydra.utils.to_absolute_path(config["save_dir"])
+    if config.save_dir is not None:
+        config.save_dir = hydra.utils.to_absolute_path(config.save_dir)
 
     # Send some parameters from config to all lightning loggers
     log.info("Logging hyperparameters!")
@@ -85,8 +86,11 @@ def train(config: DictConfig) -> Optional[float]:
         logger=logger,
     )
 
-    log.info(f"Save taskmodule to {save_dir} [push_to_hub={config.push_to_hub}]")
-    taskmodule.save_pretrained(save_directory=save_dir, push_to_hub=config.push_to_hub)
+    if config.save_dir is not None:
+        log.info(f"Save taskmodule to {config.save_dir} [push_to_hub={config.push_to_hub}]")
+        taskmodule.save_pretrained(save_directory=config.save_dir, push_to_hub=config.push_to_hub)
+    else:
+        log.warning("the taskmodule is not saved because no save_dir is specified")
 
     # Train the model
     if config.get("train"):
@@ -126,8 +130,11 @@ def train(config: DictConfig) -> Optional[float]:
     if not config.trainer.get("fast_dev_run") and config.get("train"):
         log.info(f"Best model ckpt at {trainer.checkpoint_callback.best_model_path}")
         model.load_from_checkpoint(trainer.checkpoint_callback.best_model_path)
-        log.info(f"Save best model to {save_dir} [push_to_hub={config.push_to_hub}]")
-        model.save_pretrained(save_directory=save_dir, push_to_hub=config.push_to_hub)
+        if config.save_dir is not None:
+            log.info(f"Save best model to {config.save_dir} [push_to_hub={config.push_to_hub}]")
+            model.save_pretrained(save_directory=config.save_dir, push_to_hub=config.push_to_hub)
+        else:
+            log.warning("the model is not saved because no save_dir is specified")
 
     # Return metric score for hyperparameter optimization
     return score
