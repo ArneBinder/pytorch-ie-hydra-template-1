@@ -56,3 +56,24 @@ def test_double_validation_loop():
         "++trainer.val_check_interval=0.5",
     ]
     run_command(command)
+
+
+@pytest.mark.slow
+def test_testing_cpu():
+    """Test the test script."""
+    command = [
+        "test.py",
+        "++trainer.gpus=0"
+    ]
+    run_command(command)
+
+
+@RunIf(min_gpus=1)
+@pytest.mark.slow
+def test_testing_gpu():
+    """Test the test script."""
+    command = [
+        "test.py",
+        "++trainer.gpus=1"
+    ]
+    run_command(command)
