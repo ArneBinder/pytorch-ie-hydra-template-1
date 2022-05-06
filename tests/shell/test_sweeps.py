@@ -33,9 +33,10 @@ def test_default_sweep():
         "train.py",
         "-m",
         "datamodule.batch_size=64,128",
-        "model.lr=0.01,0.02",
+        "++model.learning_rate=0.01,0.02",
         "trainer=default",
         "++trainer.fast_dev_run=true",
+        "logger=null",
     ]
     run_command(command)
 
