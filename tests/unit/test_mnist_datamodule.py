@@ -6,6 +6,7 @@ import torch
 from src.datamodules.mnist_datamodule import MNISTDataModule
 
 
+@pytest.mark.skip(reason="mnist will be removed soon")
 @pytest.mark.parametrize("batch_size", [32, 128])
 def test_mnist_datamodule(batch_size):
     datamodule = MNISTDataModule(batch_size=batch_size)
