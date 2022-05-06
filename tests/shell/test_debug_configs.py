@@ -16,7 +16,7 @@ def test_debug_limit_batches():
 
 
 def test_debug_overfit():
-    command = ["train.py", "debug=overfit"]
+    command = ["train.py", "debug=overfit", "trainer.max_epochs=5"]
     run_command(command)
 
 
