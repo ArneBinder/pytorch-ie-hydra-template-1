@@ -1,13 +1,12 @@
 import pytest
 
 from tests.helpers.run_command import run_command
-from tests.helpers.runif import RunIf
 
 
-@RunIf(min_gpus=1)
+@pytest.mark.skip(reason="this takes too much time")
 @pytest.mark.slow
 def test_debug_default():
-    command = ["train.py", "debug=default", "++trainer.gpus=1"]
+    command = ["train.py", "debug=default"]
     run_command(command)
 
 
