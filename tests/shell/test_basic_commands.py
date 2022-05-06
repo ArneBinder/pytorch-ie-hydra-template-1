@@ -62,7 +62,7 @@ def test_double_validation_loop():
 
 
 @pytest.mark.slow
-def test_testing_cpu():
+def test_evaluation_cpu():
     """Test the test script."""
     command = ["test.py", "++trainer.gpus=0"]
     run_command(command)
@@ -70,7 +70,7 @@ def test_testing_cpu():
 
 @RunIf(min_gpus=1)
 @pytest.mark.slow
-def test_testing_gpu():
+def test_evaluation_gpu():
     """Test the test script."""
     command = ["test.py", "++trainer.gpus=1"]
     run_command(command)
