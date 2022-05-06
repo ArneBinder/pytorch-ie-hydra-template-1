@@ -14,7 +14,7 @@ def test_fast_dev_run():
     run_command(command)
 
 
-@pytest.skip(reason="this takes too much time")
+@pytest.mark.skip(reason="this takes too much time")
 @pytest.mark.slow
 def test_cpu():
     """Test running 1 epoch on CPU."""
