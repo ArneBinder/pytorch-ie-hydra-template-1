@@ -3,7 +3,7 @@
 # specify here default prediction configuration
 defaults:
   - _self_
-  - dataset: ???
+  - dataset: conll2003
   - serializer: json
 
   # enable color logging
@@ -24,23 +24,23 @@ name: "default"
 
 # this should be the value of save_dir from the train config
 # or the url to huggingface hub where the taskmodule and model was pushed to
-model_name_or_path: ???
+model_name_or_path: pie/example-ner-spanclf-conll03
 
 # specify the taskmodule
 pipeline:
   _target_: pytorch_ie.auto.AutoPipeline.from_pretrained
-  predict_field: ???
+  predict_field: entities
 
 # to override model weights with content of a checkpoint
 ckpt_path: null
 
 # which split from the loaded dataset will be used. If the dataset does contain
 # only one, this is chosen by default.
-dataset_split: null
+dataset_split: test
 
 # if true, remove all annotations from the annotation field with name "predict_field"
 # before executing the pipeline
 remove_annotations: true
 
 # this will be passed to the serializer
-out_path: ???
+out_path: predictions/conll2003_test.jsonl
