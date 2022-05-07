@@ -17,13 +17,6 @@ def clear_annotation_field(doc: Document, field_name: str) -> Document:
     return doc
 
 
-def move_predictions_to_annotations(doc: Document, field_name: str) -> Document:
-    for annotation in doc[field_name].predictions:
-        doc[field_name].append(annotation)
-    doc[field_name].predictions._annotations = []
-    return doc
-
-
 log = utils.get_logger(__name__)
 
 
@@ -88,12 +81,6 @@ def predict(config: DictConfig) -> None:
 
     log.info("Starting inference!")
     dataset_with_predictions = pipeline(dataset_predict, inplace=False)
-
-    # promote predictions to annotations (this may be required for serialization)
-    dataset_with_predictions = [
-        move_predictions_to_annotations(doc, field_name=config.pipeline.predict_field)
-        for doc in dataset_with_predictions
-    ]
 
     # Convert to absolute path
     config.out_path = hydra.utils.to_absolute_path(config.out_path)
