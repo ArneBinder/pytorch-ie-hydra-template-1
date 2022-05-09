@@ -5,7 +5,7 @@ from tests.helpers.run_command import run_command
 
 @pytest.mark.slow
 def test_debug_default():
-    command = ["train.py", "debug=default",  "++trainer.limit_train_batches=5"]
+    command = ["train.py", "debug=default", "++trainer.limit_train_batches=5"]
     run_command(command)
 
 
