@@ -3,10 +3,9 @@ import pytest
 from tests.helpers.run_command import run_command
 
 
-@pytest.mark.skip(reason="this takes too much time")
 @pytest.mark.slow
 def test_debug_default():
-    command = ["train.py", "debug=default"]
+    command = ["train.py", "debug=default",  "++trainer.limit_train_batches=5"]
     run_command(command)
 
 
@@ -20,10 +19,9 @@ def test_debug_overfit():
     run_command(command)
 
 
-@pytest.mark.skip(reason="this takes too much time")
 @pytest.mark.slow
 def test_debug_profiler():
-    command = ["train.py", "debug=profiler"]
+    command = ["train.py", "debug=profiler", "++trainer.limit_train_batches=5"]
     run_command(command)
 
 
