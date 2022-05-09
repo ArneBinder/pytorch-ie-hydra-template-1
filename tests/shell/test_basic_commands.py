@@ -64,7 +64,7 @@ def test_double_validation_loop():
 @pytest.mark.slow
 def test_evaluation_cpu():
     """Test the test script."""
-    command = ["test.py", "++trainer.gpus=0"]
+    command = ["test.py", "++trainer.gpus=0", "++trainer.limit_test_batches=5"]
     run_command(command)
 
 
