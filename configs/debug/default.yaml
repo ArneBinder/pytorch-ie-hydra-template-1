@@ -26,3 +26,6 @@ hydra:
 
 # config is already printed by hydra when `hydra/verbose: True`
 print_config: False
+
+# do not save the model and taskmodule
+save_dir: null

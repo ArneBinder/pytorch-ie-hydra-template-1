@@ -4,6 +4,9 @@
 
 defaults:
   - default.yaml
+  # Disable the early stopping callback because no val metrics
+  # are available when overfit_batches is set.
+  - override /callbacks: none
 
 trainer:
   max_epochs: 20

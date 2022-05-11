@@ -3,7 +3,7 @@
 # specify here default evaluation configuration
 defaults:
   - _self_
-  - dataset: ???
+  - dataset: conll2003
   - datamodule: default
   - callbacks: null
   - logger: null
@@ -30,7 +30,7 @@ name: "default"
 
 # this should be the value of save_dir from the train config
 # or the url to huggingface hub where the taskmodule and model was pushed to
-model_name_or_path: ???
+model_name_or_path: pie/example-ner-spanclf-conll03
 
 # specify the taskmodule
 taskmodule:
