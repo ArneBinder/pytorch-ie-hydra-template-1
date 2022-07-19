@@ -8,9 +8,15 @@ A couple of sanity checks to make sure the model doesn't crash with different ru
 """
 
 
-def test_fast_dev_run():
+def test_fast_dev_run_with_evaluation():
     """Test running for 1 train, val and test batch."""
-    command = ["train.py", "++trainer.fast_dev_run=true"]
+    command = ["train.py", "++trainer.fast_dev_run=true", "++test=true"]
+    run_command(command)
+
+
+def test_evaluation_single_batch():
+    """Test the test script with a single batch."""
+    command = ["test.py", "++trainer.limit_test_batches=1"]
     run_command(command)
 
 
