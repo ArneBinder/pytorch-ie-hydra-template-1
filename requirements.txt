@@ -24,5 +24,6 @@ nbstripout      # remove output from jupyter notebooks
 python-dotenv   # loading env variables from .env file
 rich            # beautiful text formatting in terminal
 pytest          # tests
+pytest-cov      # test coverage
 sh              # for running bash commands in some tests
 pudb            # debugger
