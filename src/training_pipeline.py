@@ -48,13 +48,10 @@ def train(config: DictConfig) -> Optional[float]:
     # This calls taskmodule.prepare() on the train split.
     datamodule.setup(stage="fit")
 
-    # Init taskmodule-model-bridge
-    additional_model_kwargs: Dict[str, Any] = hydra.utils.instantiate(
-        config.bridge, taskmodule=taskmodule
-    )
-
     # Init pytorch-ie model
     log.info(f"Instantiating model <{config.model._target_}>")
+    # NOTE: THE FOLLOWING LINE MAY NEED ADAPTATION WHEN YOU DEFINE YOUR OWN MODELS OR TASKMODULES!
+    additional_model_kwargs: Dict[str, Any] = dict(num_classes=len(taskmodule.label_to_id))
     model: PyTorchIEModel = hydra.utils.instantiate(
         config.model, _convert_="partial", **additional_model_kwargs
     )
