@@ -1,9 +1,6 @@
 # --------- pytorch-ie --------- #
 pytorch-ie>=0.7.0,<0.8
 
-# --------- pytorch --------- #
-torchvision>=0.11.0
-
 # --------- hydra --------- #
 hydra-core>=1.1.0
 hydra-colorlog>=1.1.0
