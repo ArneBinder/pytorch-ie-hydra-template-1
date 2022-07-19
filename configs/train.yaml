@@ -6,7 +6,6 @@ defaults:
   - dataset: conll2003.yaml
   - datamodule: default.yaml
   - taskmodule: transformer_token_classification.yaml
-  - bridge: transformer_token_classification.yaml
   - model: transformer_token_classification.yaml
   - callbacks: default.yaml
   - logger: null # set logger here or use command line (e.g. `python train.py logger=tensorboard`)
