@@ -140,6 +140,9 @@ conda activate myenv
 
 # install requirements
 pip install -r requirements.txt
+
+# [OPTIONAL] outsource log directories to "$HOME/experiments/my-project" and symlink
+bash setup_symlinks.sh $HOME/experiments/my-project
 ```
 
 Template contains example with CONLL2003 Named Entity Recognition.<br>
