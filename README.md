@@ -63,6 +63,7 @@ The directory structure of new project looks like this:
 ├── configs                   <- Hydra configuration files
 │   ├── callbacks                <- Callbacks configs
 │   ├── datamodule               <- Datamodule configs
+│   ├── dataset                  <- Dataset configs
 │   ├── debug                    <- Debugging configs
 │   ├── experiment               <- Experiment configs
 │   ├── hparams_search           <- Hyperparameter search configs
@@ -70,6 +71,7 @@ The directory structure of new project looks like this:
 │   ├── log_dir                  <- Logging directory configs
 │   ├── logger                   <- Logger configs
 │   ├── model                    <- Model configs
+│   ├── taskmodule               <- Taskmodule configs
 │   ├── trainer                  <- Trainer configs
 │   │
 │   ├── test.yaml             <- Main config for testing
@@ -87,7 +89,9 @@ The directory structure of new project looks like this:
 │
 ├── src                    <- Source code
 │   ├── datamodules              <- Lightning datamodules
-│   ├── models                   <- Lightning models
+│   ├── datasets                 <- Pytorch-IE datasets
+│   ├── models                   <- Pytorch-IE models
+│   ├── taskmodules              <- Pytorch-IE taskmodules
 │   ├── utils                    <- Utility scripts
 │   ├── vendor                   <- Third party code that cannot be installed using PIP/Conda
 │   │
