@@ -43,4 +43,4 @@ dataset_split: test
 remove_annotations: true
 
 # this will be passed to the serializer
-out_path: predictions/conll2003_test.jsonl
+out_path: predictions/${name}/${dataset_split}/${now:%Y-%m-%d_%H-%M-%S}.jsonl
