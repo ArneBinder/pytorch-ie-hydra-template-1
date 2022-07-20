@@ -1,0 +1,14 @@
+# This workflow will process the main readme with markdown-autodocs, i.e. importing example source code from files.
+# See https://github.com/marketplace/actions/markdown-autodocs#why-markdown-autodocs for further information.
+
+name: markdown-autodocs
+
+on:
+  pull_request: {}
+
+jobs:
+  markdown-autodocs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Markdown autodocs
+      - uses: dineshsonachalam/markdown-autodocs@v1.0.4
