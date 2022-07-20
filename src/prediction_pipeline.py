@@ -47,7 +47,9 @@ def predict(config: DictConfig) -> None:
     dataset: Dict[str, Dataset] = hydra.utils.instantiate(config.dataset)
 
     # Init pytorch-ie pipeline
-    log.info(f"Instantiating pipeline <{config.pipeline._target_}> from {config.model_name_or_path}")
+    log.info(
+        f"Instantiating pipeline <{config.pipeline._target_}> from {config.model_name_or_path}"
+    )
     pipeline: Pipeline = hydra.utils.instantiate(
         config.pipeline, pretrained_model_name_or_path=config.model_name_or_path
     )
