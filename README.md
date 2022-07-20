@@ -471,7 +471,7 @@ It determines how config is composed when simply executing command `python train
 <details>
 <summary><b>Show main project config</b></summary>
 
-<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./configs/train.yml) -->
+<!-- MARKDOWN-AUTO-DOCS:START (CODE:src=./configs/train.yaml) -->
 <!-- MARKDOWN-AUTO-DOCS:END -->
 
 </details>
