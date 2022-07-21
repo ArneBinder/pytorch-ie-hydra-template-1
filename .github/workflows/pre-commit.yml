@@ -16,6 +16,8 @@ jobs:
       - name: show previous workflow conclusion
         run: echo ${{ github.event.workflow_run.conclusion }}
       - uses: dineshsonachalam/markdown-autodocs@v1.0.4
+        with:
+          accessToken: ${{ secrets.GITHUB_TOKEN }}
       - name: Set up Python 3.9
         uses: actions/setup-python@v4
         with:
