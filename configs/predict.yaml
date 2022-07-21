@@ -26,16 +26,17 @@ name: "default"
 # or the url to huggingface hub where the taskmodule and model was pushed to
 model_name_or_path: pie/example-ner-spanclf-conll03
 
-# specify the taskmodule
+# specify the PyTorch-IE pipeline
 pipeline:
   _target_: pytorch_ie.auto.AutoPipeline.from_pretrained
   predict_field: entities
+  show_progress_bar: true
 
 # to override model weights with content of a checkpoint
 ckpt_path: null
 
 # which split from the loaded dataset will be used. If the dataset does contain
-# only one, this is chosen by default.
+# only one, it is chosen by default when set to null.
 dataset_split: test
 
 # this will be passed to the serializer
