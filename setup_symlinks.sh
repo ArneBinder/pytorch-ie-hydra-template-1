@@ -9,14 +9,14 @@
 ## save_dir (see config/train.yaml) which needs to be symlinked manually, if outsourcing them
 ## is intended.
 
-EXPERIMENTS_DIR=$1
-[[ -z "$EXPERIMENTS_DIR" ]] && { echo "Error: No target directory was provided"; exit 1; }
+TARGET_DIR=$1
+[[ -z "$TARGET_DIR" ]] && { echo "Error: No target directory was provided"; exit 1; }
 DIRS=( "logs/experiments" "logs/evaluations" "logs/debugs" "models/default" "models/conll2003" )
 
-echo "symlink to $EXPERIMENTS_DIR..."
+echo "symlink to $TARGET_DIR..."
 for d in "${DIRS[@]}"
 do
     echo "symlink: $d"
-    mkdir -p "$EXPERIMENTS_DIR/$d"
-    ln -s -T "$EXPERIMENTS_DIR/$d" "$d"
+    mkdir -p "$TARGET_DIR/$d"
+    ln -s -T "$TARGET_DIR/$d" "$d"
 done
