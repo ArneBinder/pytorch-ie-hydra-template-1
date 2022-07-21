@@ -141,7 +141,8 @@ conda activate myenv
 # install requirements
 pip install -r requirements.txt
 
-# [OPTIONAL] outsource log directories to "$HOME/experiments/my-project" and symlink
+# [OPTIONAL] symlink log directories and the default model directory to
+# "$HOME/experiments/my-project" since they can grow a lot
 bash setup_symlinks.sh $HOME/experiments/my-project
 ```
 
