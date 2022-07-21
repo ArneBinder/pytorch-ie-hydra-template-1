@@ -38,9 +38,5 @@ ckpt_path: null
 # only one, this is chosen by default.
 dataset_split: test
 
-# if true, remove all annotations from the annotation field with name "predict_field"
-# before executing the pipeline
-remove_annotations: true
-
 # this will be passed to the serializer
 out_path: predictions/${name}/${dataset_split}/${now:%Y-%m-%d_%H-%M-%S}.jsonl

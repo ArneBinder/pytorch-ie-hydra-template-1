@@ -11,12 +11,6 @@ from pytorch_lightning import seed_everything
 from src import utils
 
 
-def clear_annotation_field(doc: Document, field_name: str) -> Document:
-    doc[field_name].clear()
-    # return the document to allow usage with dataset.map
-    return doc
-
-
 log = utils.get_logger(__name__)
 
 
@@ -73,13 +67,6 @@ def predict(config: DictConfig) -> None:
 
     # select the dataset split for prediction
     dataset_predict = dataset[config.dataset_split]
-
-    # annotations with the same name as the ones to predict can be deleted before adding the new annotations
-    if config.remove_annotations:
-
-        dataset_predict = dataset_predict.map(
-            clear_annotation_field, fn_kwargs=dict(field_name=config.pipeline.predict_field)
-        )
 
     log.info("Starting inference!")
     dataset_with_predictions = pipeline(dataset_predict, inplace=False)
