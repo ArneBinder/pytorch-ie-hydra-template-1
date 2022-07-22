@@ -45,3 +45,7 @@ hydra:
     params:
       datamodule.batch_size: choice(32,64,128)
       model.learning_rate: interval(0.0001, 0.2)
+
+# This is a dummy value necessary to allow overwriting it in the sweep.
+model:
+  learning_rate: 0.00001
