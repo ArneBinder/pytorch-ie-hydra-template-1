@@ -28,4 +28,4 @@ jobs:
           pip install -r requirements.txt
       - name: Run tests with coverage
         run: |
-          pytest -k "(unit or test_basic_commands) and not slow" --cov --cov-report term-missing
+          pytest -k "not slow" --ignore=tests/shell/test_debug_configs.py --ignore=tests/shell/test_sweeps.py --cov --cov-report term-missing
