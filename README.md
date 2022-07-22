@@ -429,19 +429,13 @@ Have a question? Found a bug? Missing a specific feature? Have an idea for impro
 
 ### How It Works
 
-All PyTorch Lightning modules are dynamically instantiated from module paths specified in config. Example model config:
+All PyTorch-IE Lightning modules are dynamically instantiated from module paths specified in config. Example model config:
 
 ```yaml
-_target_: src.models.mnist_model.MNISTLitModule
-lr: 0.001
+_target_: pytorch_ie.models.transformer_token_classification.TransformerTokenClassificationModel
 
-net:
-  _target_: src.models.components.simple_dense_net.SimpleDenseNet
-  input_size: 784
-  lin1_size: 256
-  lin2_size: 256
-  lin3_size: 256
-  output_size: 10
+model_name_or_path: bert-base-uncased
+learning_rate: 0.005
 ```
 
 Using this config we can instantiate the object with the following line:
@@ -455,7 +449,7 @@ This allows you to easily iterate over new models! Every time you create a new o
 Switch between models and datamodules with command line arguments:
 
 ```bash
-python train.py model=mnist
+python train.py model=transformer_token_classification
 ```
 
 The whole pipeline managing the instantiation logic is placed in [src/training_pipeline.py](src/training_pipeline.py).
@@ -472,11 +466,15 @@ It determines how config is composed when simply executing command `python train
 <summary><b>Show main project config</b></summary>
 
 ```yaml
+# @package _global_
+
 # specify here default training configuration
 defaults:
   - _self_
-  - datamodule: mnist.yaml
-  - model: mnist.yaml
+  - dataset: conll2003.yaml
+  - datamodule: default.yaml
+  - taskmodule: transformer_token_classification.yaml
+  - model: transformer_token_classification.yaml
   - callbacks: default.yaml
   - logger: null # set logger here or use command line (e.g. `python train.py logger=tensorboard`)
   - trainer: default.yaml
@@ -519,14 +517,20 @@ train: True
 
 # evaluate on test set, using best model weights achieved during training
 # lightning chooses best weights based on the metric specified in checkpoint callback
-test: True
+test: False
 
 # seed for random number generators in pytorch, numpy and python.random
 seed: null
 
-# default name for the experiment, determines logging folder path
+# default name for the experiment, determines logging folder path and trained model location
 # (you can overwrite this name in experiment configs)
 name: "default"
+
+# push the model and taskmodule to the huggingface model hub when training has finished
+push_to_hub: False
+
+# where to save the trained model and taskmodule
+save_dir: models/${name}/${now:%Y-%m-%d_%H-%M-%S}
 ```
 
 </details>
@@ -543,42 +547,40 @@ For example, you can use them to version control best hyperparameters for each c
 <summary><b>Show example experiment config</b></summary>
 
 ```yaml
+# @package _global_
+
 # to execute this experiment run:
-# python train.py experiment=example
+# python train.py experiment=conll2003
 
 defaults:
-  - override /datamodule: mnist.yaml
-  - override /model: mnist.yaml
+  - override /dataset: conll2003.yaml
+  - override /datamodule: default.yaml
+  - override /taskmodule: transformer_token_classification.yaml
+  - override /model: transformer_token_classification.yaml
   - override /callbacks: default.yaml
-  - override /logger: null
+  - override /logger: wandb.yaml
   - override /trainer: default.yaml
 
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
 
 # name of the run determines folder name in logs
-name: "simple_dense_net"
+name: "conll2003/transformer_token_classification"
 
 seed: 12345
 
 trainer:
-  min_epochs: 10
-  max_epochs: 10
-  gradient_clip_val: 0.5
-
-model:
-  lr: 0.002
-  net:
-    lin1_size: 128
-    lin2_size: 256
-    lin3_size: 64
+  min_epochs: 5
+  max_epochs: 20
 
 datamodule:
-  batch_size: 64
+  batch_size: 32
 
 logger:
   wandb:
-    tags: ["mnist", "${name}"]
+    project: pie-example-conll2003
+    tags: ["conll2003", "transformer_token_classification"]
+
 ```
 
 </details>
@@ -618,10 +620,11 @@ hydra:
 
 ### Workflow
 
-1. Write your PyTorch Lightning module (see [models/mnist_module.py](src/models/mnist_module.py) for example)
-2. Write your PyTorch Lightning datamodule (see [datamodules/mnist_datamodule.py](src/datamodules/mnist_datamodule.py) for example)
-3. Write your experiment config, containing paths to your model and datamodule
-4. Run training with chosen experiment config: `python train.py experiment=experiment_name`
+1. Write your PyTorch Lightning module (see [pytorch_ie/models/modules/mlp.py](https://github.com/ChristophAlt/pytorch-ie/blob/main/src/pytorch_ie/models/modules/mlp.py) for example)
+2. Write your PyTorch-IE Lightning model (see [pytorch_ie/models/transformer_token_classification.py](https://github.com/ChristophAlt/pytorch-ie/blob/main/src/pytorch_ie/models/transformer_token_classification.py) fo example)
+3. Write your PyTorch Lightning datamodule (see [pytorch_ie/data/datamodules/datamodule.py](https://github.com/ChristophAlt/pytorch-ie/blob/main/src/pytorch_ie/data/datamodules/datamodule.py) for example)
+4. Write your experiment config, containing paths to your model and datamodule
+5. Run training with chosen experiment config: `python train.py experiment=experiment_name`
 
 <br>
 
@@ -665,7 +668,7 @@ You can change this structure by modifying paths in [hydra configuration](config
 
 ### Experiment Tracking
 
-PyTorch Lightning supports many popular logging frameworks:<br>
+PyTorch-IE Lightning supports many popular logging frameworks:<br>
 **[Weights&Biases](https://www.wandb.com/) · [Neptune](https://neptune.ai/) · [Comet](https://www.comet.ml/) · [MLFlow](https://mlflow.org) · [Tensorboard](https://www.tensorflow.org/tensorboard/)**
 
 These tools help you keep track of hyperparameters and output metrics and allow you to compare and visualize results. To use one of them simply complete its configuration in [configs/logger](configs/logger) and run:
@@ -678,7 +681,7 @@ You can use many of them at once (see [configs/logger/many_loggers.yaml](configs
 
 You can also write your own logger.
 
-Lightning provides convenient method for logging custom metrics from inside LightningModule. Read the docs [here](https://pytorch-lightning.readthedocs.io/en/latest/extensions/logging.html#automatic-logging) or take a look at [MNIST example](src/models/mnist_module.py).
+Lightning provides convenient method for logging custom metrics from inside LightningModule. Read the docs [here](https://pytorch-lightning.readthedocs.io/en/latest/extensions/logging.html#automatic-logging) or take a look at [TransformerTokenClassification example](https://github.com/ChristophAlt/pytorch-ie/blob/main/src/pytorch_ie/models/transformer_token_classification.py).
 
 <br>
 
@@ -860,14 +863,6 @@ Callbacks which provide examples of logging custom visualisations:
 - **LogConfusionMatrix**
 - **LogF1PrecRecHeatmap**
 - **LogImagePredictions**
-
-To try all of the callbacks at once, switch to the right branch:
-
-```bash
-git checkout wandb-callbacks
-```
-
-And then run the following command:
 
 ```bash
 python train.py logger=wandb callbacks=wandb
