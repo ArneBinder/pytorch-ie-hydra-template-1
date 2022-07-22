@@ -668,7 +668,7 @@ You can change this structure by modifying paths in [hydra configuration](config
 
 ### Experiment Tracking
 
-PyTorch-IE Lightning supports many popular logging frameworks:<br>
+PyTorch-IE is based on PyTorch Lightning which supports many popular logging frameworks:<br>
 **[Weights&Biases](https://www.wandb.com/) · [Neptune](https://neptune.ai/) · [Comet](https://www.comet.ml/) · [MLFlow](https://mlflow.org) · [Tensorboard](https://www.tensorflow.org/tensorboard/)**
 
 These tools help you keep track of hyperparameters and output metrics and allow you to compare and visualize results. To use one of them simply complete its configuration in [configs/logger](configs/logger) and run:
