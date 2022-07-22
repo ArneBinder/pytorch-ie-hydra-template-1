@@ -429,7 +429,7 @@ Have a question? Found a bug? Missing a specific feature? Have an idea for impro
 
 ### How It Works
 
-All PyTorch-IE Lightning modules are dynamically instantiated from module paths specified in config. Example model config:
+All PyTorch-IE modules are dynamically instantiated from module paths specified in config. Example model config:
 
 ```yaml
 _target_: pytorch_ie.models.transformer_token_classification.TransformerTokenClassificationModel
