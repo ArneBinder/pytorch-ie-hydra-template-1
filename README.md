@@ -771,56 +771,33 @@ The following code is an example of loading model from checkpoint and running pr
 <summary><b>Show example</b></summary>
 
 ```python
-from PIL import Image
-from torchvision import transforms
+from dataclasses import dataclass
 
-from src.models.mnist_module import MNISTLitModule
+from pytorch_ie.annotations import LabeledSpan
+from pytorch_ie.auto import AutoPipeline
+from pytorch_ie.core import AnnotationList, annotation_field
+from pytorch_ie.documents import TextDocument
 
+@dataclass
+class ExampleDocument(TextDocument):
+    entities: AnnotationList[LabeledSpan] = annotation_field(target="text")
 
-def predict():
-    """Example of inference with trained model.
-    It loads trained image classification model from checkpoint.
-    Then it loads example image and predicts its label.
-    """
+document = ExampleDocument(
+    "“Making a super tasty alt-chicken wing is only half of it,” said Po Bronson, general partner at SOSV and managing director of IndieBio."
+)
 
-    # ckpt can be also a URL!
-    CKPT_PATH = "last.ckpt"
+# see below for the long version
+ner_pipeline = AutoPipeline.from_pretrained("pie/example-ner-spanclf-conll03", device=-1, num_workers=0)
 
-    # load model from checkpoint
-    # model __init__ parameters will be loaded from ckpt automatically
-    # you can also pass some parameter explicitly to override it
-    trained_model = MNISTLitModule.load_from_checkpoint(checkpoint_path=CKPT_PATH)
+ner_pipeline(document, predict_field="entities")
 
-    # print model hyperparameters
-    print(trained_model.hparams)
+for entity in document.entities.predictions:
+    print(f"{entity} -> {entity.label}")
 
-    # switch to evaluation mode
-    trained_model.eval()
-    trained_model.freeze()
-
-    # load data
-    img = Image.open("data/example_img.png").convert("L")  # convert to black and white
-    # img = Image.open("data/example_img.png").convert("RGB")  # convert to RGB
-
-    # preprocess
-    mnist_transforms = transforms.Compose(
-        [
-            transforms.ToTensor(),
-            transforms.Resize((28, 28)),
-            transforms.Normalize((0.1307,), (0.3081,)),
-        ]
-    )
-    img = mnist_transforms(img)
-    img = img.reshape((1, *img.size()))  # reshape to form batch of size 1
-
-    # inference
-    output = trained_model(img)
-    print(output)
-
-
-if __name__ == "__main__":
-    predict()
-
+# Result:
+# IndieBio -> ORG
+# Po Bronson -> PER
+# SOSV -> ORG
 ```
 
 </details>
