@@ -620,9 +620,9 @@ hydra:
 
 ### Workflow
 
-1. Write your PyTorch-IE dataset (see ...) or try out one of PIE datasets hosted at huggingface.co/pie 
+1. Write your PyTorch-IE dataset (see [pytorch_ie/data/datasets/hf_datasets/ace2004.py](https://github.com/ChristophAlt/pytorch-ie/blob/main/src/pytorch_ie/data/datasets/hf_datasets/ace2004.py)) or try out one of PIE datasets hosted at huggingface.co/pie
 2. Write your PyTorch-IE model (see [pytorch_ie/models/transformer_token_classification.py](https://github.com/ChristophAlt/pytorch-ie/blob/main/src/pytorch_ie/models/transformer_token_classification.py) for example)
-3. Write your PyTorch-IE taskmodule (see ...) for example)
+3. Write your PyTorch-IE taskmodule (see [pytorch_ie/taskmodules/transformer_token_classification.py](https://github.com/ChristophAlt/pytorch-ie/blob/main/src/pytorch_ie/taskmodules/transformer_token_classification.py) for example)
 4. Write your experiment config, containing paths to your model, taskmodule and dataset.
 5. Run training with chosen experiment config: `python train.py experiment=experiment_name`
 
@@ -782,17 +782,28 @@ from pytorch_ie.documents import TextDocument
 class ExampleDocument(TextDocument):
     entities: AnnotationList[LabeledSpan] = annotation_field(target="text")
 
-document = ExampleDocument(
-    "“Making a super tasty alt-chicken wing is only half of it,” said Po Bronson, general partner at SOSV and managing director of IndieBio."
-)
 
-# see below for the long version
-ner_pipeline = AutoPipeline.from_pretrained("pie/example-ner-spanclf-conll03", device=-1, num_workers=0)
+def predict():
+   """
+   Example of inference with trained model.
+   It loads pretrained NER model. Then it
+   creates an example document (PyTorch-IE Document) and predicts
+   entities from the text in the document.
+   """
+   document = ExampleDocument(
+       "“Making a super tasty alt-chicken wing is only half of it,” said Po Bronson, general partner at SOSV and managing director of IndieBio."
+   )
 
-ner_pipeline(document, predict_field="entities")
+   # model path can be set to a location at huggingface as shown below or local path to the training result serialized to out_path
+   ner_pipeline = AutoPipeline.from_pretrained("pie/example-ner-spanclf-conll03", device=-1, num_workers=0)
 
-for entity in document.entities.predictions:
-    print(f"{entity} -> {entity.label}")
+   ner_pipeline(document, predict_field="entities")
+
+   for entity in document.entities.predictions:
+       print(f"{entity} -> {entity.label}")
+
+if __name__ == "__main__":
+    predict()
 
 # Result:
 # IndieBio -> ORG
@@ -841,6 +852,13 @@ Callbacks which provide examples of logging custom visualisations:
 - **LogF1PrecRecHeatmap**
 - **LogImagePredictions**
 
+To try all of the callbacks at once, switch to the right branch:
+
+```bash
+git checkout wandb-callbacks
+```
+
+And then run the following command:
 ```bash
 python train.py logger=wandb callbacks=wandb
 ```
