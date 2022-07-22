@@ -41,14 +41,13 @@ def test_default_sweep():
     run_command(command)
 
 
-@pytest.mark.skip(reason="needs hparams_search=conll2003_optima instead of mnist_optuna")
 @pytest.mark.slow
 def test_optuna_sweep():
     """Test Optuna sweeper."""
     command = [
         "train.py",
         "-m",
-        "hparams_search=mnist_optuna",
+        "hparams_search=conll2003_optuna",
         "trainer=default",
         "++trainer.fast_dev_run=true",
         "logger=none",
