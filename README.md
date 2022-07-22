@@ -621,7 +621,7 @@ hydra:
 ### Workflow
 
 1. Write your PyTorch Lightning module (see [pytorch_ie/models/modules/mlp.py](https://github.com/ChristophAlt/pytorch-ie/blob/main/src/pytorch_ie/models/modules/mlp.py) for example)
-2. Write your PyTorch-IE Lightning model (see [pytorch_ie/models/transformer_token_classification.py](https://github.com/ChristophAlt/pytorch-ie/blob/main/src/pytorch_ie/models/transformer_token_classification.py) fo example)
+2. Write your PyTorch-IE model (see [pytorch_ie/models/transformer_token_classification.py](https://github.com/ChristophAlt/pytorch-ie/blob/main/src/pytorch_ie/models/transformer_token_classification.py) for example)
 3. Write your PyTorch Lightning datamodule (see [pytorch_ie/data/datamodules/datamodule.py](https://github.com/ChristophAlt/pytorch-ie/blob/main/src/pytorch_ie/data/datamodules/datamodule.py) for example)
 4. Write your experiment config, containing paths to your model and datamodule
 5. Run training with chosen experiment config: `python train.py experiment=experiment_name`
