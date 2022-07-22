@@ -623,7 +623,7 @@ hydra:
 1. Write your PyTorch-IE dataset (see ...) or try out one of PIE datasets hosted at huggingface.co/pie 
 2. Write your PyTorch-IE model (see [pytorch_ie/models/transformer_token_classification.py](https://github.com/ChristophAlt/pytorch-ie/blob/main/src/pytorch_ie/models/transformer_token_classification.py) for example)
 3. Write your PyTorch-IE taskmodule (see ...) for example)
-4. Write your experiment config, containing paths to your model and datamodule
+4. Write your experiment config, containing paths to your model, taskmodule and dataset.
 5. Run training with chosen experiment config: `python train.py experiment=experiment_name`
 
 <br>
