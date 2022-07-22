@@ -1,7 +1,7 @@
 import json
 from dataclasses import dataclass
 
-from pytorch_ie.annotations import LabeledSpan, BinaryRelation
+from pytorch_ie.annotations import BinaryRelation, LabeledSpan
 from pytorch_ie.core import AnnotationList, annotation_field
 from pytorch_ie.documents import TextDocument
 
