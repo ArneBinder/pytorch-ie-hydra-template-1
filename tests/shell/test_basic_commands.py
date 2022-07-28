@@ -22,12 +22,10 @@ def test_evaluation_single_batch():
     run_command(command)
 
 
-@pytest.mark.slow
-def test_prediction(tmp_path):
-    """Test the prediction script."""
-    # TODO: use fast_dev_run when available and remove "slow"
+def test_prediction_fast_dev_run(tmp_path):
+    """Test the prediction script with two input encodings (pipeline.fast_dev_run)."""
     out_path = tmp_path / "predictions"
-    command = ["predict.py", f"out_path={out_path}"]
+    command = ["predict.py", f"out_path={out_path}", "++pipeline.fast_dev_run=true"]
     run_command(command)
     assert os.path.exists(out_path)
 
