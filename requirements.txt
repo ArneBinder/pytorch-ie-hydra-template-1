@@ -1,5 +1,5 @@
 # --------- pytorch-ie --------- #
-pytorch-ie>=0.7.0,<0.8
+pytorch-ie>=0.8.0,<0.9
 
 # --------- hydra --------- #
 hydra-core>=1.1.0
