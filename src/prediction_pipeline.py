@@ -56,14 +56,6 @@ def predict(config: DictConfig) -> None:
             pipeline.device
         )
 
-    # if no dataset split is defined, but only one is available, we take this one
-    if config.dataset_split is None:
-        if len(dataset) > 1:
-            raise Exception(
-                f"dataset_split is not defined, but dataset has multiple splits: {list(dataset.keys())}"
-            )
-        config.dataset_split = list(dataset.keys())[0]
-
     # select the dataset split for prediction
     dataset_predict = dataset[config.dataset_split]
 

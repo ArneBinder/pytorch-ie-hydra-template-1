@@ -35,8 +35,7 @@ pipeline:
 # to override model weights with content of a checkpoint
 ckpt_path: null
 
-# which split from the loaded dataset will be used. If the dataset does contain
-# only one, it is chosen by default when set to null.
+# which split from the loaded dataset will be used
 dataset_split: test
 
 # this will be passed to the serializer
