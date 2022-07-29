@@ -148,7 +148,9 @@ TODO: Update Screenshot
 
 <div align="center">
 
-![](https://github.com/ashleve/lightning-hydra-template/blob/resources/terminal.png)
+![](https://github.com/ChristophAlt/pytorch-ie-hydra-template/blob/resources/images/terminal1.png)
+![](https://github.com/ChristophAlt/pytorch-ie-hydra-template/blob/resources/images/terminal2.png)
+![](https://github.com/ChristophAlt/pytorch-ie-hydra-template/blob/resources/images/terminal3.png)
 
 </div>
 
