@@ -15,26 +15,29 @@ _Suggestions are always welcome!_
 
 </div>
 
-<br><br>
+<br>
 
-## 📌&nbsp;&nbsp;Introduction
+## 📌  Introduction
 
-This template tries to be as general as possible. It integrates many different MLOps tools.
+**Why you should use it:**
 
-> Effective usage of this template requires learning of a couple of technologies: [PyTorch](https://pytorch.org), [PyTorch Lightning](https://www.pytorchlightning.ai) and [Hydra](https://hydra.cc). Knowledge of some experiment logging framework like [Weights&Biases](https://wandb.com), [Neptune](https://neptune.ai) or [MLFlow](https://mlflow.org) is also recommended.
+- Convenient all-in-one technology stack for deep learning based information extraction prototyping - allows you to rapidly iterate over new models, datasets and tasks on different hardware accelerators like CPUs, multi-GPUs or TPUs.
+- A collection of best practices for efficient workflow and reproducibility.
+- Thoroughly commented - you can use this repo as a reference and educational resource.
 
-**Why you should use it:** it allows you to rapidly iterate over new models/datasets and scale your projects from small single experiments to hyperparameter searches on computing clusters, without writing any boilerplate code. To my knowledge, it's one of the most convenient all-in-one technology stack for Deep Learning research. Good starting point for reproducing papers, kaggle competitions or small-team research projects. It's also a collection of best practices for efficient workflow and reproducibility.
+**Why you shouldn't use it:**
 
-**Why you shouldn't use it:** this template is not fitted to be a production environment, should be used more as a fast experimentation tool. Apart from that, Lightning and Hydra are still evolving and integrate many libraries, which means sometimes things break - for the list of currently known bugs, visit [this page](https://github.com/ashleve/lightning-hydra-template/labels/bug). Also, even though Lightning is very flexible, it's not well suited for every possible deep learning task. See [#Limitations](#limitations) for more.
+- Not fitted for data engineering - the template configuration setup is not designed for building data processing pipelines that depend on each other.
+- Limits you as much as PyTorch-IE limits you.
+- PyTorch-IE and Hydra are still evolving and integrate many libraries, which means sometimes things break - for the list of currently known problems visit [this page](https://github.com/ChristophAlt/pytorch-ie-hydra-template/labels/bug).
 
-### Why PyTorch Lightning?
+<br>
 
-[PyTorch Lightning](https://github.com/PyTorchLightning/pytorch-lightning) is a lightweight PyTorch wrapper for high-performance AI research.
-It makes your code neatly organized and provides lots of useful features, like ability to run model on CPU, GPU, multi-GPU cluster and TPU.
+## Main Technologies
 
-### Why Hydra?
+[PyTorch-IE](https://github.com/ChristophAlt/pytorch-ie) - a lightweight information extraction (IE) technology stack built on top of [PyTorch Lightning](https://github.com/PyTorchLightning/pytorch-lightning), [Huggingface Datasets](https://github.com/huggingface/datasets) and [Huggingface Hub](https://huggingface.co/) for reproducible high-performance AI research.
 
-[Hydra](https://github.com/facebookresearch/hydra) is an open-source Python framework that simplifies the development of research and other complex applications. The key feature is the ability to dynamically create a hierarchical configuration by composition and override it through config files and the command line. It allows you to conveniently manage experiments and provides many useful plugins, like [Optuna Sweeper](https://hydra.cc/docs/next/plugins/optuna_sweeper) for hyperparameter search, or [Ray Launcher](https://hydra.cc/docs/next/plugins/ray_launcher) for running jobs on a cluster.
+[Hydra](https://github.com/facebookresearch/hydra) - a framework for elegantly configuring complex applications. The key feature is the ability to dynamically create a hierarchical configuration by composition and override it through config files and the command line.
 
 <br>
 
