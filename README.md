@@ -144,8 +144,6 @@ pip install -r requirements.txt
 Template contains example with CONLL2003 Named Entity Recognition.<br>
 When running `python train.py` you should see something like this:
 
-TODO: Update Screenshot
-
 <div align="center">
 
 ![](https://github.com/ChristophAlt/pytorch-ie-hydra-template/blob/resources/images/terminal1.png)
