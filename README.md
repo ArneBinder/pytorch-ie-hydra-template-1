@@ -847,38 +847,6 @@ You can easily modify the commands in the scripts for your use case. If 1 epoch 
 
 <br>
 
-### Callbacks
-
-The branch [`wandb-callbacks`](https://github.com/ashleve/lightning-hydra-template/tree/wandb-callbacks) contains example callbacks enabling better Weights&Biases integration, which you can use as a reference for writing your own callbacks (see [wandb_callbacks.py](https://github.com/ashleve/lightning-hydra-template/tree/wandb-callbacks/src/callbacks/wandb_callbacks.py)).
-
-Callbacks which support reproducibility:
-
-- **WatchModel**
-- **UploadCodeAsArtifact**
-- **UploadCheckpointsAsArtifact**
-
-Callbacks which provide examples of logging custom visualisations:
-
-- **LogConfusionMatrix**
-- **LogF1PrecRecHeatmap**
-- **LogImagePredictions**
-
-To try all of the callbacks at once, switch to the right branch:
-
-```bash
-git checkout wandb-callbacks
-```
-
-And then run the following command:
-
-```bash
-python train.py logger=wandb callbacks=wandb
-```
-
-To see the result of all the callbacks attached, take a look at [this experiment dashboard](https://wandb.ai/hobglob/template-tests/runs/3rw7q70h).
-
-<br>
-
 ### Multi-GPU Training
 
 Lightning supports multiple ways of doing distributed training. The most common one is DDP, which spawns separate process for each GPU and averages gradients between them. To learn about other approaches read the [lightning docs](https://pytorch-lightning.readthedocs.io/en/latest/advanced/multi_gpu.html).
