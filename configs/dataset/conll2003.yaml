@@ -1,3 +1,0 @@
-_target_: datasets.load_dataset
-
-path: pie/conll2003
