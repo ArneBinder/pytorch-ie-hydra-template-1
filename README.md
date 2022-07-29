@@ -15,26 +15,29 @@ _Suggestions are always welcome!_
 
 </div>
 
-<br><br>
+<br>
 
-## 📌&nbsp;&nbsp;Introduction
+## 📌  Introduction
 
-This template tries to be as general as possible. It integrates many different MLOps tools.
+**Why you should use it:**
 
-> Effective usage of this template requires learning of a couple of technologies: [PyTorch](https://pytorch.org), [PyTorch Lightning](https://www.pytorchlightning.ai) and [Hydra](https://hydra.cc). Knowledge of some experiment logging framework like [Weights&Biases](https://wandb.com), [Neptune](https://neptune.ai) or [MLFlow](https://mlflow.org) is also recommended.
+- Convenient all-in-one technology stack for deep learning based information extraction prototyping - allows you to rapidly iterate over new models, datasets and tasks on different hardware accelerators like CPUs, multi-GPUs or TPUs.
+- A collection of best practices for efficient workflow and reproducibility.
+- Thoroughly commented - you can use this repo as a reference and educational resource.
 
-**Why you should use it:** it allows you to rapidly iterate over new models/datasets and scale your projects from small single experiments to hyperparameter searches on computing clusters, without writing any boilerplate code. To my knowledge, it's one of the most convenient all-in-one technology stack for Deep Learning research. Good starting point for reproducing papers, kaggle competitions or small-team research projects. It's also a collection of best practices for efficient workflow and reproducibility.
+**Why you shouldn't use it:**
 
-**Why you shouldn't use it:** this template is not fitted to be a production environment, should be used more as a fast experimentation tool. Apart from that, Lightning and Hydra are still evolving and integrate many libraries, which means sometimes things break - for the list of currently known bugs, visit [this page](https://github.com/ashleve/lightning-hydra-template/labels/bug). Also, even though Lightning is very flexible, it's not well suited for every possible deep learning task. See [#Limitations](#limitations) for more.
+- Not fitted for data engineering - the template configuration setup is not designed for building data processing pipelines that depend on each other.
+- Limits you as much as PyTorch-IE limits you.
+- PyTorch-IE and Hydra are still evolving and integrate many libraries, which means sometimes things break - for the list of currently known problems visit [this page](https://github.com/ChristophAlt/pytorch-ie-hydra-template/labels/bug).
 
-### Why PyTorch Lightning?
+<br>
 
-[PyTorch Lightning](https://github.com/PyTorchLightning/pytorch-lightning) is a lightweight PyTorch wrapper for high-performance AI research.
-It makes your code neatly organized and provides lots of useful features, like ability to run model on CPU, GPU, multi-GPU cluster and TPU.
+## Main Technologies
 
-### Why Hydra?
+[PyTorch-IE](https://github.com/ChristophAlt/pytorch-ie) - a lightweight information extraction (IE) technology stack built on top of [PyTorch Lightning](https://github.com/PyTorchLightning/pytorch-lightning), [Huggingface Datasets](https://github.com/huggingface/datasets) and [Huggingface Hub](https://huggingface.co/) for reproducible high-performance AI research.
 
-[Hydra](https://github.com/facebookresearch/hydra) is an open-source Python framework that simplifies the development of research and other complex applications. The key feature is the ability to dynamically create a hierarchical configuration by composition and override it through config files and the command line. It allows you to conveniently manage experiments and provides many useful plugins, like [Optuna Sweeper](https://hydra.cc/docs/next/plugins/optuna_sweeper) for hyperparameter search, or [Ray Launcher](https://hydra.cc/docs/next/plugins/ray_launcher) for running jobs on a cluster.
+[Hydra](https://github.com/facebookresearch/hydra) - a framework for elegantly configuring complex applications. The key feature is the ability to dynamically create a hierarchical configuration by composition and override it through config files and the command line.
 
 <br>
 
@@ -124,11 +127,11 @@ The directory structure of new project looks like this:
 
 ```bash
 # clone project
-git clone https://github.com/ashleve/lightning-hydra-template
-cd lightning-hydra-template
+git clone https://github.com/ChristophAlt/pytorch-ie-hydra-template.git
+cd pytorch-ie-hydra-template
 
 # [OPTIONAL] create conda environment
-conda create -n myenv python=3.8
+conda create -n myenv python=3.9
 conda activate myenv
 
 # install pytorch according to instructions
@@ -138,8 +141,10 @@ conda activate myenv
 pip install -r requirements.txt
 ```
 
-Template contains example with MNIST classification.<br>
+Template contains example with CONLL2003 Named Entity Recognition.<br>
 When running `python train.py` you should see something like this:
+
+TODO: Update Screenshot
 
 <div align="center">
 
@@ -355,12 +360,12 @@ python train.py -m datamodule.batch_size=32,64,128 model.lr=0.001,0.0005
 <details>
 <summary><b>Create a sweep over hyperparameters with Optuna</b></summary>
 
-> Using [Optuna Sweeper](https://hydra.cc/docs/next/plugins/optuna_sweeper) plugin doesn't require you to code any boilerplate into your pipeline, everything is defined in a [single config file](configs/hparams_search/mnist_optuna.yaml)!
+> Using [Optuna Sweeper](https://hydra.cc/docs/next/plugins/optuna_sweeper) plugin doesn't require you to code any boilerplate into your pipeline, everything is defined in a [single config file](configs/hparams_search/conll2003_optuna.yaml)!
 
 ```bash
 # this will run hyperparameter search defined in `configs/hparams_search/mnist_optuna.yaml`
 # over chosen experiment config
-python train.py -m hparams_search=mnist_optuna experiment=example_simple
+python train.py -m hparams_search=conll2003_optuna experiment=example_simple
 ```
 
 > ⚠️ Currently this sweep is not failure resistant (if one job crashes than the whole sweep crashes). Might be supported in future Hydra release.
@@ -694,65 +699,63 @@ Defining hyperparameter optimization is as easy as adding new config file to [co
 <summary><b>Show example</b></summary>
 
 ```yaml
+# @package _global_
+
+# example hyperparameter optimization of some experiment with Optuna:
+# python train.py -m hparams_search=conll2003_optuna experiment=example
+
 defaults:
   - override /hydra/sweeper: optuna
 
 # choose metric which will be optimized by Optuna
-optimized_metric: "val/acc_best"
+# make sure this is the correct name of some metric logged in lightning module!
+optimized_metric: "val/f1"
 
+# here we define Optuna hyperparameter search
+# it optimizes for value returned from function with @hydra.main decorator
+# docs: https://hydra.cc/docs/next/plugins/optuna_sweeper
 hydra:
-  # here we define Optuna hyperparameter search
-  # it optimizes for value returned from function with @hydra.main decorator
-  # learn more here: https://hydra.cc/docs/next/plugins/optuna_sweeper
   sweeper:
     _target_: hydra_plugins.hydra_optuna_sweeper.optuna_sweeper.OptunaSweeper
+
+    # storage URL to persist optimization results
+    # for example, you can use SQLite if you set 'sqlite:///example.db'
     storage: null
+
+    # name of the study to persist optimization results
     study_name: null
+
+    # number of parallel workers
     n_jobs: 1
 
     # 'minimize' or 'maximize' the objective
     direction: maximize
 
-    # number of experiments that will be executed
-    n_trials: 20
+    # total number of runs that will be executed
+    n_trials: 25
 
     # choose Optuna hyperparameter sampler
-    # learn more here: https://optuna.readthedocs.io/en/stable/reference/samplers.html
+    # docs: https://optuna.readthedocs.io/en/stable/reference/samplers.html
     sampler:
       _target_: optuna.samplers.TPESampler
       seed: 12345
-      consider_prior: true
-      prior_weight: 1.0
-      consider_magic_clip: true
-      consider_endpoints: false
-      n_startup_trials: 10
-      n_ei_candidates: 24
-      multivariate: false
-      warn_independent_sampling: true
+      n_startup_trials: 10 # number of random sampling runs before optimization starts
 
     # define range of hyperparameters
-    search_space:
-      datamodule.batch_size:
-        type: categorical
-        choices: [32, 64, 128]
-      model.lr:
-        type: float
-        low: 0.0001
-        high: 0.2
-      model.net.lin1_size:
-        type: categorical
-        choices: [32, 64, 128, 256, 512]
-      model.net.lin2_size:
-        type: categorical
-        choices: [32, 64, 128, 256, 512]
-      model.net.lin3_size:
-        type: categorical
-        choices: [32, 64, 128, 256, 512]
+    # More information here : https://hydra.cc/docs/plugins/optuna_sweeper/#search-space-configuration
+    params:
+      datamodule.batch_size: choice(32,64,128)
+      model.learning_rate: interval(0.0001, 0.2)
+
+# This is a dummy value necessary to allow overwriting it in the sweep.
+model:
+  learning_rate: 0.00001
+
 ```
 
 </details>
 
-Next, you can execute it with: `python train.py -m hparams_search=mnist_optuna`
+Next, you can execute it with: `python train.py -m hparams_search=conll2003_optuna`
 
 Using this approach doesn't require you to add any boilerplate into your pipeline, everything is defined in a single config file.
 
@@ -834,37 +837,6 @@ pytest -k "not slow"
 To speed up the development, you can once in a while execute tests that run a couple of quick experiments, like training 1 epoch on 25% of data, executing single train/val/test step, etc. Those kind of tests don't check for any specific output - they exist to simply verify that executing some bash commands doesn't end up in throwing exceptions. You can find them implemented in [tests/shell](tests/shell) folder.
 
 You can easily modify the commands in the scripts for your use case. If 1 epoch is too much for your model, then make it run for a couple of batches instead (by using the right trainer flags).
-
-<br>
-
-### Callbacks
-
-The branch [`wandb-callbacks`](https://github.com/ashleve/lightning-hydra-template/tree/wandb-callbacks) contains example callbacks enabling better Weights&Biases integration, which you can use as a reference for writing your own callbacks (see [wandb_callbacks.py](https://github.com/ashleve/lightning-hydra-template/tree/wandb-callbacks/src/callbacks/wandb_callbacks.py)).
-
-Callbacks which support reproducibility:
-
-- **WatchModel**
-- **UploadCodeAsArtifact**
-- **UploadCheckpointsAsArtifact**
-
-Callbacks which provide examples of logging custom visualisations:
-
-- **LogConfusionMatrix**
-- **LogF1PrecRecHeatmap**
-- **LogImagePredictions**
-
-To try all of the callbacks at once, switch to the right branch:
-
-```bash
-git checkout wandb-callbacks
-```
-
-And then run the following command:
-```bash
-python train.py logger=wandb callbacks=wandb
-```
-
-To see the result of all the callbacks attached, take a look at [this experiment dashboard](https://wandb.ai/hobglob/template-tests/runs/3rw7q70h).
 
 <br>
 

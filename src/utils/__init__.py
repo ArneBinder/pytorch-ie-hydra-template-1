@@ -123,9 +123,9 @@ def log_hyperparameters(
     hparams = {}
 
     # choose which parts of hydra config will be saved to loggers
-    hparams["taskmodule"] = config["taskmodule"]
-
-    hparams["model"] = config["model"]
+    # here we use the taskmodule/model config how it is after preparation/initialization
+    hparams["taskmodule"] = taskmodule._config()
+    hparams["model"] = model._config()
 
     # save number of model parameters
     hparams["model/params/total"] = sum(p.numel() for p in model.parameters())
