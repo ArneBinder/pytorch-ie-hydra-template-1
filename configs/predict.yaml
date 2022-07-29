@@ -38,5 +38,8 @@ ckpt_path: null
 # which split from the loaded dataset will be used
 dataset_split: test
 
-# this will be passed to the serializer
+# this will be passed to the serializer as "path" parameter
 out_path: predictions/${name}/${dataset_split}/${now:%Y-%m-%d_%H-%M-%S}.jsonl
+
+# if set, the final config including resolved paths etc. will be written to this location
+config_out_path: ${out_path}.config.yaml

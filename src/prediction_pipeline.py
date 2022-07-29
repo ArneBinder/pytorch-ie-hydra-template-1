@@ -2,7 +2,7 @@ import os.path
 from typing import Callable, Dict, Sequence
 
 import hydra
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
 from pytorch_ie.core import Document
 from pytorch_ie.data import Dataset
 from pytorch_ie.pipeline import Pipeline
@@ -72,3 +72,8 @@ def predict(config: DictConfig) -> None:
     )
     # serialize the documents
     serializer(dataset_with_predictions)
+
+    # serialize config with resolved paths
+    if config.get("config_out_path"):
+        config.config_out_path = hydra.utils.to_absolute_path(config.config_out_path)
+        OmegaConf.save(config=config, f=config.config_out_path)
