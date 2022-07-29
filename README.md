@@ -434,19 +434,13 @@ Have a question? Found a bug? Missing a specific feature? Have an idea for impro
 
 ### How It Works
 
-All PyTorch Lightning modules are dynamically instantiated from module paths specified in config. Example model config:
+All PyTorch-IE modules are dynamically instantiated from module paths specified in config. Example model config:
 
 ```yaml
-_target_: src.models.mnist_model.MNISTLitModule
-lr: 0.001
+_target_: pytorch_ie.models.transformer_token_classification.TransformerTokenClassificationModel
 
-net:
-  _target_: src.models.components.simple_dense_net.SimpleDenseNet
-  input_size: 784
-  lin1_size: 256
-  lin2_size: 256
-  lin3_size: 256
-  output_size: 10
+model_name_or_path: bert-base-uncased
+learning_rate: 0.005
 ```
 
 Using this config we can instantiate the object with the following line:
@@ -460,7 +454,7 @@ This allows you to easily iterate over new models! Every time you create a new o
 Switch between models and datamodules with command line arguments:
 
 ```bash
-python train.py model=mnist
+python train.py model=transformer_token_classification
 ```
 
 The whole pipeline managing the instantiation logic is placed in [src/training_pipeline.py](src/training_pipeline.py).
@@ -477,11 +471,15 @@ It determines how config is composed when simply executing command `python train
 <summary><b>Show main project config</b></summary>
 
 ```yaml
+# @package _global_
+
 # specify here default training configuration
 defaults:
   - _self_
-  - datamodule: mnist.yaml
-  - model: mnist.yaml
+  - dataset: conll2003.yaml
+  - datamodule: default.yaml
+  - taskmodule: transformer_token_classification.yaml
+  - model: transformer_token_classification.yaml
   - callbacks: default.yaml
   - logger: null # set logger here or use command line (e.g. `python train.py logger=tensorboard`)
   - trainer: default.yaml
@@ -524,14 +522,20 @@ train: True
 
 # evaluate on test set, using best model weights achieved during training
 # lightning chooses best weights based on the metric specified in checkpoint callback
-test: True
+test: False
 
 # seed for random number generators in pytorch, numpy and python.random
 seed: null
 
-# default name for the experiment, determines logging folder path
+# default name for the experiment, determines logging folder path and trained model location
 # (you can overwrite this name in experiment configs)
 name: "default"
+
+# push the model and taskmodule to the huggingface model hub when training has finished
+push_to_hub: False
+
+# where to save the trained model and taskmodule
+save_dir: models/${name}/${now:%Y-%m-%d_%H-%M-%S}
 ```
 
 </details>
@@ -548,42 +552,40 @@ For example, you can use them to version control best hyperparameters for each c
 <summary><b>Show example experiment config</b></summary>
 
 ```yaml
+# @package _global_
+
 # to execute this experiment run:
-# python train.py experiment=example
+# python train.py experiment=conll2003
 
 defaults:
-  - override /datamodule: mnist.yaml
-  - override /model: mnist.yaml
+  - override /dataset: conll2003.yaml
+  - override /datamodule: default.yaml
+  - override /taskmodule: transformer_token_classification.yaml
+  - override /model: transformer_token_classification.yaml
   - override /callbacks: default.yaml
-  - override /logger: null
+  - override /logger: wandb.yaml
   - override /trainer: default.yaml
 
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
 
 # name of the run determines folder name in logs
-name: "simple_dense_net"
+name: "conll2003/transformer_token_classification"
 
 seed: 12345
 
 trainer:
-  min_epochs: 10
-  max_epochs: 10
-  gradient_clip_val: 0.5
-
-model:
-  lr: 0.002
-  net:
-    lin1_size: 128
-    lin2_size: 256
-    lin3_size: 64
+  min_epochs: 5
+  max_epochs: 20
 
 datamodule:
-  batch_size: 64
+  batch_size: 32
 
 logger:
   wandb:
-    tags: ["mnist", "${name}"]
+    project: pie-example-conll2003
+    tags: ["conll2003", "transformer_token_classification"]
+
 ```
 
 </details>
@@ -623,10 +625,12 @@ hydra:
 
 ### Workflow
 
-1. Write your PyTorch Lightning module (see [models/mnist_module.py](src/models/mnist_module.py) for example)
-2. Write your PyTorch Lightning datamodule (see [datamodules/mnist_datamodule.py](src/datamodules/mnist_datamodule.py) for example)
-3. Write your experiment config, containing paths to your model and datamodule
-4. Run training with chosen experiment config: `python train.py experiment=experiment_name`
+1. Write your PyTorch-IE dataset (see [pytorch_ie/data/datasets/hf_datasets/ace2004.py](https://github.com/ChristophAlt/pytorch-ie/blob/main/src/pytorch_ie/data/datasets/hf_datasets/ace2004.py)) or try out one of PIE datasets hosted at huggingface.co/pie
+2. Write your PyTorch-IE model (see [pytorch_ie/models/transformer_token_classification.py](https://github.com/ChristophAlt/pytorch-ie/blob/main/src/pytorch_ie/models/transformer_token_classification.py) for example)
+3. Write your PyTorch-IE taskmodule (see [pytorch_ie/taskmodules/transformer_token_classification.py](https://github.com/ChristophAlt/pytorch-ie/blob/main/src/pytorch_ie/taskmodules/transformer_token_classification.py) for example)
+4. Write your experiment config, containing paths to your model, taskmodule and dataset
+5. If necessary, adjust the model creation in the [training_pipeline.py](src/training_pipeline.py) (see line with "NOTE: THE FOLLOWING LINE MAY NEED ADAPTATION ...")
+6. Run training with chosen experiment config: `python train.py experiment=experiment_name`
 
 <br>
 
@@ -670,7 +674,7 @@ You can change this structure by modifying paths in [hydra configuration](config
 
 ### Experiment Tracking
 
-PyTorch Lightning supports many popular logging frameworks:<br>
+PyTorch-IE is based on PyTorch Lightning which supports many popular logging frameworks:<br>
 **[Weights&Biases](https://www.wandb.com/) · [Neptune](https://neptune.ai/) · [Comet](https://www.comet.ml/) · [MLFlow](https://mlflow.org) · [Tensorboard](https://www.tensorflow.org/tensorboard/)**
 
 These tools help you keep track of hyperparameters and output metrics and allow you to compare and visualize results. To use one of them simply complete its configuration in [configs/logger](configs/logger) and run:
@@ -683,7 +687,7 @@ You can use many of them at once (see [configs/logger/many_loggers.yaml](configs
 
 You can also write your own logger.
 
-Lightning provides convenient method for logging custom metrics from inside LightningModule. Read the docs [here](https://pytorch-lightning.readthedocs.io/en/latest/extensions/logging.html#automatic-logging) or take a look at [MNIST example](src/models/mnist_module.py).
+Lightning provides convenient method for logging custom metrics from inside LightningModule. Read the docs [here](https://pytorch-lightning.readthedocs.io/en/latest/extensions/logging.html#automatic-logging) or take a look at [TransformerTokenClassification example](https://github.com/ChristophAlt/pytorch-ie/blob/main/src/pytorch_ie/models/transformer_token_classification.py).
 
 <br>
 
@@ -771,56 +775,44 @@ The following code is an example of loading model from checkpoint and running pr
 <summary><b>Show example</b></summary>
 
 ```python
-from PIL import Image
-from torchvision import transforms
+from dataclasses import dataclass
 
-from src.models.mnist_module import MNISTLitModule
+from pytorch_ie.annotations import LabeledSpan
+from pytorch_ie.auto import AutoPipeline
+from pytorch_ie.core import AnnotationList, annotation_field
+from pytorch_ie.documents import TextDocument
+
+@dataclass
+class ExampleDocument(TextDocument):
+    entities: AnnotationList[LabeledSpan] = annotation_field(target="text")
 
 
 def predict():
-    """Example of inference with trained model.
-    It loads trained image classification model from checkpoint.
-    Then it loads example image and predicts its label.
-    """
+   """
+   Example of inference with trained model.
+   It loads pretrained NER model. Then it
+   creates an example document (PyTorch-IE Document) and predicts
+   entities from the text in the document.
+   """
+   document = ExampleDocument(
+       "“Making a super tasty alt-chicken wing is only half of it,” said Po Bronson, general partner at SOSV and managing director of IndieBio."
+   )
 
-    # ckpt can be also a URL!
-    CKPT_PATH = "last.ckpt"
+   # model path can be set to a location at huggingface as shown below or local path to the training result serialized to out_path
+   ner_pipeline = AutoPipeline.from_pretrained("pie/example-ner-spanclf-conll03", device=-1, num_workers=0)
 
-    # load model from checkpoint
-    # model __init__ parameters will be loaded from ckpt automatically
-    # you can also pass some parameter explicitly to override it
-    trained_model = MNISTLitModule.load_from_checkpoint(checkpoint_path=CKPT_PATH)
+   ner_pipeline(document, predict_field="entities")
 
-    # print model hyperparameters
-    print(trained_model.hparams)
-
-    # switch to evaluation mode
-    trained_model.eval()
-    trained_model.freeze()
-
-    # load data
-    img = Image.open("data/example_img.png").convert("L")  # convert to black and white
-    # img = Image.open("data/example_img.png").convert("RGB")  # convert to RGB
-
-    # preprocess
-    mnist_transforms = transforms.Compose(
-        [
-            transforms.ToTensor(),
-            transforms.Resize((28, 28)),
-            transforms.Normalize((0.1307,), (0.3081,)),
-        ]
-    )
-    img = mnist_transforms(img)
-    img = img.reshape((1, *img.size()))  # reshape to form batch of size 1
-
-    # inference
-    output = trained_model(img)
-    print(output)
-
+   for entity in document.entities.predictions:
+       print(f"{entity} -> {entity.label}")
 
 if __name__ == "__main__":
     predict()
 
+# Result:
+# IndieBio -> ORG
+# Po Bronson -> PER
+# SOSV -> ORG
 ```
 
 </details>
