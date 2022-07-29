@@ -360,12 +360,12 @@ python train.py -m datamodule.batch_size=32,64,128 model.lr=0.001,0.0005
 <details>
 <summary><b>Create a sweep over hyperparameters with Optuna</b></summary>
 
-> Using [Optuna Sweeper](https://hydra.cc/docs/next/plugins/optuna_sweeper) plugin doesn't require you to code any boilerplate into your pipeline, everything is defined in a [single config file](configs/hparams_search/mnist_optuna.yaml)!
+> Using [Optuna Sweeper](https://hydra.cc/docs/next/plugins/optuna_sweeper) plugin doesn't require you to code any boilerplate into your pipeline, everything is defined in a [single config file](configs/hparams_search/conll2003_optuna.yaml)!
 
 ```bash
 # this will run hyperparameter search defined in `configs/hparams_search/mnist_optuna.yaml`
 # over chosen experiment config
-python train.py -m hparams_search=mnist_optuna experiment=example_simple
+python train.py -m hparams_search=conll2003_optuna experiment=example_simple
 ```
 
 > ⚠️ Currently this sweep is not failure resistant (if one job crashes than the whole sweep crashes). Might be supported in future Hydra release.
@@ -695,65 +695,63 @@ Defining hyperparameter optimization is as easy as adding new config file to [co
 <summary><b>Show example</b></summary>
 
 ```yaml
+# @package _global_
+
+# example hyperparameter optimization of some experiment with Optuna:
+# python train.py -m hparams_search=conll2003_optuna experiment=example
+
 defaults:
   - override /hydra/sweeper: optuna
 
 # choose metric which will be optimized by Optuna
-optimized_metric: "val/acc_best"
+# make sure this is the correct name of some metric logged in lightning module!
+optimized_metric: "val/f1"
 
+# here we define Optuna hyperparameter search
+# it optimizes for value returned from function with @hydra.main decorator
+# docs: https://hydra.cc/docs/next/plugins/optuna_sweeper
 hydra:
-  # here we define Optuna hyperparameter search
-  # it optimizes for value returned from function with @hydra.main decorator
-  # learn more here: https://hydra.cc/docs/next/plugins/optuna_sweeper
   sweeper:
     _target_: hydra_plugins.hydra_optuna_sweeper.optuna_sweeper.OptunaSweeper
+
+    # storage URL to persist optimization results
+    # for example, you can use SQLite if you set 'sqlite:///example.db'
     storage: null
+
+    # name of the study to persist optimization results
     study_name: null
+
+    # number of parallel workers
     n_jobs: 1
 
     # 'minimize' or 'maximize' the objective
     direction: maximize
 
-    # number of experiments that will be executed
-    n_trials: 20
+    # total number of runs that will be executed
+    n_trials: 25
 
     # choose Optuna hyperparameter sampler
-    # learn more here: https://optuna.readthedocs.io/en/stable/reference/samplers.html
+    # docs: https://optuna.readthedocs.io/en/stable/reference/samplers.html
     sampler:
       _target_: optuna.samplers.TPESampler
       seed: 12345
-      consider_prior: true
-      prior_weight: 1.0
-      consider_magic_clip: true
-      consider_endpoints: false
-      n_startup_trials: 10
-      n_ei_candidates: 24
-      multivariate: false
-      warn_independent_sampling: true
+      n_startup_trials: 10 # number of random sampling runs before optimization starts
 
     # define range of hyperparameters
-    search_space:
-      datamodule.batch_size:
-        type: categorical
-        choices: [32, 64, 128]
-      model.lr:
-        type: float
-        low: 0.0001
-        high: 0.2
-      model.net.lin1_size:
-        type: categorical
-        choices: [32, 64, 128, 256, 512]
-      model.net.lin2_size:
-        type: categorical
-        choices: [32, 64, 128, 256, 512]
-      model.net.lin3_size:
-        type: categorical
-        choices: [32, 64, 128, 256, 512]
+    # More information here : https://hydra.cc/docs/plugins/optuna_sweeper/#search-space-configuration
+    params:
+      datamodule.batch_size: choice(32,64,128)
+      model.learning_rate: interval(0.0001, 0.2)
+
+# This is a dummy value necessary to allow overwriting it in the sweep.
+model:
+  learning_rate: 0.00001
+
 ```
 
 </details>
 
-Next, you can execute it with: `python train.py -m hparams_search=mnist_optuna`
+Next, you can execute it with: `python train.py -m hparams_search=conll2003_optuna`
 
 Using this approach doesn't require you to add any boilerplate into your pipeline, everything is defined in a single config file.
 
