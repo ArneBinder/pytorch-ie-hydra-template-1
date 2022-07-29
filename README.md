@@ -124,11 +124,11 @@ The directory structure of new project looks like this:
 
 ```bash
 # clone project
-git clone https://github.com/ashleve/lightning-hydra-template
-cd lightning-hydra-template
+git clone https://github.com/ChristophAlt/pytorch-ie-hydra-template.git
+cd pytorch-ie-hydra-template
 
 # [OPTIONAL] create conda environment
-conda create -n myenv python=3.8
+conda create -n myenv python=3.9
 conda activate myenv
 
 # install pytorch according to instructions
@@ -138,8 +138,10 @@ conda activate myenv
 pip install -r requirements.txt
 ```
 
-Template contains example with MNIST classification.<br>
+Template contains example with CONLL2003 Named Entity Recognition.<br>
 When running `python train.py` you should see something like this:
+
+TODO: Update Screenshot
 
 <div align="center">
 
@@ -842,38 +844,6 @@ pytest -k "not slow"
 To speed up the development, you can once in a while execute tests that run a couple of quick experiments, like training 1 epoch on 25% of data, executing single train/val/test step, etc. Those kind of tests don't check for any specific output - they exist to simply verify that executing some bash commands doesn't end up in throwing exceptions. You can find them implemented in [tests/shell](tests/shell) folder.
 
 You can easily modify the commands in the scripts for your use case. If 1 epoch is too much for your model, then make it run for a couple of batches instead (by using the right trainer flags).
-
-<br>
-
-### Callbacks
-
-The branch [`wandb-callbacks`](https://github.com/ashleve/lightning-hydra-template/tree/wandb-callbacks) contains example callbacks enabling better Weights&Biases integration, which you can use as a reference for writing your own callbacks (see [wandb_callbacks.py](https://github.com/ashleve/lightning-hydra-template/tree/wandb-callbacks/src/callbacks/wandb_callbacks.py)).
-
-Callbacks which support reproducibility:
-
-- **WatchModel**
-- **UploadCodeAsArtifact**
-- **UploadCheckpointsAsArtifact**
-
-Callbacks which provide examples of logging custom visualisations:
-
-- **LogConfusionMatrix**
-- **LogF1PrecRecHeatmap**
-- **LogImagePredictions**
-
-To try all of the callbacks at once, switch to the right branch:
-
-```bash
-git checkout wandb-callbacks
-```
-
-And then run the following command:
-
-```bash
-python train.py logger=wandb callbacks=wandb
-```
-
-To see the result of all the callbacks attached, take a look at [this experiment dashboard](https://wandb.ai/hobglob/template-tests/runs/3rw7q70h).
 
 <br>
 
