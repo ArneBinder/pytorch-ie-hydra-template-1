@@ -1,15 +1,16 @@
 <div align="center">
 
-# Lightning-Hydra-Template
+# PyTorch-IE-Hydra-Template
 
-<a href="https://www.python.org/"><img alt="Python" src="https://img.shields.io/badge/-Python 3.7+-blue?style=for-the-badge&logo=python&logoColor=white"></a>
+<a href="https://www.python.org/"><img alt="Python" src="https://img.shields.io/badge/-Python 3.9+-blue?style=for-the-badge&logo=python&logoColor=white"></a>
 <a href="https://pytorch.org/get-started/locally/"><img alt="PyTorch" src="https://img.shields.io/badge/-PyTorch 1.8+-ee4c2c?style=for-the-badge&logo=pytorch&logoColor=white"></a>
 <a href="https://pytorchlightning.ai/"><img alt="Lightning" src="https://img.shields.io/badge/-Lightning 1.5+-792ee5?style=for-the-badge&logo=pytorchlightning&logoColor=white"></a>
 <a href="https://hydra.cc/"><img alt="Config: hydra" src="https://img.shields.io/badge/config-hydra 1.1-89b8cd?style=for-the-badge&labelColor=gray"></a>
 <a href="https://black.readthedocs.io/en/stable/"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-black.svg?style=for-the-badge&labelColor=gray"></a>
 
-A clean and scalable template to kickstart your deep learning project 🚀⚡🔥<br>
-Click on [<kbd>Use this template</kbd>](https://github.com/ChristophAlt/pytorch-ie-hydra-template/generate) to initialize new repository.
+A clean and scalable template to kickstart your deep learning based information extraction project 🚀⚡🔥<br>
+Click on [<kbd>Use this template</kbd>](https://github.com/ChristophAlt/pytorch-ie-hydra-template/generate) to initialize new repository. <br>
+This project is heavily inspired by [Lightning-Hydra-Template](https://github.com/ashleve/lightning-hydra-template).
 
 _Suggestions are always welcome!_
 
