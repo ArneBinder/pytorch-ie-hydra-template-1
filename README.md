@@ -144,11 +144,12 @@ pip install -r requirements.txt
 Template contains example with CONLL2003 Named Entity Recognition.<br>
 When running `python train.py` you should see something like this:
 
-TODO: Update Screenshot
-
 <div align="center">
 
-![](https://github.com/ashleve/lightning-hydra-template/blob/resources/terminal.png)
+![](https://github.com/ChristophAlt/pytorch-ie-hydra-template/blob/resources/images/terminal1.png)
+![](https://github.com/ChristophAlt/pytorch-ie-hydra-template/blob/resources/images/terminal2.png)
+![](https://github.com/ChristophAlt/pytorch-ie-hydra-template/blob/resources/images/terminal3.png)
+![](https://github.com/ChristophAlt/pytorch-ie-hydra-template/blob/resources/images/terminal4.png)
 
 </div>
 
