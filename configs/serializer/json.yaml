@@ -1,0 +1,3 @@
+_target_: src.serializer.JsonSerializer
+as_lines: true
+# indent: 2  # makes only sense if as_lines = false

@@ -1,3 +1,5 @@
+import os.path
+
 import pytest
 
 from tests.helpers.run_command import run_command
@@ -18,6 +20,14 @@ def test_evaluation_single_batch():
     """Test the test script with a single batch."""
     command = ["test.py", "++trainer.limit_test_batches=1"]
     run_command(command)
+
+
+def test_prediction_fast_dev_run(tmp_path):
+    """Test the prediction script with two input encodings (pipeline.fast_dev_run)."""
+    out_path = tmp_path / "predictions"
+    command = ["predict.py", f"out_path={out_path}", "++pipeline.fast_dev_run=true"]
+    run_command(command)
+    assert os.path.exists(out_path)
 
 
 @pytest.mark.skip(reason="this takes too much time")
