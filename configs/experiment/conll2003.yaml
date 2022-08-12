@@ -30,6 +30,9 @@ datamodule:
 
 logger:
   wandb:
-    project: pie-example-conll2003
-    tags: ["conll2003", "transformer_token_classification"]
+    name: "first-run"
+    tags:
+      - dataset=conll2003
+      - model=transformer_token_classification
+      - task=ner
 # save_dir: models/${name}/debug
