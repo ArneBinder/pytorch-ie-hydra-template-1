@@ -2,8 +2,8 @@
 
 wandb:
   _target_: pytorch_lightning.loggers.wandb.WandbLogger
-  project: "template-tests"
-  name: ${name}
+  project: ${replace:${name},/,-}
+  #name: ""  # set a name for the run
   save_dir: "."
   offline: False # set True to store all logs only locally
   id: null # pass correct id to resume experiment!
