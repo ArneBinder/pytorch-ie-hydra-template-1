@@ -136,6 +136,7 @@ def log_hyperparameters(
         p.numel() for p in model.parameters() if not p.requires_grad
     )
 
+    hparams["dataset"] = config["dataset"]
     hparams["datamodule"] = config["datamodule"]
     hparams["trainer"] = config["trainer"]
 
