@@ -155,7 +155,6 @@ When running `python train.py` you should see something like this:
 ![](https://github.com/ChristophAlt/pytorch-ie-hydra-template/blob/resources/images/terminal1.png)
 ![](https://github.com/ChristophAlt/pytorch-ie-hydra-template/blob/resources/images/terminal2.png)
 ![](https://github.com/ChristophAlt/pytorch-ie-hydra-template/blob/resources/images/terminal3.png)
-![](https://github.com/ChristophAlt/pytorch-ie-hydra-template/blob/resources/images/terminal4.png)
 
 </div>
 
