@@ -27,6 +27,8 @@ trainer:
 
 datamodule:
   batch_size: 32
+  # the imdb dataset has no val split, so we use "test" for that
+  val_split: test
 
 logger:
   wandb:
