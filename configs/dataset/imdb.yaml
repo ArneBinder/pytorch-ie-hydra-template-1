@@ -1,0 +1,3 @@
+_target_: datasets.load_dataset
+
+path: ${original_work_dir}/datasets/imdb
