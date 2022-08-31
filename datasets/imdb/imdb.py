@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 
-import datasets
-
 import pytorch_ie.data.builder
 from pytorch_ie.annotations import Label
 from pytorch_ie.core import AnnotationList, annotation_field
 from pytorch_ie.documents import TextDocument
+
+import datasets
 
 
 class ImdbConfig(datasets.BuilderConfig):
@@ -31,7 +31,9 @@ class Imdb(pytorch_ie.data.builder.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         ImdbConfig(
-            name="plain_text", version=datasets.Version("1.0.0"), description="IMDB sentiment classification dataset"
+            name="plain_text",
+            version=datasets.Version("1.0.0"),
+            description="IMDB sentiment classification dataset",
         ),
     ]
 
