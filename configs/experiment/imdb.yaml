@@ -25,6 +25,10 @@ trainer:
   max_epochs: 20
   # gradient_clip_val: 0.5
 
+taskmodule:
+  # the texts in imdb are rather short, so we decrease max_length to save resources
+  max_length: 128
+
 datamodule:
   batch_size: 32
   # the imdb dataset has no val split, so we use "test" for that
