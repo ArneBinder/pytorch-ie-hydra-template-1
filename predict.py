@@ -1,3 +1,6 @@
+import sys
+from os.path import dirname, join, realpath
+
 import dotenv
 import hydra
 from omegaconf import DictConfig
@@ -17,6 +20,10 @@ def main(config: DictConfig):
 
     # Applies optional utilities
     utils.extras(config)
+
+    # add src to system path to allow its usage with configs
+    root_path = realpath(dirname(__file__))
+    sys.path.append(join(root_path, "src"))
 
     # Predict
     return predict(config)
