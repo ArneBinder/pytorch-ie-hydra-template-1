@@ -78,6 +78,7 @@ The directory structure of new project looks like this:
 │   ├── taskmodule               <- Taskmodule configs
 │   ├── trainer                  <- Trainer configs
 │   │
+│   ├── predict.yaml          <- Main config for inference
 │   ├── test.yaml             <- Main config for testing
 │   └── train.yaml            <- Main config for training
 │
@@ -104,6 +105,7 @@ The directory structure of new project looks like this:
 │   ├── utils                    <- Utility scripts
 │   ├── vendor                   <- Third party code that cannot be installed using PIP/Conda
 │   │
+│   ├── prediction_pipeline.py
 │   ├── testing_pipeline.py
 │   └── training_pipeline.py
 │
@@ -112,6 +114,7 @@ The directory structure of new project looks like this:
 │   ├── shell                    <- Shell/command based tests
 │   └── unit                     <- Unit tests
 │
+├── predict.py            <- Run inference
 ├── test.py               <- Run testing
 ├── train.py              <- Run training
 │
