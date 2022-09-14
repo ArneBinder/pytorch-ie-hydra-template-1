@@ -29,7 +29,6 @@ model_name_or_path: pie/example-ner-spanclf-conll03
 # specify the PyTorch-IE pipeline
 pipeline:
   _target_: pytorch_ie.auto.AutoPipeline.from_pretrained
-  predict_field: entities
   show_progress_bar: true
 
 # to override model weights with content of a checkpoint

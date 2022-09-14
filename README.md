@@ -807,7 +807,7 @@ def predict():
    # model path can be set to a location at huggingface as shown below or local path to the training result serialized to out_path
    ner_pipeline = AutoPipeline.from_pretrained("pie/example-ner-spanclf-conll03", device=-1, num_workers=0)
 
-   ner_pipeline(document, predict_field="entities")
+   ner_pipeline(document)
 
    for entity in document.entities.predictions:
        print(f"{entity} -> {entity.label}")
