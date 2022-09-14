@@ -16,6 +16,7 @@ def test_fast_dev_run_with_evaluation():
         "train.py",
         "experiment=imdb",
         "logger=wandb",
+        "logger.wandb.offline=true",
         "++trainer.fast_dev_run=true",
         "++test=true",
     ]
