@@ -181,5 +181,5 @@ def instantiate_dict_entries(
         for _, entry_conf in config[key].items():
             if "_target_" in entry_conf:
                 log.info(f"Instantiating {entry_description or key} <{entry_conf._target_}>")
-                entries.append(hydra.utils.instantiate(entry_conf))
+                entries.append(hydra.utils.instantiate(entry_conf, _convert_="partial"))
     return entries

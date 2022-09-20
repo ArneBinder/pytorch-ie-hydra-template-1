@@ -37,14 +37,16 @@ def predict(config: DictConfig) -> None:
 
     # Init pytorch-ie dataset
     log.info(f"Instantiating dataset <{config.dataset._target_}>")
-    dataset: Dict[str, Dataset] = hydra.utils.instantiate(config.dataset)
+    dataset: Dict[str, Dataset] = hydra.utils.instantiate(config.dataset, _convert_="partial")
 
     # Init pytorch-ie pipeline
     log.info(
         f"Instantiating pipeline <{config.pipeline._target_}> from {config.model_name_or_path}"
     )
     pipeline: Pipeline = hydra.utils.instantiate(
-        config.pipeline, pretrained_model_name_or_path=config.model_name_or_path
+        config.pipeline,
+        pretrained_model_name_or_path=config.model_name_or_path,
+        _convert_="partial",
     )
 
     # Per default, the model is loaded with .from_pretrained() which already loads the weights.
@@ -68,7 +70,7 @@ def predict(config: DictConfig) -> None:
     # Init the serializer
     log.info(f"Instantiating serializer <{config.serializer._target_}>")
     serializer: Callable[[Sequence[Document]], None] = hydra.utils.instantiate(
-        config.serializer, path=config.out_path
+        config.serializer, path=config.out_path, _convert_="partial"
     )
     # serialize the documents
     serializer(dataset_with_predictions)
