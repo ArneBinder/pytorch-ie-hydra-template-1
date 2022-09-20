@@ -34,16 +34,16 @@ def train(config: DictConfig) -> Optional[float]:
 
     # Init pytorch-ie dataset
     log.info(f"Instantiating dataset <{config.dataset._target_}>")
-    dataset: Dict[str, Dataset] = hydra.utils.instantiate(config.dataset)
+    dataset: Dict[str, Dataset] = hydra.utils.instantiate(config.dataset, _convert_="partial")
 
     # Init pytorch-ie taskmodule
     log.info(f"Instantiating taskmodule <{config.taskmodule._target_}>")
-    taskmodule: TaskModule = hydra.utils.instantiate(config.taskmodule)
+    taskmodule: TaskModule = hydra.utils.instantiate(config.taskmodule, _convert_="partial")
 
     # Init pytorch-ie datamodule
     log.info(f"Instantiating datamodule <{config.datamodule._target_}>")
     datamodule: DataModule = hydra.utils.instantiate(
-        config.datamodule, dataset=dataset, taskmodule=taskmodule
+        config.datamodule, dataset=dataset, taskmodule=taskmodule, _convert_="partial"
     )
     # This calls taskmodule.prepare() on the train split.
     datamodule.setup(stage="fit")

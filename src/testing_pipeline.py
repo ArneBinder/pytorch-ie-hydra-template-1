@@ -43,25 +43,27 @@ def test(config: DictConfig) -> None:
 
     # Init pytorch-ie dataset
     log.info(f"Instantiating dataset <{config.dataset._target_}>")
-    dataset: Dict[str, Dataset] = hydra.utils.instantiate(config.dataset)
+    dataset: Dict[str, Dataset] = hydra.utils.instantiate(config.dataset, _convert_="partial")
 
     # Init pytorch-ie taskmodule
     log.info(f"Instantiating taskmodule <{config.taskmodule._target_}>")
     taskmodule: TaskModule = hydra.utils.instantiate(
-        config.taskmodule, pretrained_model_name_or_path=config.model_name_or_path
+        config.taskmodule,
+        pretrained_model_name_or_path=config.model_name_or_path,
+        _convert_="partial",
     )
 
     # Init pytorch-ie datamodule
     log.info(f"Instantiating datamodule <{config.datamodule._target_}>")
     datamodule: DataModule = hydra.utils.instantiate(
-        config.datamodule, dataset=dataset, taskmodule=taskmodule
+        config.datamodule, dataset=dataset, taskmodule=taskmodule, _convert_="partial"
     )
     datamodule.setup(stage="test")
 
     # Init pytorch-ie model
     log.info(f"Instantiating model <{config.model._target_}>")
     model: PyTorchIEModel = hydra.utils.instantiate(
-        config.model, pretrained_model_name_or_path=config.model_name_or_path
+        config.model, pretrained_model_name_or_path=config.model_name_or_path, _convert_="partial"
     )
 
     # Init lightning loggers
@@ -69,7 +71,7 @@ def test(config: DictConfig) -> None:
 
     # Init lightning trainer
     log.info(f"Instantiating trainer <{config.trainer._target_}>")
-    trainer: Trainer = hydra.utils.instantiate(config.trainer, logger=logger)
+    trainer: Trainer = hydra.utils.instantiate(config.trainer, logger=logger, _convert_="partial")
 
     # Log hyperparameters
     if trainer.logger:
