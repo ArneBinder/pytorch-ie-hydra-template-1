@@ -1,6 +1,7 @@
 # @package _global_
 
-# specify here default training configuration
+# specify here default configuration
+# order of defaults determines the order in which configs override each other
 defaults:
   - _self_
   - dataset: conll2003.yaml
@@ -10,9 +11,10 @@ defaults:
   - callbacks: default.yaml
   - logger: null # set logger here or use command line (e.g. `python train.py logger=tensorboard`)
   - trainer: default.yaml
-  - log_dir: default.yaml
+  - hydra: default.yaml
+  - paths: default.yaml
 
-  # experiment configs allow for version control of specific configurations
+  # experiment configs allow for version control of specific hyperparameters
   # e.g. best hyperparameters for each combination of model and datamodule
   - experiment: null
 
@@ -26,9 +28,37 @@ defaults:
   # it's optional since it doesn't need to exist and is excluded from version control
   - optional local: default.yaml
 
-  # enable color logging
-  - override hydra/hydra_logging: colorlog
-  - override hydra/job_logging: colorlog
+  # debugging config (enable through command line, e.g. `python train.py debug=default)
+  - debug: null
+
+# task name, determines output directory path
+task_name: "train"
+
+# default name for the experiment, determines output directory path
+# (you can overwrite this in experiment configs)
+name: "default"
+
+# tags to help you identify your experiments
+# (you can overwrite this in experiment configs)
+tags: ["mnist"]
+
+# seed for random number generators in pytorch, numpy and python.random
+seed: null
+
+# disable python warnings if they annoy you
+ignore_warnings: False
+
+# pretty print config at the start of the run using Rich library
+print_config: True
+
+# set False to skip model training
+train: True
+# evaluate on test set, using best model weights achieved during training
+# lightning chooses best weights based on the metric specified in checkpoint callback
+test: True
+
+# simply provide checkpoint path to resume training
+ckpt_path: null
 
 # path to original working directory
 # hydra hijacks working directory by changing it to the new log directory
@@ -37,26 +67,6 @@ original_work_dir: ${hydra:runtime.cwd}
 
 # path to folder with data
 data_dir: ${original_work_dir}/data/
-
-# pretty print config at the start of the run using Rich library
-print_config: True
-
-# disable python warnings if they annoy you
-ignore_warnings: True
-
-# set False to skip model training
-train: True
-
-# evaluate on test set, using best model weights achieved during training
-# lightning chooses best weights based on the metric specified in checkpoint callback
-test: False
-
-# seed for random number generators in pytorch, numpy and python.random
-seed: null
-
-# default name for the experiment, determines logging folder path and trained model location
-# (you can overwrite this name in experiment configs)
-name: "default"
 
 # push the model and taskmodule to the huggingface model hub when training has finished
 push_to_hub: False

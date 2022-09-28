@@ -5,6 +5,7 @@ defaults:
   - _self_
   - dataset: conll2003
   - serializer: json
+  - paths: default.yaml
 
   # enable color logging
   - override hydra/hydra_logging: colorlog
