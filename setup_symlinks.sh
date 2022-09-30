@@ -8,7 +8,7 @@
 
 TARGET_DIR=$1
 [[ -z "$TARGET_DIR" ]] && { echo "Error: No target directory was provided"; exit 1; }
-DIRS=( "logs/experiments" "logs/evaluations" "logs/debugs" "models" )
+DIRS=( "logs" "models" )
 
 echo "symlink to $TARGET_DIR..."
 for d in "${DIRS[@]}"
