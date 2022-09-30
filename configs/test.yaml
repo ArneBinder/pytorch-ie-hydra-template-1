@@ -19,7 +19,9 @@ task_name: "eval"
 
 name: "default"
 
-tags: ["mnist"]
+# tags to help you identify your experiments
+# (you can overwrite this in experiment configs)
+tags: ["dataset=conll2003", "model=transformer_token_classification"]
 
 ignore_warnings: False
 
@@ -27,10 +29,6 @@ print_config: True
 
 # passing checkpoint path is necessary for evaluation
 ckpt_path: null
-
-original_work_dir: ${hydra:runtime.cwd}
-
-data_dir: ${original_work_dir}/data/
 
 seed: null
 

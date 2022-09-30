@@ -5,15 +5,14 @@ defaults:
   - _self_
   - dataset: conll2003
   - serializer: json
+  - hydra: default.yaml
   - paths: default.yaml
 
   # enable color logging
   - override hydra/hydra_logging: colorlog
   - override hydra/job_logging: colorlog
 
-original_work_dir: ${hydra:runtime.cwd}
-
-data_dir: ${original_work_dir}/data/
+task_name: "predict"
 
 print_config: True
 
