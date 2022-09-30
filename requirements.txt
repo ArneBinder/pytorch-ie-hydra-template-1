@@ -5,9 +5,9 @@
 git+https://github.com/ChristophAlt/pytorch-ie.git
 
 # --------- hydra --------- #
-hydra-core>=1.1.0
-hydra-colorlog>=1.1.0
-hydra-optuna-sweeper>=1.1.0
+hydra-core>=1.2.0
+hydra-colorlog>=1.2.0
+hydra-optuna-sweeper>=1.2.0
 
 # --------- loggers --------- #
 # wandb
