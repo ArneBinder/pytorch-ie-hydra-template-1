@@ -11,11 +11,7 @@ defaults:
   - paths: default.yaml
   - experiment: null
 
-  # enable color logging
-  - override hydra/hydra_logging: colorlog
-  - override hydra/job_logging: colorlog
-
-task_name: "eval"
+pipeline_type: "evaluation"
 
 name: "default"
 

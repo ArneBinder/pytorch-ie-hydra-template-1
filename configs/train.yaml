@@ -32,7 +32,7 @@ defaults:
   - debug: null
 
 # task name, determines output directory path
-task_name: "train"
+pipeline_type: "training"
 
 # default name for the experiment, determines output directory path
 # (you can overwrite this in experiment configs)
