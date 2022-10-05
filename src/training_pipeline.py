@@ -27,11 +27,6 @@ def train(config: DictConfig) -> Optional[float]:
     if config.get("seed"):
         seed_everything(config.seed, workers=True)
 
-    # Convert relative ckpt path to absolute path if necessary
-    ckpt_path = config.trainer.get("resume_from_checkpoint")
-    if ckpt_path:
-        config.trainer.resume_from_checkpoint = hydra.utils.to_absolute_path(ckpt_path)
-
     # Init pytorch-ie dataset
     log.info(f"Instantiating dataset <{config.dataset._target_}>")
     dataset: Dict[str, Dataset] = hydra.utils.instantiate(config.dataset, _convert_="partial")
@@ -68,9 +63,6 @@ def train(config: DictConfig) -> Optional[float]:
         config.trainer, callbacks=callbacks, logger=logger, _convert_="partial"
     )
 
-    if config.save_dir is not None:
-        config.save_dir = hydra.utils.to_absolute_path(config.save_dir)
-
     # Send some parameters from config to all lightning loggers
     log.info("Logging hyperparameters!")
     utils.log_hyperparameters(
@@ -105,7 +97,7 @@ def train(config: DictConfig) -> Optional[float]:
 
     # Test the model
     if config.get("test"):
-        ckpt_path = "best"
+        ckpt_path: Optional[str] = "best"
         if not config.get("train") or config.trainer.get("fast_dev_run"):
             ckpt_path = None
         log.info("Starting testing!")
