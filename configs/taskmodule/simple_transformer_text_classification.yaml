@@ -1,0 +1,4 @@
+_target_: pytorch_ie.taskmodules.SimpleTransformerTextClassificationTaskModule
+
+#tokenizer_name_or_path: ${transformer_model} # transformer_model is specified in config_rel.yaml
+tokenizer_name_or_path: bert-base-uncased

@@ -12,7 +12,14 @@ A couple of sanity checks to make sure the model doesn't crash with different ru
 
 def test_fast_dev_run_with_evaluation():
     """Test running for 1 train, val and test batch."""
-    command = ["train.py", "++trainer.fast_dev_run=true", "++test=true"]
+    command = [
+        "train.py",
+        "experiment=imdb",
+        "logger=wandb",
+        "logger.wandb.offline=true",
+        "++trainer.fast_dev_run=true",
+        "++test=true",
+    ]
     run_command(command)
 
 

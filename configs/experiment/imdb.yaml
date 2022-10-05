@@ -1,0 +1,44 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=imdb
+
+defaults:
+  - override /dataset: imdb
+  - override /datamodule: default
+  - override /taskmodule: simple_transformer_text_classification
+  - override /model: transformer_text_classification
+  - override /callbacks: default
+  - override /logger: wandb
+  - override /trainer: default
+
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+
+# name of the run determines folder name in logs
+name: "imdb/transformer_text_classification"
+
+seed: 12345
+
+trainer:
+  min_epochs: 5
+  max_epochs: 20
+  # gradient_clip_val: 0.5
+
+taskmodule:
+  # the texts in imdb are rather short, so we decrease max_length to save resources
+  max_length: 128
+
+datamodule:
+  batch_size: 32
+  # the imdb dataset has no val split, so we use "test" for that
+  val_split: test
+
+logger:
+  wandb:
+    name: "first-run"
+    tags:
+      - dataset=imdb
+      - model=transformer_text_classification
+      - task=sentiment_classification
+# save_dir: models/${name}/debug

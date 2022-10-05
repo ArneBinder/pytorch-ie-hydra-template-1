@@ -46,7 +46,12 @@ def train(config: DictConfig) -> Optional[float]:
     # Init pytorch-ie model
     log.info(f"Instantiating model <{config.model._target_}>")
     # NOTE: THE FOLLOWING LINE MAY NEED ADAPTATION WHEN YOU DEFINE YOUR OWN MODELS OR TASKMODULES!
-    additional_model_kwargs: Dict[str, Any] = dict(num_classes=len(taskmodule.label_to_id))
+    # additional_model_kwargs: Dict[str, Any] = dict(num_classes=len(taskmodule.label_to_id))
+    additional_model_kwargs: Dict[str, Any] = dict(
+        num_classes=len(taskmodule.label_to_id),
+        tokenizer_vocab_size=taskmodule.tokenizer.vocab_size,
+        t_total=datamodule.num_train * config["trainer"]["max_epochs"],
+    )
     model: PyTorchIEModel = hydra.utils.instantiate(
         config.model, _convert_="partial", **additional_model_kwargs
     )
