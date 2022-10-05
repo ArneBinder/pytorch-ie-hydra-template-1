@@ -1,44 +1,35 @@
 # @package _global_
 
-# specify here default evaluation configuration
 defaults:
   - _self_
   - dataset: conll2003
   - datamodule: default
+  - taskmodule: from_pretrained
+  - model: from_pretrained
   - callbacks: null
   - logger: null
   - trainer: default.yaml
-  - log_dir: evaluation.yaml
-
+  - hydra: default.yaml
+  - paths: default.yaml
   - experiment: null
 
-  # enable color logging
-  - override hydra/hydra_logging: colorlog
-  - override hydra/job_logging: colorlog
-
-original_work_dir: ${hydra:runtime.cwd}
-
-data_dir: ${original_work_dir}/data/
-
-print_config: True
-
-ignore_warnings: True
-
-seed: null
+pipeline_type: "evaluation"
 
 name: "default"
 
-# this should be the value of save_dir from the train config
-# or the url to huggingface hub where the taskmodule and model was pushed to
+tags: ["dev"]
+
+ignore_warnings: False
+
+print_config: True
+
+seed: null
+
+# This should be the value of save_dir from the train config
+# or the url to huggingface hub where the taskmodule and model was pushed to.
+# It is used in the from_pretrained taskmodule and model configs.
 model_name_or_path: pie/example-ner-spanclf-conll03
 
-# specify the taskmodule
-taskmodule:
-  _target_: pytorch_ie.auto.AutoTaskModule.from_pretrained
-
-# specify the model
-model:
-  _target_: pytorch_ie.auto.AutoModel.from_pretrained
-
-# to override model weights with content of a checkpoint
+# Per default, the model is loaded with .from_pretrained() which already loads the weights.
+# However, ckpt_path can be used to load different weights from any checkpoint.
 ckpt_path: null

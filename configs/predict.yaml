@@ -4,15 +4,12 @@
 defaults:
   - _self_
   - dataset: conll2003
+  - pipeline: from_pretrained
   - serializer: json
+  - hydra: default.yaml
+  - paths: default.yaml
 
-  # enable color logging
-  - override hydra/hydra_logging: colorlog
-  - override hydra/job_logging: colorlog
-
-original_work_dir: ${hydra:runtime.cwd}
-
-data_dir: ${original_work_dir}/data/
+pipeline_type: "prediction"
 
 print_config: True
 
@@ -22,14 +19,10 @@ seed: null
 
 name: "default"
 
-# this should be the value of save_dir from the train config
-# or the url to huggingface hub where the taskmodule and model was pushed to
+# This should be the value of save_dir from the train config
+# or the url to huggingface hub where the taskmodule and model was pushed to.
+# It is used in the pipeline config.
 model_name_or_path: pie/example-ner-spanclf-conll03
-
-# specify the PyTorch-IE pipeline
-pipeline:
-  _target_: pytorch_ie.auto.AutoPipeline.from_pretrained
-  show_progress_bar: true
 
 # to override model weights with content of a checkpoint
 ckpt_path: null
@@ -37,8 +30,11 @@ ckpt_path: null
 # which split from the loaded dataset will be used
 dataset_split: test
 
-# this will be passed to the serializer as "path" parameter
-out_path: predictions/${name}/${dataset_split}/${now:%Y-%m-%d_%H-%M-%S}.jsonl
+out_path: predictions/${name}/${dataset_split}/${now:%Y-%m-%d_%H-%M-%S}
+
+# set the output path for the serializer
+serializer:
+  path: ${out_path}.jsonl
 
 # if set, the final config including resolved paths etc. will be written to this location
 config_out_path: ${out_path}.config.yaml

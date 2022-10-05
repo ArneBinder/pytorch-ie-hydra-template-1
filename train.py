@@ -13,7 +13,7 @@ dotenv.load_dotenv(override=True)
 OmegaConf.register_new_resolver("replace", lambda s, x, y: s.replace(x, y))
 
 
-@hydra.main(config_path="configs/", config_name="train.yaml")
+@hydra.main(version_base="1.2", config_path="configs/", config_name="train.yaml")
 def main(config: DictConfig):
 
     # Imports can be nested inside @hydra.main to optimize tab completion

@@ -27,7 +27,7 @@ def test_prediction_fast_dev_run(tmp_path):
     out_path = tmp_path / "predictions"
     command = ["predict.py", f"out_path={out_path}", "++pipeline.fast_dev_run=true"]
     run_command(command)
-    assert os.path.exists(out_path)
+    assert os.path.exists(f"{out_path}.jsonl")
 
 
 @pytest.mark.skip(reason="this takes too much time")
