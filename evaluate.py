@@ -9,7 +9,7 @@ from omegaconf import DictConfig, OmegaConf
 # recursively searches for `.env` in all folders starting from work dir
 dotenv.load_dotenv(override=True)
 
-# register replace resolver (used to replace "/" with "-" in names to use them as wandb project names)
+# register replace resolver (used to replace "/" with "-" in names to use them as e.g. wandb project names)
 OmegaConf.register_new_resolver("replace", lambda s, x, y: s.replace(x, y))
 
 
