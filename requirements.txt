@@ -15,6 +15,7 @@ hydra-optuna-sweeper>=1.2.0
 # mlflow
 # comet-ml
 # tensorboard
+# aim
 
 # --------- linters --------- #
 pre-commit      # hooks for applying linters on commit
