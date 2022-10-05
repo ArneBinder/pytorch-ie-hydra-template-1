@@ -1,0 +1,8 @@
+# https://aimstack.readthedocs.io/en/latest/
+
+aim:
+  _target_: aim.pytorch_lightning.AimLogger
+  repo: .aim
+  experiment: ${replace:${name},/,-}
+  train_metric_prefix: train/
+  val_metric_prefix: val/
