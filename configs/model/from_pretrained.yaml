@@ -1,0 +1,3 @@
+_target_: pytorch_ie.auto.AutoModel.from_pretrained
+
+pretrained_model_name_or_path: ${model_name_or_path}
