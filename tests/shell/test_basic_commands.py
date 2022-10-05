@@ -18,7 +18,7 @@ def test_fast_dev_run_with_evaluation():
 
 def test_evaluation_single_batch():
     """Test the test script with a single batch."""
-    command = ["test.py", "++trainer.limit_test_batches=1"]
+    command = ["evaluate.py", "++trainer.limit_test_batches=1"]
     run_command(command)
 
 
@@ -80,7 +80,7 @@ def test_double_validation_loop():
 @pytest.mark.slow
 def test_evaluation_cpu():
     """Test the test script."""
-    command = ["test.py", "++trainer.gpus=0", "++trainer.limit_test_batches=5"]
+    command = ["evaluate.py", "++trainer.gpus=0", "++trainer.limit_test_batches=5"]
     run_command(command)
 
 
@@ -88,5 +88,5 @@ def test_evaluation_cpu():
 @pytest.mark.slow
 def test_evaluation_gpu():
     """Test the test script."""
-    command = ["test.py", "++trainer.gpus=1"]
+    command = ["evaluate.py", "++trainer.gpus=1"]
     run_command(command)
