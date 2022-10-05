@@ -4,6 +4,8 @@ defaults:
   - _self_
   - dataset: conll2003
   - datamodule: default
+  - taskmodule: from_pretrained
+  - model: from_pretrained
   - callbacks: null
   - logger: null
   - trainer: default.yaml
@@ -15,27 +17,19 @@ pipeline_type: "evaluation"
 
 name: "default"
 
-# tags to help you identify your experiments
-# (you can overwrite this in experiment configs)
-tags: ["dataset=conll2003", "model=transformer_token_classification"]
+tags: ["dev"]
 
 ignore_warnings: False
 
 print_config: True
 
-# passing checkpoint path is necessary for evaluation
-ckpt_path: null
-
 seed: null
 
-# this should be the value of save_dir from the train config
-# or the url to huggingface hub where the taskmodule and model was pushed to
+# This should be the value of save_dir from the train config
+# or the url to huggingface hub where the taskmodule and model was pushed to.
+# It is used in the from_pretrained taskmodule and model configs.
 model_name_or_path: pie/example-ner-spanclf-conll03
 
-# specify the taskmodule
-taskmodule:
-  _target_: pytorch_ie.auto.AutoTaskModule.from_pretrained
-
-# specify the model
-model:
-  _target_: pytorch_ie.auto.AutoModel.from_pretrained
+# Per default, the model is loaded with .from_pretrained() which already loads the weights.
+# However, ckpt_path can be used to load different weights from any checkpoint.
+ckpt_path: null
