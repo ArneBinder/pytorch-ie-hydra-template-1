@@ -97,7 +97,7 @@ def train(config: DictConfig) -> Optional[float]:
 
     # Test the model
     if config.get("test"):
-        ckpt_path = "best"
+        ckpt_path: Optional[str] = "best"
         if not config.get("train") or config.trainer.get("fast_dev_run"):
             ckpt_path = None
         log.info("Starting testing!")
