@@ -13,8 +13,9 @@ from src import utils
 log = utils.get_logger(__name__)
 
 
-def test(config: DictConfig) -> None:
-    """Contains minimal example of the testing pipeline.
+def evaluate(config: DictConfig) -> None:
+    """
+    Contains minimal example of the evaluation pipeline.
     Evaluates given checkpoint on a testset.
 
     Args:
