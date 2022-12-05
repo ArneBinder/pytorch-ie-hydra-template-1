@@ -38,3 +38,16 @@ def test_eval_config(cfg_eval: DictConfig):
     )
     hydra.utils.instantiate(cfg_eval.model)
     hydra.utils.instantiate(cfg_eval.trainer)
+
+
+def test_predict_config(cfg_predict: DictConfig):
+    assert cfg_predict
+    assert cfg_predict.dataset
+    assert cfg_predict.pipeline
+    assert cfg_predict.serializer
+
+    HydraConfig().set_config(cfg_predict)
+
+    dataset = hydra.utils.instantiate(cfg_predict.dataset)
+    pipeline = hydra.utils.instantiate(cfg_predict.pipeline)
+    serializer = hydra.utils.instantiate(cfg_predict.serializer)
