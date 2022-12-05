@@ -28,23 +28,23 @@ def test_train_fast_dev_run_gpu(cfg_train):
 
 
 @RunIf(min_gpus=1)
-@pytest.mark.slow
 def test_train_epoch_gpu_amp(cfg_train):
     """Train 1 epoch on GPU with mixed-precision."""
     HydraConfig().set_config(cfg_train)
     with open_dict(cfg_train):
         cfg_train.trainer.max_epochs = 1
-        cfg_train.trainer.accelerator = "cpu"
+        cfg_train.trainer.accelerator = "gpu"
         cfg_train.trainer.precision = 16
     train(cfg_train)
 
 
-@pytest.mark.slow
+@RunIf(min_gpus=1)
 def test_train_epoch_double_val_loop(cfg_train):
     """Train 1 epoch with validation loop twice per epoch."""
     HydraConfig().set_config(cfg_train)
     with open_dict(cfg_train):
         cfg_train.trainer.max_epochs = 1
+        cfg_train.trainer.accelerator = "gpu"
         cfg_train.trainer.val_check_interval = 0.5
     train(cfg_train)
 
@@ -61,11 +61,12 @@ def test_train_ddp_sim(cfg_train):
     train(cfg_train)
 
 
-@pytest.mark.slow
+@RunIf(min_gpus=1)
 def test_train_resume(tmp_path, cfg_train):
     """Run 1 epoch, finish, and resume for another epoch."""
     with open_dict(cfg_train):
         cfg_train.trainer.max_epochs = 1
+        cfg_train.trainer.accelerator = "gpu"
 
     HydraConfig().set_config(cfg_train)
     metric_dict_1, _ = train(cfg_train)
