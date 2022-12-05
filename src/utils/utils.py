@@ -5,9 +5,7 @@ from pathlib import Path
 from typing import Callable, List, Optional
 
 import hydra
-from omegaconf import DictConfig
-from pytorch_lightning import Callback
-from pytorch_lightning.loggers import LightningLoggerBase
+from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning.utilities import rank_zero_only
 
 from src.utils import pylogger, rich_utils
@@ -34,15 +32,15 @@ def task_wrapper(task_func: Callable) -> Callable:
         extras(cfg)
 
         # execute the task
+        start_time = time.time()
         try:
-            start_time = time.time()
             metric_dict, object_dict = task_func(cfg=cfg)
         except Exception as ex:
             log.exception("")  # save exception to `.log` file
             raise ex
         finally:
             path = Path(cfg.paths.output_dir, "exec_time.log")
-            content = f"'{cfg.task_name}' execution time: {time.time() - start_time} (s)"
+            content = f"'{cfg.pipeline_type}' execution time: {time.time() - start_time} (s)"
             save_file(path, content)  # save task execution time (even if exception occurs)
             close_loggers()  # close loggers (even if exception occurs so multirun won't fail)
 
@@ -90,49 +88,32 @@ def save_file(path: str, content: str) -> None:
         file.write(content)
 
 
-def instantiate_callbacks(callbacks_cfg: DictConfig) -> List[Callback]:
-    """Instantiates callbacks from config."""
-    callbacks: List[Callback] = []
+def instantiate_dict_entries(
+    config: DictConfig, key: str, entry_description: Optional[str] = None
+) -> List:
+    entries: List = []
+    key_config = config.get(key)
 
-    if not callbacks_cfg:
-        log.warning("Callbacks config is empty.")
-        return callbacks
+    if not key_config:
+        log.warning(f"{key} config is empty.")
+        return entries
 
-    if not isinstance(callbacks_cfg, DictConfig):
-        raise TypeError("Callbacks config must be a DictConfig!")
-
-    for _, cb_conf in callbacks_cfg.items():
-        if isinstance(cb_conf, DictConfig) and "_target_" in cb_conf:
-            log.info(f"Instantiating callback <{cb_conf._target_}>")
-            callbacks.append(hydra.utils.instantiate(cb_conf))
-
-    return callbacks
-
-
-def instantiate_loggers(logger_cfg: DictConfig) -> List[LightningLoggerBase]:
-    """Instantiates loggers from config."""
-    logger: List[LightningLoggerBase] = []
-
-    if not logger_cfg:
-        log.warning("Logger config is empty.")
-        return logger
-
-    if not isinstance(logger_cfg, DictConfig):
+    if not isinstance(key_config, DictConfig):
         raise TypeError("Logger config must be a DictConfig!")
 
-    for _, lg_conf in logger_cfg.items():
-        if isinstance(lg_conf, DictConfig) and "_target_" in lg_conf:
-            log.info(f"Instantiating logger <{lg_conf._target_}>")
-            logger.append(hydra.utils.instantiate(lg_conf))
+    for _, entry_conf in key_config.items():
+        if isinstance(entry_conf, DictConfig) and "_target_" in entry_conf:
+            log.info(f"Instantiating {entry_description or key} <{entry_conf._target_}>")
+            entries.append(hydra.utils.instantiate(entry_conf, _convert_="partial"))
 
-    return logger
+    return entries
 
 
 @rank_zero_only
 def log_hyperparameters(object_dict: dict) -> None:
     """Controls which config parts are saved by lightning loggers.
 
-    Additionally saves:
+    Additional saves:
     - Number of model parameters
     """
 
@@ -161,13 +142,13 @@ def log_hyperparameters(object_dict: dict) -> None:
         p.numel() for p in model.parameters() if not p.requires_grad
     )
 
-    hparams["datamodule"] = cfg["datamodule"]
+    hparams["dataset"] = cfg["dataset"]
     hparams["trainer"] = cfg["trainer"]
 
     hparams["callbacks"] = cfg.get("callbacks")
     hparams["extras"] = cfg.get("extras")
 
-    hparams["task_name"] = cfg.get("task_name")
+    hparams["pipeline_type"] = cfg.get("pipeline_type")
     hparams["tags"] = cfg.get("tags")
     hparams["ckpt_path"] = cfg.get("ckpt_path")
     hparams["seed"] = cfg.get("seed")
@@ -209,14 +190,6 @@ def close_loggers() -> None:
             wandb.finish()
 
 
-# TODO: check, if this can be removed (see instantiate_loggers)
-def instantiate_dict_entries(
-    config: DictConfig, key: str, entry_description: Optional[str] = None
-) -> List:
-    entries = []
-    if key in config:
-        for _, entry_conf in config[key].items():
-            if "_target_" in entry_conf:
-                log.info(f"Instantiating {entry_description or key} <{entry_conf._target_}>")
-                entries.append(hydra.utils.instantiate(entry_conf, _convert_="partial"))
-    return entries
+def prepare_omegaconf():
+    # register replace resolver (used to replace "/" with "-" in names to use them as e.g. wandb project names)
+    OmegaConf.register_new_resolver("replace", lambda s, x, y: s.replace(x, y))

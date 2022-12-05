@@ -4,10 +4,9 @@ from src.utils.utils import (
     close_loggers,
     extras,
     get_metric_value,
-    instantiate_callbacks,
     instantiate_dict_entries,
-    instantiate_loggers,
     log_hyperparameters,
+    prepare_omegaconf,
     save_file,
     task_wrapper,
 )

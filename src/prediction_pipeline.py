@@ -13,8 +13,8 @@ log = utils.get_pylogger(__name__)
 
 
 def predict(config: DictConfig) -> None:
-    """Contains minimal example of the prediction pipeline.
-    Uses a pretrained model to annotate documents from a dataset and serializes them.
+    """Contains minimal example of the prediction pipeline. Uses a pretrained model to annotate
+    documents from a dataset and serializes them.
 
     Args:
         config (DictConfig): Configuration composed by Hydra.
