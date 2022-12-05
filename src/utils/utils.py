@@ -2,7 +2,7 @@ import time
 import warnings
 from importlib.util import find_spec
 from pathlib import Path
-from typing import Any, Callable, Dict, List
+from typing import Callable, List, Optional
 
 import hydra
 from omegaconf import DictConfig
@@ -140,13 +140,17 @@ def log_hyperparameters(object_dict: dict) -> None:
 
     cfg = object_dict["cfg"]
     model = object_dict["model"]
+    taskmodule = object_dict["taskmodule"]
     trainer = object_dict["trainer"]
 
     if not trainer.logger:
         log.warning("Logger not found! Skipping hyperparameter logging...")
         return
 
-    hparams["model"] = cfg["model"]
+    # choose which parts of hydra config will be saved to loggers
+    # here we use the taskmodule/model config how it is after preparation/initialization
+    hparams["taskmodule"] = taskmodule._config()
+    hparams["model"] = model._config()
 
     # save number of model parameters
     hparams["model/params/total"] = sum(p.numel() for p in model.parameters())
@@ -172,7 +176,7 @@ def log_hyperparameters(object_dict: dict) -> None:
     trainer.logger.log_hyperparams(hparams)
 
 
-def get_metric_value(metric_dict: dict, metric_name: str) -> float:
+def get_metric_value(metric_dict: dict, metric_name: str) -> Optional[float]:
     """Safely retrieves value of the metric logged in LightningModule."""
 
     if not metric_name:
@@ -203,3 +207,16 @@ def close_loggers() -> None:
         if wandb.run:
             log.info("Closing wandb!")
             wandb.finish()
+
+
+# TODO: check, if this can be removed (see instantiate_loggers)
+def instantiate_dict_entries(
+    config: DictConfig, key: str, entry_description: Optional[str] = None
+) -> List:
+    entries = []
+    if key in config:
+        for _, entry_conf in config[key].items():
+            if "_target_" in entry_conf:
+                log.info(f"Instantiating {entry_description or key} <{entry_conf._target_}>")
+                entries.append(hydra.utils.instantiate(entry_conf, _convert_="partial"))
+    return entries

@@ -9,7 +9,7 @@ from pytorch_lightning import seed_everything
 
 from src import utils
 
-log = utils.get_logger(__name__)
+log = utils.get_pylogger(__name__)
 
 
 def predict(config: DictConfig) -> None:

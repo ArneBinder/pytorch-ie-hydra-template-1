@@ -9,7 +9,7 @@ from pytorch_lightning import Trainer, seed_everything
 
 from src import utils
 
-log = utils.get_logger(__name__)
+log = utils.get_pylogger(__name__)
 
 
 def train(config: DictConfig) -> Optional[float]:
@@ -63,17 +63,18 @@ def train(config: DictConfig) -> Optional[float]:
         config.trainer, callbacks=callbacks, logger=logger, _convert_="partial"
     )
 
-    # Send some parameters from config to all lightning loggers
-    log.info("Logging hyperparameters!")
-    utils.log_hyperparameters(
-        config=config,
-        taskmodule=taskmodule,
-        model=model,
-        datamodule=datamodule,
-        trainer=trainer,
-        callbacks=callbacks,
-        logger=logger,
-    )
+    object_dict = {
+        "cfg": config,
+        "datamodule": datamodule,
+        "model": model,
+        "callbacks": callbacks,
+        "logger": logger,
+        "trainer": trainer,
+    }
+
+    if logger:
+        log.info("Logging hyperparameters!")
+        utils.log_hyperparameters(object_dict)
 
     if config.save_dir is not None:
         log.info(f"Save taskmodule to {config.save_dir} [push_to_hub={config.push_to_hub}]")
@@ -105,15 +106,7 @@ def train(config: DictConfig) -> Optional[float]:
 
     # Make sure everything closed properly
     log.info("Finalizing!")
-    utils.finish(
-        config=config,
-        taskmodule=taskmodule,
-        model=model,
-        datamodule=datamodule,
-        trainer=trainer,
-        callbacks=callbacks,
-        logger=logger,
-    )
+    utils.close_loggers()
 
     # Print path to best checkpoint
     if not config.trainer.get("fast_dev_run") and config.get("train"):
