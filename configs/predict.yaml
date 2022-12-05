@@ -6,8 +6,9 @@ defaults:
   - dataset: conll2003
   - pipeline: from_pretrained
   - serializer: json
-  - hydra: default.yaml
   - paths: default.yaml
+  - extras: default.yaml
+  - hydra: default.yaml
 
 pipeline_type: "prediction"
 
