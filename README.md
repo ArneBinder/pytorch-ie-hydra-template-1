@@ -642,13 +642,6 @@ trainer:
 
 datamodule:
   batch_size: 32
-
-logger:
-  wandb:
-    tags: ${tags}
-    group: "conll2003"
-
-# save_dir: models/${name}/debug
 ```
 
 </details>
