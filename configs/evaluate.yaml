@@ -9,9 +9,9 @@ defaults:
   - callbacks: null
   - logger: null
   - trainer: default.yaml
-  - hydra: default.yaml
   - paths: default.yaml
-  - experiment: null
+  - extras: default.yaml
+  - hydra: default.yaml
 
 pipeline_type: "evaluation"
 

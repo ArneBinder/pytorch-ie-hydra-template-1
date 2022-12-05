@@ -9,7 +9,7 @@ defaults:
   - override /taskmodule: transformer_token_classification.yaml
   - override /model: transformer_token_classification.yaml
   - override /callbacks: default.yaml
-  - override /logger: wandb.yaml
+  - override /logger: aim.yaml
   - override /trainer: default.yaml
 
 # all parameters below will be merged with parameters from default configurations set above
@@ -17,6 +17,8 @@ defaults:
 
 # name of the run determines folder name in logs
 name: "conll2003/transformer_token_classification"
+
+tags: ["dataset=conll2003", "model=transformer_token_classification"]
 
 seed: 12345
 
@@ -30,9 +32,6 @@ datamodule:
 
 logger:
   wandb:
-    name: "first-run"
-    tags:
-      - dataset=conll2003
-      - model=transformer_token_classification
-      - task=ner
+    tags: ${tags}
+    group: "conll2003"
 # save_dir: models/${name}/debug
