@@ -141,9 +141,10 @@ dmypy.json
 
 # Lightning-Hydra-Template
 configs/local/default.yaml
-/data/
-/logs/
-/models/
 wandb/
 .env
 .autoenv
+# only root level entries are ignored to keep e.g. source code packages with the same name
+/data/
+/logs/
+/models/
