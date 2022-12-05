@@ -36,6 +36,8 @@ repos:
     rev: 4.0.1
     hooks:
       - id: flake8
+        args:
+          ["--extend-ignore", "E402,E501,F401", "--exclude", "logs/*,data/*"]
 
   # jupyter notebook cell output clearing
   - repo: https://github.com/kynan/nbstripout
