@@ -192,4 +192,7 @@ def close_loggers() -> None:
 
 def prepare_omegaconf():
     # register replace resolver (used to replace "/" with "-" in names to use them as e.g. wandb project names)
-    OmegaConf.register_new_resolver("replace", lambda s, x, y: s.replace(x, y))
+    if not OmegaConf.has_resolver("replace"):
+        OmegaConf.register_new_resolver("replace", lambda s, x, y: s.replace(x, y))
+    else:
+        log.warning("OmegaConf resolver 'replace' is already registered")
