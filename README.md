@@ -1426,3 +1426,12 @@ You can override any parameter from command line like this
 ```bash
 python train.py trainer.max_epochs=20 datamodule.batch_size=64
 ```
+
+## Development
+```bash
+# run pre-commit: code formatting, code analysis, static type checking, and more (see .pre-commit-config.yaml)
+pre-commit run -a
+
+# run tests (exclude debug and sweep configs because they take a lot of time)
+pytest -k "not slow" --ignore=tests/shell/test_debug_configs.py --ignore=tests/shell/test_sweeps.py --cov --cov-report term-missing
+```
