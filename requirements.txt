@@ -1,8 +1,5 @@
 # --------- pytorch-ie --------- #
-# pytorch-ie>=0.8.0,<0.9
-# we need the latest dev version of pytorch-ie where
-# the pipeline works without the parameter "predict_field"
-git+https://github.com/ChristophAlt/pytorch-ie.git
+pytorch-ie>=0.12.0,<0.13
 
 # --------- hydra --------- #
 hydra-core>=1.2.0
