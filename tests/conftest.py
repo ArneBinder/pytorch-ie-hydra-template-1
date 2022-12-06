@@ -17,7 +17,7 @@ def cfg_train_global() -> DictConfig:
 
         # set defaults for all tests
         with open_dict(cfg):
-            cfg.paths.root_dir = str(pyrootutils.find_root())
+            cfg.paths.root_dir = str(ROOT)
             cfg.trainer.max_epochs = 1
             cfg.trainer.limit_train_batches = 0.01
             cfg.trainer.limit_val_batches = 0.1
@@ -42,7 +42,7 @@ def cfg_eval_global() -> DictConfig:
 
         # set defaults for all tests
         with open_dict(cfg):
-            cfg.paths.root_dir = str(pyrootutils.find_root())
+            cfg.paths.root_dir = str(ROOT)
             cfg.trainer.max_epochs = 1
             cfg.trainer.limit_test_batches = 0.1
             cfg.trainer.accelerator = "cpu"
@@ -63,7 +63,7 @@ def cfg_predict_global() -> DictConfig:
 
         # set defaults for all tests
         with open_dict(cfg):
-            cfg.paths.root_dir = str(pyrootutils.find_root())
+            cfg.paths.root_dir = str(ROOT)
             cfg.extras.print_config = False
             cfg.extras.enforce_tags = False
             cfg.logger = None
