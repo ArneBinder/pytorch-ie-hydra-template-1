@@ -48,8 +48,6 @@ from src import utils
 
 log = utils.get_pylogger(__name__)
 
-utils.prepare_omegaconf()
-
 
 @utils.task_wrapper
 def train(cfg: DictConfig) -> Tuple[dict, dict]:
@@ -180,4 +178,5 @@ def main(cfg: DictConfig) -> Optional[float]:
 
 
 if __name__ == "__main__":
+    utils.prepare_omegaconf()
     main()

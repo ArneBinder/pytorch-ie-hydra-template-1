@@ -4,6 +4,11 @@ from hydra import compose, initialize
 from hydra.core.global_hydra import GlobalHydra
 from omegaconf import DictConfig, open_dict
 
+from src.utils import utils
+
+ROOT = pyrootutils.find_root()
+utils.prepare_omegaconf()
+
 
 @pytest.fixture(scope="package")
 def cfg_train_global() -> DictConfig:
