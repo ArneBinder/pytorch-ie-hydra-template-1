@@ -120,9 +120,9 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
         log.info("Logging hyperparameters!")
         utils.log_hyperparameters(object_dict)
 
-    if cfg.save_dir is not None:
-        log.info(f"Save taskmodule to {cfg.save_dir} [push_to_hub={cfg.push_to_hub}]")
-        taskmodule.save_pretrained(save_directory=cfg.save_dir, push_to_hub=cfg.push_to_hub)
+    if cfg.model_save_dir is not None:
+        log.info(f"Save taskmodule to {cfg.model_save_dir} [push_to_hub={cfg.push_to_hub}]")
+        taskmodule.save_pretrained(save_directory=cfg.model_save_dir, push_to_hub=cfg.push_to_hub)
     else:
         log.warning("the taskmodule is not saved because no save_dir is specified")
 
@@ -137,14 +137,14 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
         log.info(f"Best ckpt path: {best_ckpt_path}")
 
     if not cfg.trainer.get("fast_dev_run") and cfg.get("train"):
-        if cfg.save_dir is not None:
+        if cfg.model_save_dir is not None:
             if best_ckpt_path == "":
                 log.warning("Best ckpt not found! Using current weights for saving...")
             else:
                 model.load_from_checkpoint(best_ckpt_path)
 
-            log.info(f"Save model to {cfg.save_dir} [push_to_hub={cfg.push_to_hub}]")
-            model.save_pretrained(save_directory=cfg.save_dir, push_to_hub=cfg.push_to_hub)
+            log.info(f"Save model to {cfg.model_save_dir} [push_to_hub={cfg.push_to_hub}]")
+            model.save_pretrained(save_directory=cfg.model_save_dir, push_to_hub=cfg.push_to_hub)
         else:
             log.warning("the model is not saved because no save_dir is specified")
 

@@ -15,8 +15,8 @@ def test_predict(tmp_path, cfg_predict):
     HydraConfig().set_config(cfg_predict)
     predict(cfg_predict)
 
-    assert os.path.exists(f"{cfg_predict.out_path}.jsonl")
-    assert os.path.exists(f"{cfg_predict.out_path}.config.yaml")
+    assert os.path.exists(f"{cfg_predict.prediction_save_dir}/documents.jsonl")
+    assert os.path.exists(f"{cfg_predict.prediction_save_dir}/config.yaml")
 
 
 def test_predict_fast_dev_run(tmp_path, cfg_predict):

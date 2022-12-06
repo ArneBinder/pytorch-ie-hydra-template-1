@@ -80,6 +80,7 @@ def cfg_train(cfg_train_global, tmp_path) -> DictConfig:
     with open_dict(cfg):
         cfg.paths.output_dir = str(tmp_path)
         cfg.paths.log_dir = str(tmp_path)
+        cfg.paths.save_dir = str(tmp_path)
 
     yield cfg
 
@@ -110,7 +111,7 @@ def cfg_predict(cfg_predict_global, tmp_path) -> DictConfig:
     with open_dict(cfg):
         cfg.paths.output_dir = str(tmp_path)
         cfg.paths.log_dir = str(tmp_path)
-        cfg.out_path = str(tmp_path)
+        cfg.paths.save_dir = str(tmp_path)
 
     yield cfg
 
