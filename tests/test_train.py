@@ -58,32 +58,32 @@ def test_train_ddp_sim(cfg_train):
         cfg_train.trainer.accelerator = "cpu"
         cfg_train.trainer.devices = 2
         cfg_train.trainer.strategy = "ddp_spawn"
+        cfg_train.trainer.limit_train_batches = 3
+        cfg_train.trainer.limit_val_batches = 3
     train(cfg_train)
 
 
-@RunIf(min_gpus=1)
+@pytest.mark.slow
 def test_train_resume(tmp_path, cfg_train):
     """Run 1 epoch, finish, and resume for another epoch."""
     with open_dict(cfg_train):
+        cfg_train.seed = 12345
         cfg_train.trainer.max_epochs = 1
-        cfg_train.trainer.accelerator = "gpu"
+        cfg_train.callbacks.model_checkpoint.save_last = True
+        cfg_train.trainer.limit_train_batches = 3
+        cfg_train.trainer.limit_val_batches = 3
 
     HydraConfig().set_config(cfg_train)
     metric_dict_1, _ = train(cfg_train)
 
     files = os.listdir(tmp_path / "checkpoints")
     assert "last.ckpt" in files
-    assert "epoch_000.ckpt" in files
 
+    # note: all values set above are still valid, if not overwritten here
     with open_dict(cfg_train):
         cfg_train.ckpt_path = str(tmp_path / "checkpoints" / "last.ckpt")
         cfg_train.trainer.max_epochs = 2
 
     metric_dict_2, _ = train(cfg_train)
 
-    files = os.listdir(tmp_path / "checkpoints")
-    assert "epoch_001.ckpt" in files
-    assert "epoch_002.ckpt" not in files
-
-    assert metric_dict_1["train/f1"] < metric_dict_2["train/f1"]
-    assert metric_dict_1["val/f1"] < metric_dict_2["val/f1"]
+    assert metric_dict_2["train/loss"] < metric_dict_1["train/loss"]
