@@ -64,4 +64,4 @@ ckpt_path: null
 push_to_hub: False
 
 # where to save the trained model and taskmodule
-save_dir: models/${name}/${now:%Y-%m-%d_%H-%M-%S}
+model_save_dir: ${paths.save_dir}/models/${name}/${now:%Y-%m-%d_%H-%M-%S}
