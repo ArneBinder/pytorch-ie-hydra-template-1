@@ -33,7 +33,8 @@ root = pyrootutils.setup_root(
 # https://github.com/ashleve/pyrootutils
 # ------------------------------------------------------------------------------------ #
 
-from typing import Callable, Sequence, Tuple
+import os
+from typing import Callable, Optional, Sequence, Tuple
 
 import hydra
 import pytorch_lightning as pl
@@ -77,25 +78,36 @@ def predict(cfg: DictConfig) -> Tuple[dict, dict]:
             pipeline.device
         )
 
+    # Init the serializer
+    serializer: Optional[Callable[[Sequence[Document]], None]] = None
+    if cfg.get("serializer") and cfg.serializer.get("_target_"):
+        log.info(f"Instantiating serializer <{cfg.serializer._target_}>")
+        serializer = hydra.utils.instantiate(cfg.serializer, _convert_="partial")
+
+    object_dict = {
+        "cfg": cfg,
+        "dataset": dataset,
+        "pipeline": pipeline,
+        "serializer": serializer,
+    }
+
     # select the dataset split for prediction
     dataset_predict = dataset[cfg.dataset_split]
 
     log.info("Starting inference!")
-    dataset_with_predictions = pipeline(dataset_predict, inplace=False)
+    documents_with_predictions = pipeline(dataset_predict, inplace=False)
 
-    # Init the serializer
-    log.info(f"Instantiating serializer <{cfg.serializer._target_}>")
-    serializer: Callable[[Sequence[Document]], None] = hydra.utils.instantiate(
-        cfg.serializer, _convert_="partial"
-    )
     # serialize the documents
-    serializer(dataset_with_predictions)
+    if serializer is not None:
+        serializer(documents_with_predictions)
 
     # serialize config with resolved paths
     if cfg.get("config_out_path"):
+        config_out_dir = os.path.dirname(cfg.config_out_path)
+        os.makedirs(config_out_dir, exist_ok=True)
         OmegaConf.save(config=cfg, f=cfg.config_out_path)
 
-    return {}, {}
+    return {"predictions": documents_with_predictions}, object_dict
 
 
 @hydra.main(version_base="1.2", config_path=root / "configs", config_name="predict.yaml")
