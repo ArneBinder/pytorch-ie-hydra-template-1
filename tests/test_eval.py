@@ -12,7 +12,7 @@ from tests.helpers.run_if import RunIf
 @pytest.mark.slow
 def test_train_eval(tmp_path, cfg_train, cfg_eval):
     """Train for 1 epoch with `train.py` and evaluate with `eval.py`"""
-    assert str(tmp_path) == cfg_train.paths.output_dir == cfg_eval.paths.output_dir
+    assert str(tmp_path) == cfg_train.paths.save_dir
 
     with open_dict(cfg_train):
         cfg_train.trainer.max_epochs = 1
