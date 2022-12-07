@@ -67,8 +67,21 @@ def test_train_predict(tmp_path, cfg_train, cfg_predict):
         cfg_predict.serializer = None
 
     HydraConfig().set_config(cfg_predict)
-    prediction_dict, _ = predict(cfg_predict)
+    _, object_dict = predict(cfg_predict)
 
-    predicted_entities = [list(doc.entities.predictions) for doc in prediction_dict["predictions"]]
+    predicted_entities = [list(doc.entities.predictions) for doc in object_dict["documents"]]
     num_predicted_entities = sum([len(preds) for preds in predicted_entities])
     assert num_predicted_entities > 0
+
+
+def test_serialize_only(tmp_path, cfg_predict):
+    """Directly serialize the input documents without calling a PyTorch-IE-pipeline."""
+
+    with open_dict(cfg_predict):
+        cfg_predict.pipeline = None
+
+    HydraConfig().set_config(cfg_predict)
+    predict(cfg_predict)
+
+    assert path.exists(path.join(cfg_predict.prediction_save_dir, "documents.jsonl"))
+    assert path.exists(path.join(cfg_predict.prediction_save_dir, "config.yaml"))

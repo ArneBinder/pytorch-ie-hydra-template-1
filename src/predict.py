@@ -68,15 +68,19 @@ def predict(cfg: DictConfig) -> Tuple[dict, dict]:
     dataset: DatasetDict = hydra.utils.instantiate(cfg.dataset, _convert_="partial")
 
     # Init pytorch-ie pipeline
-    log.info(f"Instantiating pipeline <{cfg.pipeline._target_}> from {cfg.model_name_or_path}")
-    pipeline: Pipeline = hydra.utils.instantiate(cfg.pipeline, _convert_="partial")
+    # The pipeline, and therefore the inference step, is optional to allow for easy testing
+    # of the dataset creation and processing.
+    pipeline: Optional[Pipeline] = None
+    if cfg.get("pipeline") and cfg.pipeline.get("_target_"):
+        log.info(f"Instantiating pipeline <{cfg.pipeline._target_}> from {cfg.model_name_or_path}")
+        pipeline = hydra.utils.instantiate(cfg.pipeline, _convert_="partial")
 
-    # Per default, the model is loaded with .from_pretrained() which already loads the weights.
-    # However, ckpt_path can be used to load different weights from any checkpoint.
-    if cfg.ckpt_path is not None:
-        pipeline.model = pipeline.model.load_from_checkpoint(checkpoint_path=cfg.ckpt_path).to(
-            pipeline.device
-        )
+        # Per default, the model is loaded with .from_pretrained() which already loads the weights.
+        # However, ckpt_path can be used to load different weights from any checkpoint.
+        if cfg.ckpt_path is not None:
+            pipeline.model = pipeline.model.load_from_checkpoint(checkpoint_path=cfg.ckpt_path).to(
+                pipeline.device
+            )
 
     # Init the serializer
     serializer: Optional[Callable[[Sequence[Document]], None]] = None
@@ -84,22 +88,27 @@ def predict(cfg: DictConfig) -> Tuple[dict, dict]:
         log.info(f"Instantiating serializer <{cfg.serializer._target_}>")
         serializer = hydra.utils.instantiate(cfg.serializer, _convert_="partial")
 
+    # select the dataset split for prediction
+    dataset_predict = dataset[cfg.dataset_split]
+
+    if pipeline is not None:
+        log.info("Starting inference!")
+        documents = pipeline(dataset_predict, inplace=False)
+    else:
+        log.warning("No prediction pipeline is defined, skip inference!")
+        documents = list(dataset_predict)
+
     object_dict = {
         "cfg": cfg,
         "dataset": dataset,
         "pipeline": pipeline,
         "serializer": serializer,
+        "documents": documents,
     }
-
-    # select the dataset split for prediction
-    dataset_predict = dataset[cfg.dataset_split]
-
-    log.info("Starting inference!")
-    documents_with_predictions = pipeline(dataset_predict, inplace=False)
 
     # serialize the documents
     if serializer is not None:
-        serializer(documents_with_predictions)
+        serializer(documents)
 
     # serialize config with resolved paths
     if cfg.get("config_out_path"):
@@ -107,7 +116,8 @@ def predict(cfg: DictConfig) -> Tuple[dict, dict]:
         os.makedirs(config_out_dir, exist_ok=True)
         OmegaConf.save(config=cfg, f=cfg.config_out_path)
 
-    return {"predictions": documents_with_predictions}, object_dict
+    # to follow the result type of other main entry scripts, we return an empty metadata dict
+    return {}, object_dict
 
 
 @hydra.main(version_base="1.2", config_path=root / "configs", config_name="predict.yaml")
