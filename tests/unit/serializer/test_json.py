@@ -40,6 +40,6 @@ def test_serialize_json(tmp_path):
 
     serializer(documents=[document])
 
-    loaded = [json.loads(l) for l in open(path).readlines()]
+    loaded = [json.loads(line) for line in open(path).readlines()]
     document_loaded = ExampleDocument.fromdict(loaded[0])
     assert document_loaded == document

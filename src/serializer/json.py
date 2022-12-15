@@ -6,7 +6,7 @@ from pytorch_ie.core import Document
 
 from src import utils
 
-log = utils.get_logger(__name__)
+log = utils.get_pylogger(__name__)
 
 
 class JsonSerializer:
