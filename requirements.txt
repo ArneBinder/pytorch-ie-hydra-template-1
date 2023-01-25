@@ -3,6 +3,8 @@ pytorch-ie>=0.12.0,<0.13
 
 # downgrade because of https://github.com/ChristophAlt/pytorch-ie/issues/239
 datasets==2.7.1
+# downgrade because otherwise LightningLoggerBase can not be imported
+pytorch-lightning==1.8.6
 
 # --------- hydra --------- #
 hydra-core>=1.2.0
