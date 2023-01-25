@@ -1,6 +1,9 @@
 # --------- pytorch-ie --------- #
 pytorch-ie>=0.12.0,<0.13
 
+# downgrade because of https://github.com/ChristophAlt/pytorch-ie/issues/239
+datasets==2.7.1
+
 # --------- hydra --------- #
 hydra-core>=1.2.0
 hydra-colorlog>=1.2.0
