@@ -144,6 +144,11 @@ pip install -r requirements.txt
 # [OPTIONAL] symlink log directories and the default model directory to
 # "$HOME/experiments/my-project" since they can grow a lot
 bash setup_symlinks.sh $HOME/experiments/my-project
+
+# [OPTIONAL] set any environment variables by creating an .env file
+# 1. copy the provided example file:
+cp .env.example .env
+# 2. edit the .env file for your needs!
 ```
 
 Template contains example with CONLL2003 Named Entity Recognition.<br>
