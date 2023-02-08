@@ -120,7 +120,7 @@ def predict(cfg: DictConfig) -> Tuple[dict, dict]:
     return {}, object_dict
 
 
-@hydra.main(version_base="1.2", config_path=root / "configs", config_name="predict.yaml")
+@hydra.main(version_base="1.2", config_path=str(root / "configs"), config_name="predict.yaml")
 def main(cfg: DictConfig) -> None:
     predict(cfg)
 
