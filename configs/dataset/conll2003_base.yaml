@@ -1,0 +1,7 @@
+# This config on its own does nothing more than conll2003.yaml. However, it can be easily combined with further
+# preprocessing configs, see conll2003_select_n.yaml for an example.
+
+_target_: src.utils.dataset.process_dataset
+input:
+  _target_: datasets.load_dataset
+  path: pie/conll2003
