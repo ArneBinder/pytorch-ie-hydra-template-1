@@ -79,7 +79,6 @@ def evaluate(cfg: DictConfig) -> Tuple[dict, dict]:
     datamodule: DataModule = hydra.utils.instantiate(
         cfg.datamodule, dataset=dataset, taskmodule=taskmodule, _convert_="partial"
     )
-    datamodule.setup(stage="test")
 
     # Init pytorch-ie model
     log.info(f"Instantiating model <{cfg.model._target_}>")

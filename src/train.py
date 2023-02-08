@@ -40,11 +40,11 @@ import pytorch_lightning as pl
 from omegaconf import DictConfig
 from pytorch_ie import DatasetDict
 from pytorch_ie.core import PyTorchIEModel, TaskModule
-from pytorch_ie.data.datamodules.datamodule import DataModule
 from pytorch_lightning import Callback, Trainer
 from pytorch_lightning.loggers import Logger
 
 from src import utils
+from src.datamodules import PieDataModule
 
 log = utils.get_pylogger(__name__)
 
@@ -78,11 +78,11 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
 
     # Init pytorch-ie datamodule
     log.info(f"Instantiating datamodule <{cfg.datamodule._target_}>")
-    datamodule: DataModule = hydra.utils.instantiate(
+    datamodule: PieDataModule = hydra.utils.instantiate(
         cfg.datamodule, dataset=dataset, taskmodule=taskmodule, _convert_="partial"
     )
-    # This calls taskmodule.prepare() on the train split.
-    datamodule.setup(stage="fit")
+    # Use the train dataset split to prepare the taskmodule
+    taskmodule.prepare(dataset["train"])
 
     # Init pytorch-ie model
     log.info(f"Instantiating model <{cfg.model._target_}>")
