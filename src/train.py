@@ -42,7 +42,7 @@ from pytorch_ie import DatasetDict
 from pytorch_ie.core import PyTorchIEModel, TaskModule
 from pytorch_ie.data.datamodules.datamodule import DataModule
 from pytorch_lightning import Callback, Trainer
-from pytorch_lightning.loggers import LightningLoggerBase
+from pytorch_lightning.loggers import Logger
 
 from src import utils
 
@@ -101,7 +101,7 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
     callbacks: List[Callback] = utils.instantiate_dict_entries(cfg, key="callbacks")
 
     log.info("Instantiating loggers...")
-    logger: List[LightningLoggerBase] = utils.instantiate_dict_entries(cfg, key="logger")
+    logger: List[Logger] = utils.instantiate_dict_entries(cfg, key="logger")
 
     log.info(f"Instantiating trainer <{cfg.trainer._target_}>")
     trainer: Trainer = hydra.utils.instantiate(cfg.trainer, callbacks=callbacks, logger=logger)
