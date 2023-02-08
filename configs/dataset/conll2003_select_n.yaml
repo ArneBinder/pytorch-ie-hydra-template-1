@@ -6,7 +6,7 @@
 # e.g. dataset.select_n.stop=5 to take only 5 train documents. See _select_n.yaml for further options.
 
 defaults:
-  - example_base
+  - conll2003_base
   - _select_n
   # for datasets, that do not yet have a validation split, just uncomment the following line
   # to create one from the train split (see _create_validation_split.yaml for further options)
