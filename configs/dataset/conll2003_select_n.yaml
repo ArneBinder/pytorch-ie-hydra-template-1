@@ -1,0 +1,13 @@
+# Simple preprocessing pipeline that loads conll2003 and allows to select a subset of documents. Uses all
+# documents per default.
+
+# Usage:
+# Just use dataset=conll2003_select_n and set any "stop" parameter,
+# e.g. dataset.select_n.stop=5 to take only 5 train documents. See _select_n.yaml for further options.
+
+defaults:
+  - conll2003_base
+  - _select_n
+  # for datasets, that do not yet have a validation split, just uncomment the following line
+  # to create one from the train split (see _create_validation_split.yaml for further options)
+  # - _create_validation_split

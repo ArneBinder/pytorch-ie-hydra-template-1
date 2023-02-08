@@ -1,0 +1,11 @@
+select_n:
+  _processor_: src.utils.dataset.select
+  split: train
+  # take all data per default
+  stop: null
+
+select_n_test:
+  _processor_: src.utils.dataset.select
+  split: test
+  # take all data per default
+  stop: null
