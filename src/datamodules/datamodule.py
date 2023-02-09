@@ -105,10 +105,12 @@ class PieDataModule(LightningDataModule, Generic[DocumentType, InputEncoding, Ta
         return self._data[split]
 
     def train_dataloader(self):
+        ds = self.data_split(self.train_split)
         return DataLoader(
-            dataset=self.data_split(self.train_split),
+            dataset=ds,
             collate_fn=self.taskmodule.collate,
-            shuffle=True,
+            # don't shuffle streamed datasets
+            shuffle=not isinstance(ds, IterableTaskEncodingDataset),
             **self.dataloader_kwargs,
         )
 
