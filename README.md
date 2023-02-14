@@ -694,7 +694,7 @@ familiar with the Pytorch-IE core concepts like the `dataset`, `model`, and `tas
 2. Write your PyTorch-IE model (see [pytorch_ie/models/transformer_token_classification.py](https://github.com/ChristophAlt/pytorch-ie/blob/main/src/pytorch_ie/models/transformer_token_classification.py) for example)
 3. Write your PyTorch-IE taskmodule (see [pytorch_ie/taskmodules/transformer_token_classification.py](https://github.com/ChristophAlt/pytorch-ie/blob/main/src/pytorch_ie/taskmodules/transformer_token_classification.py) for example)
 4. Write your experiment config, containing paths to your model, taskmodule and dataset
-5. If necessary, adjust the model creation in the [train.py](src/train.py) (see line with "NOTE: THE FOLLOWING LINE MAY NEED ADAPTATION ...")
+5. If necessary, define `additional_model_kwargs` for your model class in the [train.py](src/train.py) (see line with `# NOTE: DEFINE THE additional_model_kwargs ...`")
 6. Run training with chosen experiment config: `python train.py experiment=experiment_name`
 
 <br>
