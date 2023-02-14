@@ -94,7 +94,7 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
     # NOTE: DEFINE THE additional_model_kwargs IF YOU WANT TO USE ANOTHER MODEL! SEE EXAMPLES BELOW.
     if model_cls == TransformerTokenClassificationModel:
         additional_model_kwargs["num_classes"] = len(taskmodule.label_to_id)
-    # elif model_cls == TransformerSpanClassificationModel:
+    # elif model_cls == pytorch_ie.models.TransformerSpanClassificationModel:
     #     additional_model_kwargs["num_classes"] = len(taskmodule.label_to_id)
     #     max_train_steps = cfg["trainer"]["max_epochs"] * datamodule.num_train
     #     additional_model_kwargs["t_total"] = int(
