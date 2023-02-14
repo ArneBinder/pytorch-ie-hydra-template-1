@@ -686,6 +686,10 @@ hydra:
 
 ## Workflow
 
+Before creating your own setup, have a look into the
+[Pytorch-IE documentation](https://github.com/ChristophAlt/pytorch-ie#-concepts--architecture) to make yourself
+familiar with the Pytorch-IE core concepts like the `dataset`, `model`, and `taskmodule`.
+
 1. Write your PyTorch-IE dataset (see [pytorch_ie/datasets/conll2003/conll2003.py](https://github.com/ChristophAlt/pytorch-ie/blob/main/datasets/conll2003/conll2003.py)) or try out one of PIE datasets hosted at huggingface.co/pie
 2. Write your PyTorch-IE model (see [pytorch_ie/models/transformer_token_classification.py](https://github.com/ChristophAlt/pytorch-ie/blob/main/src/pytorch_ie/models/transformer_token_classification.py) for example)
 3. Write your PyTorch-IE taskmodule (see [pytorch_ie/taskmodules/transformer_token_classification.py](https://github.com/ChristophAlt/pytorch-ie/blob/main/src/pytorch_ie/taskmodules/transformer_token_classification.py) for example)
