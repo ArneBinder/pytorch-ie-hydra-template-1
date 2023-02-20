@@ -40,10 +40,10 @@ import pytorch_lightning as pl
 from omegaconf import DictConfig
 from pytorch_ie import DatasetDict
 from pytorch_ie.core import PyTorchIEModel, TaskModule
-from pytorch_ie.data.datamodules.datamodule import DataModule
 from pytorch_lightning import Trainer
 
 from src import utils
+from src.datamodules import PieDataModule
 
 log = utils.get_pylogger(__name__)
 
@@ -76,7 +76,7 @@ def evaluate(cfg: DictConfig) -> Tuple[dict, dict]:
 
     # Init pytorch-ie datamodule
     log.info(f"Instantiating datamodule <{cfg.datamodule._target_}>")
-    datamodule: DataModule = hydra.utils.instantiate(
+    datamodule: PieDataModule = hydra.utils.instantiate(
         cfg.datamodule, dataset=dataset, taskmodule=taskmodule, _convert_="partial"
     )
 
