@@ -2,12 +2,12 @@ import json
 from copy import copy
 from typing import Callable, Dict, Optional, Type, TypeVar, Union
 
+import datasets
 from hydra._internal.instantiate._instantiate2 import _resolve_target, instantiate
 from pytorch_ie import Dataset
 from pytorch_ie.core import Document
 from typing_extensions import SupportsIndex
 
-import datasets
 from src.utils.pylogger import get_pylogger
 
 logger = get_pylogger(__name__)
