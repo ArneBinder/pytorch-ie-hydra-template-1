@@ -37,9 +37,11 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import hydra
 import pytorch_lightning as pl
+from hydra.utils import get_class
 from omegaconf import DictConfig
 from pytorch_ie import DatasetDict
 from pytorch_ie.core import PyTorchIEModel, TaskModule
+from pytorch_ie.models import TransformerTokenClassificationModel
 from pytorch_lightning import Callback, Trainer
 from pytorch_lightning.loggers import Logger
 
@@ -84,14 +86,33 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
     # Use the train dataset split to prepare the taskmodule
     taskmodule.prepare(dataset["train"])
 
-    # Init pytorch-ie model
+    # Init the pytorch-ie model
     log.info(f"Instantiating model <{cfg.model._target_}>")
     # get additional model arguments
-    # NOTE: THE FOLLOWING LINES MAY NEED ADAPTATION WHEN YOU DEFINE YOUR OWN MODELS OR TASKMODULES!
     additional_model_kwargs: Dict[str, Any] = {}
-    label_to_id = taskmodule._config().get("label_to_id", None)
-    if label_to_id is not None:
-        additional_model_kwargs["num_classes"] = len(label_to_id)
+    model_cls = get_class(cfg.model["_target_"])
+    # NOTE: DEFINE THE additional_model_kwargs IF YOU WANT TO USE ANOTHER MODEL! SEE EXAMPLES BELOW.
+    if model_cls == TransformerTokenClassificationModel:
+        additional_model_kwargs["num_classes"] = len(taskmodule.label_to_id)
+    # elif model_cls == pytorch_ie.models.TransformerSpanClassificationModel:
+    #     additional_model_kwargs["num_classes"] = len(taskmodule.label_to_id)
+    #     max_train_steps = cfg["trainer"]["max_epochs"] * datamodule.num_train
+    #     additional_model_kwargs["t_total"] = int(
+    #         max_train_steps / float(cfg["datamodule"]["batch_size"])
+    #     )
+    # elif model_cls == pytorch_ie.models.TransformerTextClassificationModel:
+    #    additional_model_kwargs["num_classes"] = len(taskmodule.label_to_id)
+    #    max_train_steps = cfg["trainer"]["max_epochs"] * datamodule.num_train
+    #    additional_model_kwargs["t_total"] = int(
+    #        max_train_steps / float(cfg["datamodule"]["batch_size"])
+    #    )
+    # elif model_cls == pytorch_ie.models.TransformerSeq2SeqModel:
+    #    pass
+    else:
+        raise Exception(
+            f"unknown model class: {model_cls.__name__}. Please adjust the train.py script for that class, i.e. "
+            f"define how to set additional_model_kwargs for your model."
+        )
     # initialize the model
     model: PyTorchIEModel = hydra.utils.instantiate(
         cfg.model, _convert_="partial", **additional_model_kwargs
