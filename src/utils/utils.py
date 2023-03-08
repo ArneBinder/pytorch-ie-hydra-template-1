@@ -153,6 +153,11 @@ def log_hyperparameters(object_dict: dict) -> None:
     hparams["ckpt_path"] = cfg.get("ckpt_path")
     hparams["seed"] = cfg.get("seed")
 
+    hparams["monitor_metric"] = cfg.get("monitor_metric")
+    hparams["monitor_mode"] = cfg.get("monitor_mode")
+
+    hparams["model_save_dir"] = cfg.get("model_save_dir")
+
     # send hparams to all loggers
     trainer.logger.log_hyperparams(hparams)
 
