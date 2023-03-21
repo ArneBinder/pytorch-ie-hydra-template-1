@@ -29,4 +29,7 @@ trainer:
 
 datamodule:
   batch_size: 32
-# save_dir: models/${name}/debug
+
+model:
+  # configure learning rate. Default learning rate is set in model constructor (here: TransformerTokenClassificationModel)
+  learning_rate: 1e-5
