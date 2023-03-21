@@ -75,9 +75,16 @@ class PieDataModule(LightningDataModule, Generic[DocumentType, InputEncoding, Ta
             raise TypeError("IterableTaskEncodingDataset has no length")
         return len(data_train)
 
-    def prepare_data(self):
+    def setup(self, stage: str):
 
-        for split in [self.train_split, self.val_split, self.test_split]:
+        if stage == "fit":
+            split_names = [self.train_split, self.val_split]
+        elif stage == "test":
+            split_names = [self.test_split]
+        else:
+            raise NotImplementedError(f"not implemented for stage={stage} ")
+
+        for split in split_names:
             if split is None or split not in self.dataset:
                 continue
             task_encoding_dataset = self.taskmodule.encode(
