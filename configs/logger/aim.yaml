@@ -8,7 +8,7 @@
 aim:
   _target_: aim.pytorch_lightning.AimLogger
   repo: ${paths.log_dir}/logger/aim/.aim
-  experiment: ${replace:${name},/,-}
+  experiment: ${replace:${name},/,-}-${pipeline_type}
   train_metric_prefix: train/
   val_metric_prefix: val/
   test_metric_prefix: test/

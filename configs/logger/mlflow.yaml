@@ -2,9 +2,9 @@
 
 mlflow:
   _target_: pytorch_lightning.loggers.mlflow.MLFlowLogger
-  # experiment_name: ""
+  experiment_name: ${replace:${name},/,-}-${pipeline_type}
   # run_name: ""
-  tracking_uri: ${paths.log_dir}/logger/mlflow/mlruns # run `mlflow ui` command inside the `logs/logger/mlflow` dir to open the UI
+  tracking_uri: ${paths.log_dir}/logger/mlflow/mlruns # run `mlflow ui` command inside the `logs/mlflow/` dir to open the UI
   tags: null
   # save_dir: "./mlruns"
   prefix: ""
