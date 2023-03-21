@@ -162,7 +162,7 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
             if best_ckpt_path == "":
                 log.warning("Best ckpt not found! Using current weights for saving...")
             else:
-                model.load_from_checkpoint(best_ckpt_path)
+                model = type(model).load_from_checkpoint(best_ckpt_path)
 
             log.info(f"Save model to {cfg.model_save_dir} [push_to_hub={cfg.push_to_hub}]")
             model.save_pretrained(save_directory=cfg.model_save_dir, push_to_hub=cfg.push_to_hub)
