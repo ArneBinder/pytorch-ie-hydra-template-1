@@ -1,6 +1,7 @@
 from os import path
 
 import pytest
+import torch
 from hydra.core.hydra_config import HydraConfig
 from omegaconf import open_dict
 
@@ -18,9 +19,13 @@ def test_train_eval(tmp_path, cfg_train, cfg_eval):
         cfg_train.trainer.max_epochs = 1
         cfg_train.test = True
         cfg_train.trainer.limit_train_batches = 10
+        # ensure reproducibility
+        cfg_train.seed = 42
+        cfg_train.trainer.deterministic = True
 
     HydraConfig().set_config(cfg_train)
     train_metric_dict, _ = train(cfg_train)
+    assert train_metric_dict["train/f1"] > 0.0
 
     assert path.exists(cfg_train.model_save_dir)
 
@@ -30,5 +35,6 @@ def test_train_eval(tmp_path, cfg_train, cfg_eval):
     HydraConfig().set_config(cfg_eval)
     test_metric_dict, _ = evaluate(cfg_eval)
 
-    assert test_metric_dict["test/f1"] > 0.0
-    assert abs(train_metric_dict["test/f1"].item() - test_metric_dict["test/f1"].item()) < 0.00001
+    assert test_metric_dict["test/loss"] > 0.0
+    assert torch.isclose(train_metric_dict["test/loss"], test_metric_dict["test/loss"])
+    assert torch.isclose(train_metric_dict["test/f1"], test_metric_dict["test/f1"])
