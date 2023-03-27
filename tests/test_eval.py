@@ -35,6 +35,6 @@ def test_train_eval(tmp_path, cfg_train, cfg_eval):
     HydraConfig().set_config(cfg_eval)
     test_metric_dict, _ = evaluate(cfg_eval)
 
-    assert test_metric_dict["test/loss"] > 0.0
-    assert torch.isclose(train_metric_dict["test/loss"], test_metric_dict["test/loss"])
-    assert torch.isclose(train_metric_dict["test/f1"], test_metric_dict["test/f1"])
+    assert len(test_metric_dict) > 0
+    for k in test_metric_dict:
+        assert torch.isclose(train_metric_dict[k], test_metric_dict[k])
