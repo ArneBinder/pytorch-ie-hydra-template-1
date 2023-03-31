@@ -77,7 +77,8 @@ repos:
       - id: codespell
         args:
           - --skip=logs/**,data/**,*.ipynb
-          # - --ignore-words-list=abc,def
+          # ignore "hist": this is a plotext function
+          - --ignore-words-list=hist
 
   # jupyter notebook cell output clearing
   - repo: https://github.com/kynan/nbstripout
