@@ -31,3 +31,5 @@ pytest          # tests
 pytest-cov      # test coverage
 sh              # for running bash commands in some tests
 pudb            # debugger
+tabulate        # show statistics as markdown
+plotext         # show statistics as plots
