@@ -16,6 +16,8 @@ logger = get_pylogger(__name__)
 def process_dataset(input: datasets.DatasetDict, **processors) -> datasets.DatasetDict:
     result = input
     for processor_name, processor_config in processors.items():
+        if not isinstance(processor_config, dict) or "_processor_" not in processor_config:
+            continue
         logger.info(f"process dataset: {processor_name}")
         config = copy(processor_config)
         # rename key "_processor_" to "_target_"
