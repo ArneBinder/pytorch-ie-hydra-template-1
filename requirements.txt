@@ -1,7 +1,5 @@
 # --------- pytorch-ie --------- #
-# use this until pytorch-ie 0.13 is released
-git+https://github.com/ChristophAlt/pytorch-ie#egg=pytorch_ie
-# pytorch-ie>=0.13.0,<0.14
+pytorch-ie~=0.14.0
 
 # --------- hydra --------- #
 hydra-core>=1.2.0
