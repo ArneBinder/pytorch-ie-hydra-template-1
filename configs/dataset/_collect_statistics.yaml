@@ -1,0 +1,67 @@
+# use either "plot", "markdown", or "json" as format
+
+labeled_span_field: ???
+text_field: ???
+
+count_documents:
+  _processor_: src.utils.statistics.generic_collect_statistics
+  format: markdown
+  title: number of documents
+  aggregate_functions:
+    - sum
+  measure:
+    _target_: src.utils.statistics.DummyCounter
+
+collect_label_counts:
+  _processor_: src.utils.statistics.generic_collect_statistics
+  format: plot
+  title: number of ${dataset.labeled_span_field} labels
+  aggregate_functions:
+    - mean
+  measure:
+    _target_: src.utils.statistics.LabelCounter
+    field: ${dataset.labeled_span_field}
+
+collect_label_counts_hist:
+  _processor_: src.utils.statistics.generic_collect_statistics
+  format: plot
+  title: ${dataset.labeled_span_field} labels distribution
+  measure:
+    _target_: src.utils.statistics.LabelCounter
+    field: ${dataset.labeled_span_field}
+
+collect_field_lengths:
+  _processor_: src.utils.statistics.generic_collect_statistics
+  format: markdown
+  title: number of characters
+  measure:
+    _target_: src.utils.statistics.DocumentFieldLengthCounter
+    field: ${dataset.text_field}
+
+collect_token_numbers:
+  _processor_: src.utils.statistics.generic_collect_statistics
+  format: markdown
+  title: number of tokens
+  measure:
+    _target_: src.utils.statistics.DocumentTokenCounter
+    field: ${dataset.text_field}
+    tokenizer_name_or_path: ${taskmodule.tokenizer_name_or_path}
+    add_special_tokens: false
+
+collect_token_numbers_hist:
+  _processor_: src.utils.statistics.generic_collect_statistics
+  format: plot
+  title: number of tokens distribution
+  measure:
+    _target_: src.utils.statistics.DocumentTokenCounter
+    field: ${dataset.text_field}
+    tokenizer_name_or_path: ${taskmodule.tokenizer_name_or_path}
+    add_special_tokens: false
+
+collect_span_lengths:
+  _processor_: src.utils.statistics.generic_collect_statistics
+  format: plot
+  title: ${dataset.labeled_span_field} lengths distribution
+  measure:
+    _target_: src.utils.statistics.DocumentSpanLengthCounter
+    field: ${dataset.labeled_span_field}
