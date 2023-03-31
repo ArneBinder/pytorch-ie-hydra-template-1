@@ -47,6 +47,8 @@ from pytorch_lightning.loggers import Logger
 
 from src import utils
 from src.datamodules import PieDataModule
+from src.models import *  # noqa: F403
+from src.taskmodules import *  # noqa: F403
 
 log = utils.get_pylogger(__name__)
 
