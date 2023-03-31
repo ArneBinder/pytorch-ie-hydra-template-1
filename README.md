@@ -84,7 +84,7 @@ The directory structure of new project looks like this:
 │
 ├── data                   <- Project data
 │
-├── dataset_loaders        <- dataset loading scripts
+├── dataset_builders       <- dataset builders
 │   ├── hf                   <- Huggingface
 │   └── pie                  <- PyTorch-IE
 │
