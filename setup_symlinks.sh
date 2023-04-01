@@ -14,7 +14,7 @@ echo "symlink to $TARGET_DIR..."
 for d in "${DIRS[@]}"
 do
     echo "symlink: $d"
-    mkdir -p "$TARGET_DIR/$d"    
+    mkdir -p "$TARGET_DIR/$d"
     # use the absolute path to avoid problems, e.g. at the cluster
     ABSOLUTE_TARGET=$(realpath "$TARGET_DIR/$d")
     ln -s -T "$ABSOLUTE_TARGET" "$d"
