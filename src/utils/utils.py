@@ -159,7 +159,8 @@ def log_hyperparameters(object_dict: dict) -> None:
     hparams["model_save_dir"] = cfg.get("model_save_dir")
 
     # send hparams to all loggers
-    trainer.logger.log_hyperparams(hparams)
+    for logger in trainer.loggers:
+        logger.log_hyperparams(hparams)
 
 
 def get_metric_value(metric_dict: dict, metric_name: str) -> Optional[float]:
