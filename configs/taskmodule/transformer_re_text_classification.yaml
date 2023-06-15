@@ -1,0 +1,14 @@
+_target_: pytorch_ie.taskmodules.transformer_re_text_classification.TransformerRETextClassificationTaskModule
+
+tokenizer_name_or_path: bert-base-uncased
+
+entity_annotation: entities
+relation_annotation: relations
+# Long sequence handling.
+# This will just truncate the input (in means of tokens):
+#max_length: 128
+# This will truncate around the center of the entity pair (in means of tokens). Entity pairs that do not fit
+# into the max_window will be skipped:
+#max_window: 128
+
+#add_type_to_marker: True
