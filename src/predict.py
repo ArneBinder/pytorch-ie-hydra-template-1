@@ -34,15 +34,15 @@ root = pyrootutils.setup_root(
 # ------------------------------------------------------------------------------------ #
 
 import os
-from typing import Callable, Optional, Sequence, Tuple
+from typing import Optional, Tuple
 
 import hydra
 import pytorch_lightning as pl
 from omegaconf import DictConfig, OmegaConf
 from pytorch_ie import DatasetDict, Pipeline
-from pytorch_ie.core import Document
 
 from src import utils
+from src.serializer.interface import DocumentSerializer
 
 log = utils.get_pylogger(__name__)
 
@@ -83,7 +83,7 @@ def predict(cfg: DictConfig) -> Tuple[dict, dict]:
             )
 
     # Init the serializer
-    serializer: Optional[Callable[[Sequence[Document]], None]] = None
+    serializer: Optional[DocumentSerializer] = None
     if cfg.get("serializer") and cfg.serializer.get("_target_"):
         log.info(f"Instantiating serializer <{cfg.serializer._target_}>")
         serializer = hydra.utils.instantiate(cfg.serializer, _convert_="partial")
@@ -105,19 +105,22 @@ def predict(cfg: DictConfig) -> Tuple[dict, dict]:
         "serializer": serializer,
         "documents": documents,
     }
+    result = {}
 
     # serialize the documents
     if serializer is not None:
-        serializer(documents)
+        # the serializer should not return the serialized documents, but write them to disk
+        # and instead return some metadata such as the path to the serialized documents
+        result["serializer"] = serializer(documents)
 
     # serialize config with resolved paths
     if cfg.get("config_out_path"):
         config_out_dir = os.path.dirname(cfg.config_out_path)
         os.makedirs(config_out_dir, exist_ok=True)
         OmegaConf.save(config=cfg, f=cfg.config_out_path)
+        result["config"] = cfg.config_out_path
 
-    # to follow the result type of other main entry scripts, we return an empty metadata dict
-    return {}, object_dict
+    return result, object_dict
 
 
 @hydra.main(version_base="1.2", config_path=str(root / "configs"), config_name="predict.yaml")
