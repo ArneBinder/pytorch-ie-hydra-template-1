@@ -1,0 +1,30 @@
+# use either "plot", "markdown", or "json" as format
+
+# dummy processor that holds general parameters (will not be executed because it does not contain a _processor_)
+# useful to enable / disable all statistics at once
+collect_token_statistics:
+  text_field: ???
+  tokenizer_name_or_path: ??? # ${taskmodule.tokenizer_name_or_path}
+  _enabled_: true
+
+collect_token_numbers:
+  _processor_: src.utils.statistics.generic_collect_statistics
+  _enabled_: ${dataset.collect_token_statistics._enabled_}
+  format: markdown
+  title: number of tokens
+  measure:
+    _target_: src.utils.statistics.DocumentTokenCounter
+    field: ${dataset.collect_token_statistics.text_field}
+    tokenizer_name_or_path: ${dataset.collect_token_statistics.tokenizer_name_or_path}
+    add_special_tokens: false
+
+collect_token_numbers_hist:
+  _processor_: src.utils.statistics.generic_collect_statistics
+  _enabled_: ${dataset.collect_token_statistics._enabled_}
+  format: plot
+  title: number of tokens distribution
+  measure:
+    _target_: src.utils.statistics.DocumentTokenCounter
+    field: ${dataset.collect_token_statistics.text_field}
+    tokenizer_name_or_path: ${dataset.collect_token_statistics.tokenizer_name_or_path}
+    add_special_tokens: false

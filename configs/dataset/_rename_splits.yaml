@@ -1,0 +1,6 @@
+rename_splits:
+  _processor_: src.utils.dataset.rename_splits
+  # dictionary to map from original split names to new split names
+  mapping: ???
+  # if true, keep all other splits that are not mentioned in the mapping
+  keep_other_splits: true

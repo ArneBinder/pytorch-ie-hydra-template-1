@@ -1,0 +1,12 @@
+_target_: src.pipeline.NerRePipeline
+ner_model_path: ???
+re_model_path: ???
+
+# some settings for the ner / re inference
+show_progress_bar: true
+# use the CPU (device: -1) or any GPU (device: >=0)
+device: -1
+ner_pipeline:
+  batch_size: 1
+re_pipeline:
+  batch_size: 1

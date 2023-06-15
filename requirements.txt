@@ -1,8 +1,8 @@
 # --------- pytorch-ie --------- #
-pytorch-ie~=0.14.0
+pytorch-ie~=0.15
 
 # --------- hydra --------- #
-hydra-core>=1.2.0
+hydra-core>=1.3.0
 hydra-colorlog>=1.2.0
 hydra-optuna-sweeper>=1.2.0
 
@@ -29,5 +29,7 @@ pytest          # tests
 pytest-cov      # test coverage
 sh              # for running bash commands in some tests
 pudb            # debugger
+asciidag        # to print the document annotation graph on the console
 tabulate        # show statistics as markdown
 plotext         # show statistics as plots
+# huggingface-hub>=0.13  # interaction with HF hub

@@ -1,13 +1,14 @@
 _target_: pytorch_ie.taskmodules.TransformerTokenClassificationTaskModule
 
-#tokenizer_name_or_path: ${transformer_model} # transformer_model is specified in config_rel.yaml
 tokenizer_name_or_path: bert-base-uncased
 
-#partition_annotation: ${partition_annotation_name}
 entity_annotation: entities
-#max_window: ${max_input_size}
+# Long sequence handling
+#max_window: 512
 #window_overlap: 64
+# Alternative to fixed size windowing: use span annotations to partition the input
+# (this requires to add these annotations to the documents beforehand!)
+#partition_annotation: paragraphs
 
-#show_statistics: true
-
+# Further parameters (also see the source code of TransformerTokenClassificationTaskModule)
 #include_ill_formed_predictions: false

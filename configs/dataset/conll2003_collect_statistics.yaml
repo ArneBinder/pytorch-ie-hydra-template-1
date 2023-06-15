@@ -8,8 +8,7 @@
 defaults:
   - conll2003_base
   - _collect_statistics
-  # - _select_n
 
-# required for _collect_statistics
-labeled_span_field: ${taskmodule.entity_annotation}
-text_field: text
+collect_statistics:
+  labeled_field: entities
+  text_field: text
