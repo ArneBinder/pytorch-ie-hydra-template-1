@@ -4,7 +4,12 @@ from tests.helpers.run_if import RunIf
 from tests.helpers.run_sh_command import run_sh_command
 
 startfile = "src/train.py"
-overrides = ["logger=[]"]
+# to speedup test execution, we use bert-tiny
+transformer_model = "prajjwal1/bert-tiny"
+overrides = [
+    f"model.model_name_or_path={transformer_model}",
+    f"taskmodule.tokenizer_name_or_path={transformer_model}",
+]
 
 
 @pytest.mark.skip(reason="this is already covered by tests/test_experiments.py")
@@ -41,17 +46,21 @@ def test_hydra_sweep(tmp_path):
 @pytest.mark.slow
 def test_hydra_sweep_ddp_sim(tmp_path):
     """Test default hydra sweep with ddp sim."""
-    command = [
-        startfile,
-        "-m",
-        "hydra.sweep.dir=" + str(tmp_path),
-        "trainer=ddp_sim",
-        "trainer.max_epochs=3",
-        "+trainer.limit_train_batches=0.01",
-        "+trainer.limit_val_batches=0.1",
-        "+trainer.limit_test_batches=0.1",
-        "+model.learning_rate=0.005,0.01,0.02",
-    ] + overrides
+    command = (
+        [
+            startfile,
+            "-m",
+            "hydra.sweep.dir=" + str(tmp_path),
+            "trainer=ddp_sim",
+            "trainer.max_epochs=2",
+            "+trainer.limit_train_batches=2",
+            "+trainer.limit_val_batches=2",
+            "+trainer.limit_test_batches=2",
+            "+model.learning_rate=0.005,0.01",
+        ]
+        + overrides
+        + ["logger=[]"]
+    )
     run_sh_command(command)
 
 
@@ -64,8 +73,8 @@ def test_optuna_sweep(tmp_path):
         "-m",
         "hparams_search=conll2003_optuna",
         "hydra.sweep.dir=" + str(tmp_path),
-        "hydra.sweeper.n_trials=10",
-        "hydra.sweeper.sampler.n_startup_trials=5",
+        "hydra.sweeper.n_trials=3",
+        "hydra.sweeper.sampler.n_startup_trials=2",
         "++trainer.fast_dev_run=true",
     ] + overrides
     run_sh_command(command)
@@ -80,12 +89,12 @@ def test_optuna_sweep_ddp_sim_wandb(tmp_path):
         "-m",
         "hparams_search=conll2003_optuna",
         "hydra.sweep.dir=" + str(tmp_path),
-        "hydra.sweeper.n_trials=5",
+        "hydra.sweeper.n_trials=3",
         "trainer=ddp_sim",
-        "trainer.max_epochs=3",
-        "+trainer.limit_train_batches=0.02",
-        "+trainer.limit_val_batches=0.1",
-        "+trainer.limit_test_batches=0.1",
+        "trainer.max_epochs=2",
+        "+trainer.limit_train_batches=2",
+        "+trainer.limit_val_batches=2",
+        "+trainer.limit_test_batches=2",
         "logger=wandb",
-    ]
+    ] + overrides
     run_sh_command(command)
