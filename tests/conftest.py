@@ -16,10 +16,9 @@ ROOT = pyrootutils.setup_root(
 utils.prepare_omegaconf()
 
 
-@pytest.fixture(scope="package")
-def cfg_train_global() -> DictConfig:
+def cfg_train_global(overrides=None) -> DictConfig:
     with initialize(version_base="1.2", config_path="../configs"):
-        cfg = compose(config_name="train.yaml", return_hydra_config=True)
+        cfg = compose(config_name="train.yaml", return_hydra_config=True, overrides=overrides)
 
         # set defaults for all tests
         with open_dict(cfg):
@@ -39,10 +38,9 @@ def cfg_train_global() -> DictConfig:
     return cfg
 
 
-@pytest.fixture(scope="package")
-def cfg_eval_global() -> DictConfig:
+def cfg_eval_global(overrides=None) -> DictConfig:
     with initialize(version_base="1.2", config_path="../configs"):
-        cfg = compose(config_name="evaluate.yaml", return_hydra_config=True)
+        cfg = compose(config_name="evaluate.yaml", return_hydra_config=True, overrides=overrides)
 
         # set defaults for all tests
         with open_dict(cfg):
@@ -60,10 +58,9 @@ def cfg_eval_global() -> DictConfig:
     return cfg
 
 
-@pytest.fixture(scope="package")
-def cfg_predict_global() -> DictConfig:
+def cfg_predict_global(overrides=None) -> DictConfig:
     with initialize(version_base="1.2", config_path="../configs"):
-        cfg = compose(config_name="predict.yaml", return_hydra_config=True)
+        cfg = compose(config_name="predict.yaml", return_hydra_config=True, overrides=overrides)
 
         # set defaults for all tests
         with open_dict(cfg):
@@ -78,8 +75,8 @@ def cfg_predict_global() -> DictConfig:
 # this is called by each test which uses `cfg_train` arg
 # each test generates its own temporary logging path
 @pytest.fixture(scope="function")
-def cfg_train(cfg_train_global, tmp_path) -> DictConfig:
-    cfg = cfg_train_global.copy()
+def cfg_train(tmp_path) -> DictConfig:
+    cfg = cfg_train_global()
 
     with open_dict(cfg):
         cfg.paths.output_dir = str(tmp_path)
@@ -94,8 +91,8 @@ def cfg_train(cfg_train_global, tmp_path) -> DictConfig:
 # this is called by each test which uses `cfg_eval` arg
 # each test generates its own temporary logging path
 @pytest.fixture(scope="function")
-def cfg_eval(cfg_eval_global, tmp_path) -> DictConfig:
-    cfg = cfg_eval_global.copy()
+def cfg_eval(tmp_path) -> DictConfig:
+    cfg = cfg_eval_global()
 
     with open_dict(cfg):
         cfg.paths.output_dir = str(tmp_path)
@@ -109,8 +106,8 @@ def cfg_eval(cfg_eval_global, tmp_path) -> DictConfig:
 # this is called by each test which uses `cfg_eval` arg
 # each test generates its own temporary logging path
 @pytest.fixture(scope="function")
-def cfg_predict(cfg_predict_global, tmp_path) -> DictConfig:
-    cfg = cfg_predict_global.copy()
+def cfg_predict(tmp_path) -> DictConfig:
+    cfg = cfg_predict_global()
 
     with open_dict(cfg):
         cfg.paths.output_dir = str(tmp_path)

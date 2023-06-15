@@ -7,6 +7,7 @@ startfile = "src/train.py"
 overrides = ["logger=[]"]
 
 
+@pytest.mark.skip(reason="this is already covered by tests/test_experiments.py")
 @RunIf(sh=True)
 @pytest.mark.slow
 def test_experiments(tmp_path):
