@@ -34,6 +34,9 @@ from src.utils.span import distance, is_contained_in
 logger = logging.getLogger(__name__)
 
 
+D = TypeVar("D", bound=Document)
+
+
 def _construct_nodes(name: str, ancestor_graph: Dict[str, List[str]], store: Dict[str, Node]):
     if name in store:
         return store[name]
@@ -168,12 +171,12 @@ def _get_partitions_with_matcher(
 
 
 def add_partitions_with_regex(
-    doc: Document,
+    doc: D,
     text_field_name: str = "text",
     partition_layer_name: str = "partitions",
     inplace: bool = False,
     **partition_kwargs,
-):
+) -> D:
     if not inplace:
         doc = type(doc).fromdict(doc.asdict())
     text: str = getattr(doc, text_field_name)
@@ -207,10 +210,10 @@ def _remove_overlapping_entities(
 
 
 def remove_overlapping_entities(
-    doc: Document,
+    doc: D,
     entity_layer_name: str = "entities",
     relation_layer_name: str = "relations",
-) -> Document:
+) -> D:
     document_dict = doc.asdict()
     entities_wo_overlap, valid_relations = _remove_overlapping_entities(
         entities=document_dict[entity_layer_name]["annotations"],
@@ -231,8 +234,8 @@ def remove_overlapping_entities(
 
 
 def clear_annotation_layers(
-    doc: Document, layer_names: List[str], predictions: bool = False, inplace: bool = False
-) -> Document:
+    doc: D, layer_names: List[str], predictions: bool = False, inplace: bool = False
+) -> D:
     if not inplace:
         doc = type(doc).fromdict(doc.asdict())
     for layer_name in layer_names:
@@ -243,9 +246,7 @@ def clear_annotation_layers(
     return doc
 
 
-def move_annotations_from_predictions(
-    doc: Document, layer_names: List[str], inplace: bool = False
-) -> Document:
+def move_annotations_from_predictions(doc: D, layer_names: List[str], inplace: bool = False) -> D:
     if not inplace:
         doc = type(doc).fromdict(doc.asdict())
     for layer_name in layer_names:
@@ -258,9 +259,7 @@ def move_annotations_from_predictions(
     return doc
 
 
-def move_annotations_to_predictions(
-    doc: Document, layer_names: List[str], inplace: bool = False
-) -> Document:
+def move_annotations_to_predictions(doc: D, layer_names: List[str], inplace: bool = False) -> D:
     if not inplace:
         doc = type(doc).fromdict(doc.asdict())
     for layer_name in layer_names:
@@ -274,14 +273,14 @@ def move_annotations_to_predictions(
 
 
 def add_annotations_from_other_documents(
-    docs: List[Document],
+    docs: List[D],
     other_docs: List[Document],
     layer_names: List[str],
     from_predictions: bool = False,
     to_predictions: bool = False,
     clear_before: bool = True,
     inplace: bool = False,
-) -> List[Document]:
+) -> List[D]:
     prepared_documents = []
     for i, doc in enumerate(docs):
         if not inplace:
@@ -307,13 +306,13 @@ def add_annotations_from_other_documents(
 
 
 def trim_spans(
-    document: Document,
+    document: D,
     span_layer: str,
     text_field: str = "text",
     relation_layer: Optional[str] = None,
     skip_empty: bool = True,
-    copy: bool = True,
-) -> Document:
+    inplace: bool = False,
+) -> D:
     """Remove the whitespace at the beginning and end of span annotations. If a relation layer is
     given, the relations will be updated to point to the new spans.
 
@@ -328,7 +327,7 @@ def trim_spans(
     Returns:
         The document with trimmed spans.
     """
-    if copy:
+    if not inplace:
         document = type(document).fromdict(document.asdict())
 
     spans: AnnotationList[LabeledSpan] = document[span_layer]
@@ -438,9 +437,6 @@ def token_based_document_with_entities_and_relations_to_text_based(
     return new_doc
 
 
-D = TypeVar("D", bound=Document)
-
-
 def add_reversed_relations(
     document: D,
     relation_layer: str = "relations",
@@ -450,7 +446,7 @@ def add_reversed_relations(
     use_predictions: bool = False,
     inplace: bool = False,
 ) -> D:
-    if inplace:
+    if not inplace:
         document = type(document).fromdict(document.asdict())
     symmetric_relation_labels = symmetric_relation_labels or []
 
