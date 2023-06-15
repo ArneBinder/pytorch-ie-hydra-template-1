@@ -6,7 +6,7 @@ from typing import Dict, List, Tuple, Union
 
 from pytorch_ie.annotations import BinaryRelation, LabeledSpan, Span
 
-from src.types.document import (
+from src.document.types import (
     TextDocumentWithEntitiesAndRelations,
     TextDocumentWithLabeledEntitiesAndRelations,
     TokenDocumentWithEntitiesAndRelations,

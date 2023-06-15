@@ -14,8 +14,8 @@ from typing import Callable, Type, Union
 import pandas as pd
 from hydra._internal.instantiate._instantiate2 import _resolve_target
 
+from src.document.types import DocumentWithEntitiesRelationsAndLabeledPartitions
 from src.serializer import JsonSerializer
-from src.types.document import DocumentWithEntitiesRelationsAndLabeledPartitions
 from src.utils.metrics import evaluate_document_layer_with_labeled_annotations
 
 logger = logging.getLogger(__name__)

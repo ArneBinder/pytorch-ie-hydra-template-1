@@ -1,10 +1,35 @@
 import dataclasses
 from typing import Any, Dict, Optional, Tuple
 
-from pytorch_ie.annotations import BinaryRelation, LabeledSpan, Span
-from pytorch_ie.core import AnnotationList, Document, annotation_field
+from pytorch_ie.annotations import BinaryRelation, LabeledSpan, Span, _post_init_single_label
+from pytorch_ie.core import Annotation, AnnotationList, Document, annotation_field
 
-from src.types.annotation import Attribution
+# ============================= Annotation Types ============================= #
+
+
+@dataclasses.dataclass(eq=True, frozen=True)
+class GeneralBinaryRelation(Annotation):
+    head: Annotation
+    tail: Annotation
+    label: str
+    score: float = 1.0
+
+    def __post_init__(self) -> None:
+        _post_init_single_label(self)
+
+
+@dataclasses.dataclass(eq=True, frozen=True)
+class Attribution(Annotation):
+    target_annotation: Annotation
+    label: str
+    value: Optional[str] = None
+    score: float = 1.0
+
+    def __post_init__(self) -> None:
+        _post_init_single_label(self)
+
+
+# ============================= Document Types ============================= #
 
 
 @dataclasses.dataclass

@@ -8,8 +8,8 @@ from typing import Callable, Collection, Dict, Hashable, List, Optional, Set, Tu
 import pandas as pd
 from pytorch_ie.core import Annotation, Document
 
+from src.document.types import DocumentWithEntitiesRelationsAndLabeledPartitions
 from src.serializer import JsonSerializer
-from src.types.document import DocumentWithEntitiesRelationsAndLabeledPartitions
 
 logger = logging.getLogger(__name__)
 
