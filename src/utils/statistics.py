@@ -274,6 +274,20 @@ class DocumentFieldLengthCounter:
         return len(field_obj)
 
 
+class DocumentSubFieldLengthCounter:
+    def __init__(self, field, subfield):
+        self.field = field
+        self.subfield = subfield
+
+    def __call__(self, doc):
+        field_obj = getattr(doc, self.field)
+        lengths = []
+        for entry in field_obj:
+            subfield_obj = getattr(entry, self.subfield)
+            lengths.append(len(subfield_obj))
+        return lengths
+
+
 class DocumentSpanLengthCounter:
     def __init__(self, field):
         self.field = field
