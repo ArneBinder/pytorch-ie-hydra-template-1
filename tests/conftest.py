@@ -6,7 +6,13 @@ from omegaconf import DictConfig, open_dict
 
 from src.utils import utils
 
-ROOT = pyrootutils.find_root()
+ROOT = pyrootutils.setup_root(
+    search_from=__file__,
+    indicator=[".project-root"],
+    pythonpath=True,
+    dotenv=True,
+    cwd=True,
+)
 utils.prepare_omegaconf()
 
 
