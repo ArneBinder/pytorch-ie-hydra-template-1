@@ -41,14 +41,19 @@ repos:
     hooks:
       - id: flake8
         args:
-          ["--extend-ignore", "E402,E501,F401", "--exclude", "logs/*,data/*"]
+          [
+            "--extend-ignore",
+            "E402,E501,F401,E203,W503",
+            "--exclude",
+            "logs/*,data/*",
+          ]
 
   # python security linter
   - repo: https://github.com/PyCQA/bandit
     rev: "1.7.1"
     hooks:
       - id: bandit
-        args: ["-s", "B101"]
+        args: ["-s", "B101,B107"]
 
   # yaml formatting
   - repo: https://github.com/pre-commit/mirrors-prettier
@@ -77,7 +82,8 @@ repos:
       - id: codespell
         args:
           - --skip=logs/**,data/**,*.ipynb
-          # ignore "hist": this is a plotext function
+          # ignore
+          #  - "hist": this is a plotext function
           - --ignore-words-list=hist
 
   # jupyter notebook cell output clearing
