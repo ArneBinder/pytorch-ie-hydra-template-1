@@ -1,4 +1,3 @@
 _target_: pytorch_ie.models.transformer_token_classification.TransformerTokenClassificationModel
 
-#model_name_or_path: ${transformer_model} # transformer_model is specified in config_rel.yaml
 model_name_or_path: bert-base-uncased
