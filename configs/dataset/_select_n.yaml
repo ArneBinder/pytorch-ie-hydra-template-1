@@ -9,3 +9,9 @@ select_n_test:
   split: test
   # take all data per default
   stop: null
+
+select_n_validation:
+  _processor_: src.utils.dataset.select
+  split: validation
+  # take all data per default
+  stop: null

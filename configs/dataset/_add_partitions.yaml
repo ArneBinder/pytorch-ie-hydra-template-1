@@ -1,0 +1,4 @@
+add_partitions:
+  _processor_: src.utils.dataset.convert_documents
+  function: src.utils.document.add_partitions_with_regex
+  matcher_or_pattern: ???

@@ -1,0 +1,2 @@
+convert_documents:
+  _processor_: src.utils.dataset.convert_documents
