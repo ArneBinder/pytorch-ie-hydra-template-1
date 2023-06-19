@@ -1357,13 +1357,13 @@ ______________________________________________________________________
 
 </div>
 
-## Description
+## 📌 Description
 
 What it does
 
-## How to run
+## 🚀 Quickstart
 
-Install dependencies
+Setup environment
 
 ```bash
 # clone project
@@ -1371,30 +1371,45 @@ git clone https://github.com/YourGithubName/your-repo-name
 cd your-repo-name
 
 # [OPTIONAL] create conda environment
-conda create -n myenv python=3.8
-conda activate myenv
+conda create -n your-repo-name python=3.9
+conda activate your-repo-name
 
 # install pytorch according to instructions
 # https://pytorch.org/get-started/
 
 # install requirements
 pip install -r requirements.txt
+
+# [OPTIONAL] symlink log directories and the default model directory to
+# "$HOME/experiments/your-repo-name" since they can grow a lot
+bash setup_symlinks.sh $HOME/experiments/your-repo-name
+
+# [OPTIONAL] set any environment variables by creating an .env file
+# 1. copy the provided example file:
+cp .env.example .env
+# 2. edit the .env file for your needs!
 ```
 
 Train model with default configuration
 
 ```bash
 # train on CPU
-python train.py trainer.gpus=0
+python src/train.py
 
 # train on GPU
-python train.py trainer.gpus=1
+python src/train.py trainer=gpu
+```
+
+Execute a fast development run (train for two steps)
+
+```bash
+python src/train.py +trainer.fast_dev_run=true
 ```
 
 Train model with chosen experiment configuration from [configs/experiment/](configs/experiment/)
 
 ```bash
-python train.py experiment=experiment_name.yaml
+python src/train.py experiment=conll2003
 ```
 
 You can override any parameter from command line like this
