@@ -42,7 +42,9 @@ from omegaconf import DictConfig, OmegaConf
 from pytorch_ie import DatasetDict, Pipeline
 
 from src import utils
+from src.models import *  # noqa: F403
 from src.serializer.interface import DocumentSerializer
+from src.taskmodules import *  # noqa: F403
 
 log = utils.get_pylogger(__name__)
 
