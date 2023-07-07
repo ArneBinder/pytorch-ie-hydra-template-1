@@ -1,2 +1,2 @@
 _target_: src.serializer.JsonSerializer
-path: ???
+path: ${prediction_save_dir}/documents.jsonl

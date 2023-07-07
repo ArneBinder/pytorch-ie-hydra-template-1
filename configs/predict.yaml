@@ -31,11 +31,8 @@ ckpt_path: null
 # which split from the loaded dataset will be used
 dataset_split: test
 
+# predefined path that can be used as output path for the serializer
 prediction_save_dir: ${paths.save_dir}/predictions/${name}/${dataset_split}/${now:%Y-%m-%d_%H-%M-%S}
-
-# set the output path for the serializer
-serializer:
-  path: ${prediction_save_dir}/documents.jsonl
 
 # if set, the final config including resolved paths etc. will be written to this location
 config_out_path: ${prediction_save_dir}/config.yaml
