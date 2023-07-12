@@ -119,7 +119,9 @@ def evaluate(cfg: DictConfig) -> Tuple[dict, dict]:
 
 @hydra.main(version_base="1.2", config_path=str(root / "configs"), config_name="evaluate.yaml")
 def main(cfg: DictConfig) -> None:
-    evaluate(cfg)
+    metric_dict, _ = evaluate(cfg)
+
+    return metric_dict
 
 
 if __name__ == "__main__":
