@@ -8,6 +8,10 @@ defaults:
 #   save_job_info:
 #     _target_: hydra.experimental.callbacks.PickleJobInfoCallback
 
+callbacks:
+  save_job_return:
+    _target_: src.hydra_callbacks.SaveJobReturnValueCallback
+
 # output directory, generated dynamically on each run
 run:
   dir: ${paths.log_dir}/${pipeline_type}/runs/${name}/${now:%Y-%m-%d}_${now:%H-%M-%S}
