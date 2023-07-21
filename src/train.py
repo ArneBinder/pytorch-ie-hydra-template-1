@@ -182,6 +182,11 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
     # merge train and test metrics
     metric_dict = {**train_metrics, **test_metrics}
 
+    # add model_save_dir to the result so that it gets dumped to job_return_value.json
+    # if we use hydra_callbacks.SaveJobReturnValueCallback
+    if cfg.get("model_save_dir") is not None:
+        metric_dict["model_save_dir"] = cfg.model_save_dir
+
     return metric_dict, object_dict
 
 
@@ -192,12 +197,15 @@ def main(cfg: DictConfig) -> Optional[float]:
     metric_dict, _ = train(cfg)
 
     # safely retrieve metric value for hydra-based hyperparameter optimization
-    metric_value = utils.get_metric_value(
-        metric_dict=metric_dict, metric_name=cfg.get("optimized_metric")
-    )
+    if cfg.get("optimized_metric") is not None:
+        metric_value = utils.get_metric_value(
+            metric_dict=metric_dict, metric_name=cfg.get("optimized_metric")
+        )
 
-    # return optimized metric
-    return metric_value
+        # return optimized metric
+        return metric_value
+    else:
+        return metric_dict
 
 
 if __name__ == "__main__":
