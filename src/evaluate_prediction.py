@@ -16,7 +16,7 @@ from hydra._internal.instantiate._instantiate2 import _resolve_target
 
 from src.document.types import DocumentWithEntitiesRelationsAndLabeledPartitions
 from src.serializer import JsonSerializer
-from src.utils.metrics import evaluate_document_layer_with_labeled_annotations
+from src.utils.metrics import evaluate_document_layer
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +39,18 @@ if __name__ == "__main__":
         help="file name of serialized documents in jsonl format",
     )
     parser.add_argument("--layer", type=str, required=True, help="annotation layer to evaluate")
+    parser.add_argument(
+        "--label_field",
+        type=str,
+        default="label",
+        help="Compute metrics per label. This requires the layer to contain annotations with that field.",
+    )
+    parser.add_argument(
+        "--no_labels",
+        action="store_true",
+        help="Do not compute metrics per label. Enable this flag if the layer does not contain annotations "
+        "with a label field.",
+    )
     parser.add_argument(
         "--document_type",
         type=get_type_or_callable,
@@ -81,9 +93,10 @@ if __name__ == "__main__":
         if args.preprocess_documents is not None:
             documents = [args.preprocess_documents(document=document) for document in documents]
 
-        metric_values = evaluate_document_layer_with_labeled_annotations(
+        metric_values = evaluate_document_layer(
             path_or_documents=documents,
             layer=args.layer,
+            label_field=args.label_field if not args.no_labels else None,
             exclude_labels=args.exclude_labels,
             exclude_annotation_fields=args.exclude_annotation_fields,
         )
