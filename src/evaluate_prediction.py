@@ -56,7 +56,7 @@ def evaluate_document_layer(
     )
     f1metric(documents)
 
-    metric_values = f1metric.values()
+    metric_values = f1metric.compute()
     return metric_values
 
 

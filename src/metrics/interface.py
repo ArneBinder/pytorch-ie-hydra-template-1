@@ -23,8 +23,8 @@ class DocumentMetric(ABC):
         else:
             raise Exception(f"document has unknown type: {type(document)}")
 
-    def values(self, reset: bool = True) -> Any:
-        metric_values = self._values()
+    def compute(self, reset: bool = True) -> Any:
+        metric_values = self._compute()
         if reset:
             self.reset()
         return metric_values
@@ -35,6 +35,6 @@ class DocumentMetric(ABC):
         ...
 
     @abstractmethod
-    def _values(self) -> Any:
+    def _compute(self) -> Any:
         """This method is called to get the metric values."""
         ...

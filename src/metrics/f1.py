@@ -111,7 +111,7 @@ class F1Metric(DocumentMetric):
             )
             self.add_counts(new_counts, label=label)
 
-    def _values(self) -> Dict[str, Dict[str, float]]:
+    def _compute(self) -> Dict[str, Dict[str, float]]:
 
         res = dict()
         if len(self.labels) > 0:

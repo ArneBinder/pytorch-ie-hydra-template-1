@@ -89,7 +89,7 @@ def evaluate_documents(cfg: DictConfig) -> Tuple[dict, dict]:
     documents = dataset[cfg["split"]]
     metric(documents)
 
-    metric_dict = metric.values()
+    metric_dict = metric.compute()
 
     return metric_dict, object_dict
 
