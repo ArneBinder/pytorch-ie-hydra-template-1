@@ -9,16 +9,55 @@ root = pyrootutils.setup_root(
 
 import argparse
 import logging
-from typing import Callable, Type, Union
+from itertools import chain
+from typing import Callable, Dict, List, Optional, Type, Union
 
 import pandas as pd
 from hydra._internal.instantiate._instantiate2 import _resolve_target
+from pytorch_ie.core import Document
 
 from src.document.types import DocumentWithEntitiesRelationsAndLabeledPartitions
+from src.metrics import F1Metric
 from src.serializer import JsonSerializer
-from src.utils.metrics import evaluate_document_layer_with_labeled_annotations
 
 logger = logging.getLogger(__name__)
+
+
+def evaluate_document_layer(
+    path_or_documents: Union[str, List[Document]],
+    layer: str,
+    document_type: Optional[Type[Document]] = DocumentWithEntitiesRelationsAndLabeledPartitions,
+    label_field: Optional[str] = "label",
+    exclude_labels: Optional[List[str]] = None,
+    exclude_annotation_fields: Optional[List[str]] = None,
+    show_as_markdown: bool = True,
+) -> Dict[str, Dict[str, float]]:
+    if isinstance(path_or_documents, str):
+        logger.warning(f"load documents from: {path_or_documents}")
+        if document_type is None:
+            raise Exception("document_type is required to load serialized documents")
+        documents = JsonSerializer.read(file_name=path_or_documents, document_type=document_type)
+    else:
+        documents = path_or_documents
+    if label_field is not None:
+        labels = set(
+            chain(*[[getattr(ann, label_field) for ann in doc[layer]] for doc in documents])
+        )
+        if exclude_labels is not None:
+            labels = labels - set(exclude_labels)
+    else:
+        labels = None
+    f1metric = F1Metric(
+        layer=layer,
+        label_field=label_field,
+        labels=labels,
+        exclude_annotation_fields=exclude_annotation_fields,
+        show_as_markdown=show_as_markdown,
+    )
+    f1metric(documents)
+
+    metric_values = f1metric.compute()
+    return metric_values
 
 
 def get_type_or_callable(type_str: str) -> Union[Type, Callable]:
@@ -39,6 +78,18 @@ if __name__ == "__main__":
         help="file name of serialized documents in jsonl format",
     )
     parser.add_argument("--layer", type=str, required=True, help="annotation layer to evaluate")
+    parser.add_argument(
+        "--label_field",
+        type=str,
+        default="label",
+        help="Compute metrics per label. This requires the layer to contain annotations with that field.",
+    )
+    parser.add_argument(
+        "--no_labels",
+        action="store_true",
+        help="Do not compute metrics per label. Enable this flag if the layer does not contain annotations "
+        "with a label field.",
+    )
     parser.add_argument(
         "--document_type",
         type=get_type_or_callable,
@@ -81,9 +132,10 @@ if __name__ == "__main__":
         if args.preprocess_documents is not None:
             documents = [args.preprocess_documents(document=document) for document in documents]
 
-        metric_values = evaluate_document_layer_with_labeled_annotations(
+        metric_values = evaluate_document_layer(
             path_or_documents=documents,
             layer=args.layer,
+            label_field=args.label_field if not args.no_labels else None,
             exclude_labels=args.exclude_labels,
             exclude_annotation_fields=args.exclude_annotation_fields,
         )

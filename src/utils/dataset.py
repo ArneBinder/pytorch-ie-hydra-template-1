@@ -13,6 +13,33 @@ from src.utils.pylogger import get_pylogger
 logger = get_pylogger(__name__)
 
 
+def get_split_type(
+    dataset_split: Union[datasets.Dataset, datasets.IterableDataset]
+) -> Union[Type[Dataset], Type[IterableDataset]]:
+    if isinstance(dataset_split, datasets.Dataset):
+        return Dataset
+    elif isinstance(dataset_split, datasets.IterableDataset):
+        return IterableDataset
+    else:
+        raise ValueError(
+            f"dataset_split must be of type Dataset or IterableDataset, but is {type(dataset_split)}"
+        )
+
+
+def from_hf_dataset(
+    hf_dataset: datasets.DatasetDict, document_type: Union[str, Type[Document]]
+) -> datasets.DatasetDict:
+    if isinstance(document_type, str):
+        document_type = _resolve_target(document_type, full_key="")
+    res = type(hf_dataset)(
+        {
+            k: get_split_type(v).from_hf_dataset(v, document_type=document_type)
+            for k, v in hf_dataset.items()
+        }
+    )
+    return res
+
+
 def process_dataset(
     input: datasets.DatasetDict, setup: Optional[Any] = None, **processors
 ) -> datasets.DatasetDict:

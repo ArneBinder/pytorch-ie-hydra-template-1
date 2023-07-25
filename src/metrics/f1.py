@@ -2,14 +2,12 @@ import json
 import logging
 from collections import defaultdict
 from functools import partial
-from itertools import chain
-from typing import Callable, Collection, Dict, Hashable, List, Optional, Set, Tuple, Type, Union
+from typing import Callable, Collection, Dict, Hashable, List, Optional, Set, Tuple
 
 import pandas as pd
 from pytorch_ie.core import Annotation, Document
 
-from src.document.types import DocumentWithEntitiesRelationsAndLabeledPartitions
-from src.serializer import JsonSerializer
+from src.metrics.interface import DocumentMetric
 
 logger = logging.getLogger(__name__)
 
@@ -41,18 +39,35 @@ def _remove_annotation_fields(ann: Annotation, exclude_annotation_fields: Set[st
     )
 
 
-class F1MetricForLabeledAnnotations:
+def has_one_of_the_labels(ann: Annotation, label_field: str, labels: Collection[str]) -> bool:
+    return getattr(ann, label_field) in labels
+
+
+def has_this_label(ann: Annotation, label_field: str, label: str) -> bool:
+    return getattr(ann, label_field) == label
+
+
+class F1Metric(DocumentMetric):
     def __init__(
         self,
         layer: str,
+        label_field: Optional[str] = None,
         labels: Optional[Collection[str]] = None,
-        exclude_labels: Optional[Collection[str]] = None,
         exclude_annotation_fields: Optional[List[str]] = None,
+        show_as_markdown: bool = False,
     ):
         self.layer = layer
-        self.exclude_labels = set(exclude_labels or [])
-        self.labels = set(labels or []) - self.exclude_labels
-        assert "MICRO" not in self.labels and "MACRO" not in self.labels
+        self.label_field = label_field
+        self.show_as_markdown = show_as_markdown
+
+        self.labels = set(labels or [])
+        assert (
+            "MICRO" not in self.labels and "MACRO" not in self.labels
+        ), "labels cannot contain 'MICRO' or 'MACRO' because they are used to capture aggregated metrics"
+        if self.label_field is None:
+            assert (
+                len(self.labels) == 0
+            ), "can not calculate metrics per label without a provided label_field"
 
         self.annotation_mapper: Optional[Callable[[Annotation], Hashable]] = None
         if exclude_annotation_fields is not None:
@@ -63,43 +78,44 @@ class F1MetricForLabeledAnnotations:
 
         self.reset()
 
-    def _add_counts(self, counts: Tuple[int, int, int], label: str):
+    def reset(self):
+        self.counts = defaultdict(lambda: (0, 0, 0))
+
+    def add_counts(self, counts: Tuple[int, int, int], label: str):
         self.counts[label] = (
             self.counts[label][0] + counts[0],
             self.counts[label][1] + counts[1],
             self.counts[label][2] + counts[2],
         )
 
-    def __call__(self, document: Union[List[Document], Document]):
-        if isinstance(document, list):
-            for doc in document:
-                self(doc)
-        elif isinstance(document, Document):
+    def _update(self, document: Document):
+        new_counts = eval_counts_for_layer(
+            document=document,
+            layer=self.layer,
+            annotation_filter=partial(
+                has_one_of_the_labels, label_field=self.label_field, labels=self.labels
+            )
+            if self.label_field is not None
+            else None,
+            annotation_mapper=self.annotation_mapper,
+        )
+        self.add_counts(new_counts, label="MICRO")
+        for label in self.labels:
             new_counts = eval_counts_for_layer(
                 document=document,
                 layer=self.layer,
-                annotation_filter=lambda ann: ann.label not in self.exclude_labels,
+                annotation_filter=partial(
+                    has_this_label, label_field=self.label_field, label=label
+                ),
                 annotation_mapper=self.annotation_mapper,
             )
-            self._add_counts(new_counts, label="MICRO")
-            for label in self.labels:
-                new_counts = eval_counts_for_layer(
-                    document=document,
-                    layer=self.layer,
-                    annotation_filter=lambda ann: ann.label == label,
-                    annotation_mapper=self.annotation_mapper,
-                )
-                self._add_counts(new_counts, label=label)
-        else:
-            raise Exception(f"document has unknown type: {type(document)}")
+            self.add_counts(new_counts, label=label)
 
-    def reset(self):
-        self.counts = defaultdict(lambda: (0, 0, 0))
-
-    def values(self, reset: bool = True, show_as_markdown: bool = False):
+    def _compute(self) -> Dict[str, Dict[str, float]]:
 
         res = dict()
-        res["MACRO"] = {"f1": 0.0, "p": 0.0, "r": 0.0}
+        if len(self.labels) > 0:
+            res["MACRO"] = {"f1": 0.0, "p": 0.0, "r": 0.0}
         for label, counts in self.counts.items():
             tp, fp, fn = counts
             if tp == 0:
@@ -113,36 +129,6 @@ class F1MetricForLabeledAnnotations:
                 res["MACRO"]["f1"] += f1 / len(self.labels)
                 res["MACRO"]["p"] += p / len(self.labels)
                 res["MACRO"]["r"] += r / len(self.labels)
-        if reset:
-            self.reset()
-        if show_as_markdown:
+        if self.show_as_markdown:
             logger.info(f"\n{self.layer}:\n{pd.DataFrame(res).round(3).T.to_markdown()}")
         return res
-
-
-def evaluate_document_layer_with_labeled_annotations(
-    path_or_documents: Union[str, List[Document]],
-    layer: str,
-    document_type: Optional[Type[Document]] = DocumentWithEntitiesRelationsAndLabeledPartitions,
-    exclude_labels: Optional[List[str]] = None,
-    exclude_annotation_fields: Optional[List[str]] = None,
-    show_as_markdown: bool = True,
-) -> Dict[str, Dict[str, float]]:
-    if isinstance(path_or_documents, str):
-        logger.warning(f"load documents from: {path_or_documents}")
-        if document_type is None:
-            raise Exception("document_type is required to load serialized documents")
-        documents = JsonSerializer.read(file_name=path_or_documents, document_type=document_type)
-    else:
-        documents = path_or_documents
-    labels = set(chain(*[[ann.label for ann in doc[layer]] for doc in documents]))
-    f1metric = F1MetricForLabeledAnnotations(
-        layer=layer,
-        labels=labels,
-        exclude_labels=exclude_labels,
-        exclude_annotation_fields=exclude_annotation_fields,
-    )
-    f1metric(documents)
-
-    metric_values = f1metric.values(show_as_markdown=show_as_markdown)
-    return metric_values
