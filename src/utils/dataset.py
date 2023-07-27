@@ -55,6 +55,10 @@ def process_dataset(
             logger.warning(f"skip processor because it is disabled: {processor_name}")
             continue
         # rename key "_processor_" to "_target_"
+        if "_target_" in config:
+            raise ValueError(
+                f"processor {processor_name} has a key '_target_', which is not allowed"
+            )
         config["_target_"] = config.pop("_processor_")
         if "_args_" in config:
             raise ValueError(
