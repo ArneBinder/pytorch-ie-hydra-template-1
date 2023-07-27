@@ -1,16 +1,101 @@
+import logging
 from functools import partial
-from typing import Callable, Dict, List, Optional, Sequence
+from typing import Callable, Dict, List, Optional, Sequence, TypeVar
 
 from pytorch_ie import AutoPipeline
 from pytorch_ie.core import Document
 
-from src.utils.document import (
-    add_annotations_from_other_documents,
-    add_candidate_relations,
-    clear_annotation_layers,
-    move_annotations_from_predictions,
-    move_annotations_to_predictions,
-)
+from src.utils.document import add_candidate_relations
+
+logger = logging.getLogger(__name__)
+
+
+D = TypeVar("D", bound=Document)
+
+
+def clear_annotation_layers(
+    doc: D, layer_names: List[str], predictions: bool = False, inplace: bool = False
+) -> D:
+    if not inplace:
+        doc = type(doc).fromdict(doc.asdict())
+    for layer_name in layer_names:
+        if predictions:
+            doc[layer_name].predictions.clear()
+        else:
+            doc[layer_name].clear()
+    return doc
+
+
+def move_annotations_from_predictions(doc: D, layer_names: List[str], inplace: bool = False) -> D:
+    if not inplace:
+        doc = type(doc).fromdict(doc.asdict())
+    for layer_name in layer_names:
+        annotations = list(doc[layer_name].predictions)
+        # remove any previous annotations
+        doc[layer_name].clear()
+        # each annotation can be attached to just one annotation container, so we need to clear the predictions
+        doc[layer_name].predictions.clear()
+        doc[layer_name].extend(annotations)
+    return doc
+
+
+def move_annotations_to_predictions(doc: D, layer_names: List[str], inplace: bool = False) -> D:
+    if not inplace:
+        doc = type(doc).fromdict(doc.asdict())
+    for layer_name in layer_names:
+        annotations = list(doc[layer_name])
+        # each annotation can be attached to just one annotation container, so we need to clear the layer
+        doc[layer_name].clear()
+        # remove any previous annotations
+        doc[layer_name].predictions.clear()
+        doc[layer_name].predictions.extend(annotations)
+    return doc
+
+
+def add_annotations_from_other_documents(
+    docs: List[D],
+    other_docs: List[Document],
+    layer_names: List[str],
+    from_predictions: bool = False,
+    to_predictions: bool = False,
+    clear_before: bool = True,
+    inplace: bool = False,
+) -> List[D]:
+    prepared_documents = []
+    for i, doc in enumerate(docs):
+        if not inplace:
+            doc = type(doc).fromdict(doc.asdict())
+        other_doc = other_docs[i]
+        # copy to not modify the input
+        other_doc = type(other_doc).fromdict(other_doc.asdict())
+
+        for layer_name in layer_names:
+            if clear_before:
+                doc[layer_name].clear()
+            other_layer = other_doc[layer_name]
+            if from_predictions:
+                other_layer = other_layer.predictions
+            other_annotations = list(other_layer)
+            other_layer.clear()
+            if to_predictions:
+                doc[layer_name].predictions.extend(other_annotations)
+            else:
+                doc[layer_name].extend(other_annotations)
+        prepared_documents.append(doc)
+    return prepared_documents
+
+
+def process_documents(
+    documents: List[Document], processor: Callable[..., Optional[Document]], **kwargs
+) -> List[Document]:
+    result = []
+    for doc in documents:
+        processed_doc = processor(doc, **kwargs)
+        if processed_doc is not None:
+            result.append(processed_doc)
+        else:
+            result.append(doc)
+    return result
 
 
 def process_pipeline_steps(
@@ -29,19 +114,6 @@ def process_pipeline_steps(
             documents = processed_documents
 
     return documents
-
-
-def process_documents(
-    documents: List[Document], processor: Callable[..., Optional[Document]], **kwargs
-) -> List[Document]:
-    result = []
-    for doc in documents:
-        processed_doc = processor(doc, **kwargs)
-        if processed_doc is not None:
-            result.append(processed_doc)
-        else:
-            result.append(doc)
-    return result
 
 
 class NerRePipeline:
