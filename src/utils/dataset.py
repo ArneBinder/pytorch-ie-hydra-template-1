@@ -56,7 +56,11 @@ def process_dataset(
             continue
         # rename key "_processor_" to "_target_"
         config["_target_"] = config.pop("_processor_")
-        config["dataset"] = result
+        if "_args_" in config:
+            raise ValueError(
+                f"processor {processor_name} has a key '_args_', which is not allowed"
+            )
+        config["_args_"] = [result]
         tmp_result = instantiate(config=config, _convert_="partial")
         if tmp_result is not None:
             result = tmp_result
