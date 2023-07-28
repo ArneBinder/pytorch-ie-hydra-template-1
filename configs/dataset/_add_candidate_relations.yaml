@@ -1,8 +1,9 @@
 add_candidate_relations:
-  _processor_: src.utils.dataset.convert_documents
-  function: src.utils.document.add_candidate_relations
-  # the result_type is required because add_reversed_relations is a generic document conversion function
-  # that does not define a specific return values
-  result_type: src.document.types.DocumentWithEntitiesRelationsAndLabeledPartitions
+  _processor_: pytorch_ie.DatasetDict.map
+  function:
+    _target_: pie_utils.document.processors.CandidateRelationAdder
+  # the result_document_type is required because CandidateRelationAdder is a generic document
+  # converter that does not define a specific return values
+  result_document_type: src.document.types.DocumentWithEntitiesRelationsAndLabeledPartitions
   #partition_layer: partitions
   #max_distance: 177

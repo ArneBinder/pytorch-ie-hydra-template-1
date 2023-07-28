@@ -1,7 +1,4 @@
-_target_: src.utils.dataset.from_hf_dataset
+_target_: pytorch_ie.DatasetDict.from_json
 document_type: ??? # src.taskmodules.extractive_question_answering.ExtractiveQADocument
-hf_dataset:
-  _target_: datasets.load_dataset
-  path: json
-  data_files:
-    test: ${document_path}
+data_files:
+  test: ${document_path}

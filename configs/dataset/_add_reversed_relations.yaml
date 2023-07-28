@@ -1,8 +1,9 @@
 add_reversed_relations:
-  _processor_: src.utils.dataset.convert_documents
-  function: src.utils.document.add_reversed_relations
-  # the result_type is required because add_reversed_relations is a generic document conversion function
-  # that does not define a specific return values
-  result_type: src.document.types.DocumentWithEntitiesRelationsAndLabeledPartitions
-  label_suffix: _reversed
-  # symmetric_relation_labels: Optional[List[str]] = None,
+  _processor_: pytorch_ie.DatasetDict.map
+  function:
+    _target_: pie_utils.document.processors.ReversedRelationAdder
+    label_suffix: _reversed
+    # symmetric_relation_labels: Optional[List[str]] = None,
+  # the result_document_type is required because ReversedRelationAdder is a generic document converter
+  # that does not define a specific return value
+  result_document_type: src.document.types.DocumentWithEntitiesRelationsAndLabeledPartitions

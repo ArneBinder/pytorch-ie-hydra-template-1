@@ -1,17 +1,17 @@
 select_n:
-  _processor_: src.utils.dataset.select
+  _processor_: pytorch_ie.DatasetDict.select
   split: train
   # take all data per default
   stop: null
 
 select_n_test:
-  _processor_: src.utils.dataset.select
+  _processor_: pytorch_ie.DatasetDict.select
   split: test
   # take all data per default
   stop: null
 
 select_n_validation:
-  _processor_: src.utils.dataset.select
+  _processor_: pytorch_ie.DatasetDict.select
   split: validation
   # take all data per default
   stop: null
