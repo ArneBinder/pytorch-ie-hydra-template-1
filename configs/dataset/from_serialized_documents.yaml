@@ -1,3 +1,4 @@
+# TODO: use pytorch_ie.DatasetDict.from_json
 _target_: src.utils.dataset.from_hf_dataset
 document_type: ??? # src.taskmodules.extractive_question_answering.ExtractiveQADocument
 hf_dataset:

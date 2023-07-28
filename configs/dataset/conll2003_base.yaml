@@ -3,5 +3,5 @@
 
 _target_: src.utils.dataset.process_dataset
 input:
-  _target_: datasets.load_dataset
+  _target_: pytorch_ie.DatasetDict.load_dataset
   path: pie/conll2003

@@ -1,4 +1,0 @@
-remove_overlapping_entities:
-  _processor_: src.utils.dataset.convert_documents
-  function: src.utils.document.remove_overlapping_entities
-  result_type: src.document.types.DocumentWithEntitiesRelationsAndLabeledPartitions

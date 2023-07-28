@@ -1,5 +1,5 @@
 create_test_split:
-  _processor_: src.utils.dataset.add_test_split
+  _processor_: pytorch_ie.DatasetDict.add_test_split
   # take 10% of the train split as the test split
   test_size: 0.1
   # set a fixed seed to make the splitting reproducible
