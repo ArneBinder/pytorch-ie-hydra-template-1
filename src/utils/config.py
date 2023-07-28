@@ -8,7 +8,7 @@ from src.utils.pylogger import get_pylogger
 logger = get_pylogger(__name__)
 
 
-def process_dataset(
+def execute_pipeline(
     input: Any,
     setup: Optional[Any] = None,
     **processors,
