@@ -1,11 +1,12 @@
+from __future__ import annotations
+
 import logging
 from functools import partial
 from typing import Callable, Dict, List, Optional, Sequence, TypeVar
 
+from pie_utils.document.processors import CandidateRelationAdder
 from pytorch_ie import AutoPipeline
 from pytorch_ie.core import Document
-
-from src.utils.document import add_candidate_relations
 
 logger = logging.getLogger(__name__)
 
@@ -85,19 +86,6 @@ def add_annotations_from_other_documents(
     return prepared_documents
 
 
-def process_documents(
-    documents: List[Document], processor: Callable[..., Optional[Document]], **kwargs
-) -> List[Document]:
-    result = []
-    for doc in documents:
-        processed_doc = processor(doc, **kwargs)
-        if processed_doc is not None:
-            result.append(processed_doc)
-        else:
-            result.append(doc)
-    return result
-
-
 def process_pipeline_steps(
     documents: Sequence[Document],
     processors: Dict[str, Callable[[Document], Optional[Document]]],
@@ -114,6 +102,19 @@ def process_pipeline_steps(
             documents = processed_documents
 
     return documents
+
+
+def process_documents(
+    documents: List[Document], processor: Callable[..., Optional[Document]], **kwargs
+) -> List[Document]:
+    result = []
+    for doc in documents:
+        processed_doc = processor(doc, **kwargs)
+        if processed_doc is not None:
+            result.append(processed_doc)
+        else:
+            result.append(doc)
+    return result
 
 
 class NerRePipeline:
@@ -171,8 +172,9 @@ class NerRePipeline:
                 ),
                 "create_candidate_relations": partial(
                     process_documents,
-                    processor=add_candidate_relations,
-                    **self.processor_kwargs.get("create_candidate_relations", {}),
+                    processor=CandidateRelationAdder(
+                        **self.processor_kwargs.get("create_candidate_relations", {})
+                    ),
                 ),
                 "re_pipeline": AutoPipeline.from_pretrained(
                     self.re_model_path, **self.processor_kwargs.get("re_pipeline", {})
