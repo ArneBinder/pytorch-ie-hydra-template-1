@@ -4,12 +4,11 @@ from typing import Callable, Dict, Generator, Iterable, List, Optional, Tuple, U
 
 import datasets
 import pandas as pd
-from hydra._internal.instantiate._instantiate2 import _resolve_target
 from pytorch_ie.core import Document
-from transformers import AutoTokenizer
+from pytorch_ie.utils.hydra import resolve_target
 from typing_extensions import TypeAlias
 
-from src.utils.pylogger import get_pylogger
+from src.utils.logging_utils import get_pylogger
 
 logger = get_pylogger(__name__)
 
@@ -195,35 +194,32 @@ ResultTerminal: TypeAlias = Union[BaseType, List[BaseType]]
 ResultDict: TypeAlias = Dict[str, Union[ResultTerminal, "ResultDict"]]
 
 
-def generic_collect_statistics(
+def collect_statistics(
     dataset: datasets.DatasetDict,
-    measure: Optional[Union[str, Callable[[Document], Union[ResultTerminal, ResultDict]]]],
+    metric: Optional[Union[str, Callable[[Document], Union[ResultTerminal, ResultDict]]]],
     title: str,
     group_by_key: Optional[Union[str, int, List[Union[str, int]]]] = None,
     key_names: Optional[Tuple[str, ...]] = None,
     aggregate_functions: Optional[Iterable[str]] = None,
     **kwargs_show,
-):
-    if isinstance(measure, str):
-        measure_func = _resolve_target(measure, full_key="")
-    else:
-        measure_func = measure
+) -> None:
+    metric_func = resolve_target(metric)
     stats = defaultdict(list)
     for s_name, split in dataset.items():
         for doc in split:
-            measure_result = measure_func(doc)
-            if isinstance(measure_result, dict):
-                measure_result_flat = dict(_flatten_dict_gen(measure_result))
+            metric_result = metric_func(doc)
+            if isinstance(metric_result, dict):
+                measure_result_flat = dict(_flatten_dict_gen(metric_result))
                 for k, v in measure_result_flat.items():
                     if isinstance(v, list):
                         stats[(s_name,) + k].extend(v)
                     else:
                         stats[(s_name,) + k].append(v)
             else:
-                if isinstance(measure_result, list):
-                    stats[(s_name,)].extend(measure_result)
+                if isinstance(metric_result, list):
+                    stats[(s_name,)].extend(metric_result)
                 else:
-                    stats[(s_name,)].append(measure_result)
+                    stats[(s_name,)].append(metric_result)
 
     is_histogram_data = False
     num_keys = None
@@ -250,68 +246,3 @@ def generic_collect_statistics(
         group_by_key=group_by_key,
         **kwargs_show,
     )
-
-
-class DocumentTokenCounter:
-    def __init__(self, tokenizer_name_or_path, field, **kwargs):
-        self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name_or_path)
-        self.kwargs = kwargs
-        self.field = field
-
-    def __call__(self, doc):
-        text = getattr(doc, self.field)
-        encodings = self.tokenizer(text, **self.kwargs)
-        tokens = encodings.tokens()
-        return len(tokens)
-
-
-class DocumentFieldLengthCounter:
-    def __init__(self, field):
-        self.field = field
-
-    def __call__(self, doc):
-        field_obj = getattr(doc, self.field)
-        return len(field_obj)
-
-
-class DocumentSubFieldLengthCounter:
-    def __init__(self, field, subfield):
-        self.field = field
-        self.subfield = subfield
-
-    def __call__(self, doc):
-        field_obj = getattr(doc, self.field)
-        lengths = []
-        for entry in field_obj:
-            subfield_obj = getattr(entry, self.subfield)
-            lengths.append(len(subfield_obj))
-        return lengths
-
-
-class DocumentSpanLengthCounter:
-    def __init__(self, field):
-        self.field = field
-
-    def __call__(self, doc):
-        field_obj = getattr(doc, self.field)
-        counts = defaultdict(list)
-        for elem in field_obj:
-            counts[elem.label].append(elem.end - elem.start)
-        return dict(counts)
-
-
-class DummyCounter:
-    def __call__(self, doc):
-        return 1
-
-
-class LabelCounter:
-    def __init__(self, field):
-        self.field = field
-
-    def __call__(self, doc):
-        field_obj = getattr(doc, self.field)
-        counts = defaultdict(lambda: 1)
-        for elem in field_obj:
-            counts[elem.label] += 1
-        return dict(counts)

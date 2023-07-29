@@ -1,12 +1,5 @@
-from src.utils.pylogger import get_pylogger
-from src.utils.rich_utils import enforce_tags, print_config_tree
-from src.utils.utils import (
-    close_loggers,
-    extras,
-    get_metric_value,
-    instantiate_dict_entries,
-    log_hyperparameters,
-    prepare_omegaconf,
-    save_file,
-    task_wrapper,
-)
+from .config_utils import execute_pipeline, instantiate_dict_entries, prepare_omegaconf
+from .logging_utils import close_loggers, get_pylogger, log_hyperparameters
+from .rich_utils import enforce_tags, print_config_tree
+from .statistic_utils import collect_statistics
+from .task_utils import extras, save_file, task_wrapper

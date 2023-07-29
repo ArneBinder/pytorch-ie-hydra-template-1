@@ -1,9 +1,10 @@
 from copy import copy
-from typing import Any, Optional
+from typing import Any, List, Optional
 
-from hydra._internal.instantiate._instantiate2 import instantiate
+from hydra.utils import instantiate
+from omegaconf import DictConfig, OmegaConf
 
-from src.utils.pylogger import get_pylogger
+from src.utils.logging_utils import get_pylogger
 
 logger = get_pylogger(__name__)
 
@@ -39,3 +40,32 @@ def execute_pipeline(
         else:
             logger.warning(f'processor "{processor_name}" did not return a result')
     return result
+
+
+def instantiate_dict_entries(
+    config: DictConfig, key: str, entry_description: Optional[str] = None
+) -> List:
+    entries: List = []
+    key_config = config.get(key)
+
+    if not key_config:
+        logger.warning(f"{key} config is empty.")
+        return entries
+
+    if not isinstance(key_config, DictConfig):
+        raise TypeError("Logger config must be a DictConfig!")
+
+    for _, entry_conf in key_config.items():
+        if isinstance(entry_conf, DictConfig) and "_target_" in entry_conf:
+            logger.info(f"Instantiating {entry_description or key} <{entry_conf._target_}>")
+            entries.append(instantiate(entry_conf, _convert_="partial"))
+
+    return entries
+
+
+def prepare_omegaconf():
+    # register replace resolver (used to replace "/" with "-" in names to use them as e.g. wandb project names)
+    if not OmegaConf.has_resolver("replace"):
+        OmegaConf.register_new_resolver("replace", lambda s, x, y: s.replace(x, y))
+    else:
+        logger.warning("OmegaConf resolver 'replace' is already registered")
