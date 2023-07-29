@@ -196,30 +196,30 @@ ResultDict: TypeAlias = Dict[str, Union[ResultTerminal, "ResultDict"]]
 
 def collect_statistics(
     dataset: datasets.DatasetDict,
-    measure: Optional[Union[str, Callable[[Document], Union[ResultTerminal, ResultDict]]]],
+    metric: Optional[Union[str, Callable[[Document], Union[ResultTerminal, ResultDict]]]],
     title: str,
     group_by_key: Optional[Union[str, int, List[Union[str, int]]]] = None,
     key_names: Optional[Tuple[str, ...]] = None,
     aggregate_functions: Optional[Iterable[str]] = None,
     **kwargs_show,
 ) -> None:
-    measure_func = resolve_target(measure)
+    metric_func = resolve_target(metric)
     stats = defaultdict(list)
     for s_name, split in dataset.items():
         for doc in split:
-            measure_result = measure_func(doc)
-            if isinstance(measure_result, dict):
-                measure_result_flat = dict(_flatten_dict_gen(measure_result))
+            metric_result = metric_func(doc)
+            if isinstance(metric_result, dict):
+                measure_result_flat = dict(_flatten_dict_gen(metric_result))
                 for k, v in measure_result_flat.items():
                     if isinstance(v, list):
                         stats[(s_name,) + k].extend(v)
                     else:
                         stats[(s_name,) + k].append(v)
             else:
-                if isinstance(measure_result, list):
-                    stats[(s_name,)].extend(measure_result)
+                if isinstance(metric_result, list):
+                    stats[(s_name,)].extend(metric_result)
                 else:
-                    stats[(s_name,)].append(measure_result)
+                    stats[(s_name,)].append(metric_result)
 
     is_histogram_data = False
     num_keys = None

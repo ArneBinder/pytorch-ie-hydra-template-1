@@ -14,7 +14,7 @@ count_documents:
   title: number of documents
   aggregate_functions:
     - sum
-  measure:
+  metric:
     _target_: src.document.statistics.DummyCounter
 
 collect_label_counts:
@@ -24,7 +24,7 @@ collect_label_counts:
   title: number of ${dataset.collect_statistics.labeled_field} labels
   aggregate_functions:
     - mean
-  measure:
+  metric:
     _target_: src.document.statistics.LabelCounter
     field: ${dataset.collect_statistics.labeled_field}
 
@@ -33,7 +33,7 @@ collect_label_counts_hist:
   _enabled_: ${dataset.collect_statistics._enabled_}
   format: plot
   title: ${dataset.collect_statistics.labeled_field} labels distribution
-  measure:
+  metric:
     _target_: src.document.statistics.LabelCounter
     field: ${dataset.collect_statistics.labeled_field}
 
@@ -42,7 +42,7 @@ collect_field_lengths:
   _enabled_: ${dataset.collect_statistics._enabled_}
   format: markdown
   title: number of characters
-  measure:
+  metric:
     _target_: src.document.statistics.DocumentFieldLengthCounter
     field: ${dataset.collect_statistics.text_field}
 #collect_span_lengths:
@@ -50,6 +50,6 @@ collect_field_lengths:
 #  _enabled_: ${dataset.collect_statistics._enabled_}
 #  format: plot
 #  title: ${dataset.collect_statistics.labeled_span_field} lengths distribution
-#  measure:
+#  metric:
 #    _target_: src.utils.statistics.DocumentSpanLengthCounter
 #    field: ${dataset.collect_statistics.labeled_span_field}
