@@ -1,6 +1,6 @@
 from collections import defaultdict
 from math import sqrt
-from typing import Callable, Dict, Generator, Iterable, List, Optional, Tuple, Union
+from typing import Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 import pandas as pd
 from pytorch_ie import DatasetDict
@@ -8,7 +8,8 @@ from pytorch_ie.core import Document
 from pytorch_ie.utils.hydra import resolve_target
 from typing_extensions import TypeAlias
 
-from src.metrics.statistics import DocumentStatistic
+from src.metrics.interface import DocumentMetric
+from src.metrics.statistics import flatten_dict
 from src.utils.logging_utils import get_pylogger
 
 logger = get_pylogger(__name__)
@@ -180,15 +181,6 @@ def _show_stats(
             raise ValueError(f"unknown format to show statistics: {format}")
 
 
-def _flatten_dict_gen(d, parent_key: Tuple[str, ...] = ()) -> Generator:
-    for k, v in d.items():
-        new_key = parent_key + (k,)
-        if isinstance(v, dict):
-            yield from dict(_flatten_dict_gen(v, new_key)).items()
-        else:
-            yield new_key, v
-
-
 # The metric should return a single int or float or a list of such values ...
 ResultTerminal: TypeAlias = Union[BaseType, List[BaseType]]
 # ... or such entries nested arbitrarily deep inside dictionaries.
@@ -197,12 +189,11 @@ ResultDict: TypeAlias = Dict[str, Union[ResultTerminal, "ResultDict"]]
 
 def prepare_data(
     dataset: DatasetDict,
-    metric: Union[str, Callable[[Document], Union[ResultTerminal, ResultDict]], DocumentStatistic],
+    metric: Union[str, Callable[[Document], Union[ResultTerminal, ResultDict]], DocumentMetric],
 ) -> Dict[Tuple[str, ...], List[BaseType]]:
-    if isinstance(metric, DocumentStatistic):
-        # disable caching for DocumentStatistic
-        dataset.map(metric, result_document_type=dataset.document_type, load_from_cache_file=False)
-        return metric.compute()
+    if isinstance(metric, DocumentMetric):
+        nested_values = metric(dataset)
+        return flatten_dict(nested_values)
     else:
         metric_func = resolve_target(metric)
         stats = defaultdict(list)
@@ -210,7 +201,7 @@ def prepare_data(
             for doc in split:
                 metric_result = metric_func(doc)
                 if isinstance(metric_result, dict):
-                    metric_result_flat = dict(_flatten_dict_gen(metric_result))
+                    metric_result_flat = flatten_dict(metric_result)
                     for k, v in metric_result_flat.items():
                         if isinstance(v, list):
                             stats[(s_name,) + k].extend(v)
@@ -226,18 +217,18 @@ def prepare_data(
 
 def collect_statistics(
     dataset: DatasetDict,
-    metric: Union[str, Callable[[Document], Union[ResultTerminal, ResultDict]], DocumentStatistic],
+    metric: Union[str, Callable[[Document], Union[ResultTerminal, ResultDict]], DocumentMetric],
     title: str,
     group_by_key: Optional[Union[str, int, List[Union[str, int]]]] = None,
     key_names: Optional[Tuple[str, ...]] = None,
     aggregate_functions: Optional[Iterable[str]] = None,
     **kwargs_show,
 ) -> None:
-    stats = prepare_data(dataset=dataset, metric=metric)
+    data = prepare_data(dataset=dataset, metric=metric)
 
     is_histogram_data = False
     num_keys = None
-    for k, v in stats.items():
+    for k, v in data.items():
         if key_names is not None and len(k) != len(key_names):
             raise ValueError(
                 f"number of key levels (key: {k}) does not match key names: {key_names}"
@@ -250,7 +241,7 @@ def collect_statistics(
             is_histogram_data = True
     if group_by_key is None and num_keys is not None and num_keys > 1:
         group_by_key = list(range(num_keys - 1))
-    stats_sorted = dict(sorted(stats.items()))
+    stats_sorted = dict(sorted(data.items()))
     _show_stats(
         stats_sorted,
         title=title,

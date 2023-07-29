@@ -1,9 +1,8 @@
+from abc import abstractmethod
 from collections import defaultdict
-from typing import Any, Dict, Generator, List, Optional, Tuple, Union
+from typing import Any, Dict, Generator, List, Tuple, Union
 
-from pytorch_ie import Dataset, IterableDataset
 from pytorch_ie.core import Document
-from pytorch_ie.data.common import EnterDatasetDictMixin, EnterDatasetMixin
 from transformers import AutoTokenizer
 
 from src.metrics.interface import DocumentMetric
@@ -18,9 +17,35 @@ def _flatten_dict_gen(d, parent_key: Tuple[str, ...] = ()) -> Generator:
             yield new_key, v
 
 
-class DocumentStatistic(DocumentMetric, EnterDatasetDictMixin, EnterDatasetMixin):
-    """A special type of metric that collects statistics from a document. It should be used in
-    combination with DatasetDict.map().
+def flatten_dict(d: Dict[str, Any]) -> Dict[Tuple[str, ...], Any]:
+    return dict(_flatten_dict_gen(d))
+
+
+def unflatten_dict(d: Dict[Tuple[str, ...], Any]) -> Union[Dict[str, Any], Any]:
+    """Unflattens a dictionary with nested keys.
+
+    Example:
+    ```python
+    >>> d = {("a", "b", "c"): 1, ("a", "b", "d"): 2, ("a", "e"): 3}
+    >>> unflatten_dict(d)
+    {"a": {"b": {"c": 1, "d": 2}, "e": 3}}
+    ```
+    """
+    result: Dict[str, Any] = {}
+    for k, v in d.items():
+        if len(k) == 0:
+            if len(result) > 1:
+                raise ValueError("Cannot unflatten dictionary with multiple root keys.")
+            return v
+        current = result
+        for key in k[:-1]:
+            current = current.setdefault(key, {})
+        current[k[-1]] = v
+    return result
+
+
+class DocumentStatistic(DocumentMetric):
+    """A special type of metric that collects statistics from a document.
 
     Usage:
 
@@ -29,48 +54,39 @@ class DocumentStatistic(DocumentMetric, EnterDatasetDictMixin, EnterDatasetMixin
 
     dataset = DatasetDict.load_dataset("pie/conll2003")
     statistic = DocumentTokenCounter(tokenizer_name_or_path="bert-base-cased", field="text")
-    # Note: it is important to disable caching (load_from_cache_file=False), otherwise the metric might
-    # not be computed
-    dataset.map(statistic, result_document_type=dataset.document_type, load_from_cache_file=False)
-    values = statistic.compute()
+    values = statistic(dataset)
     ```
     """
 
-    def enter_dataset_dict(self, dataset_dict) -> None:
-        self.reset()
-
     def reset(self) -> None:
-        self._values: Dict[Optional[str], List[Any]] = defaultdict(list)
+        self._values: List[Any] = []
 
-    def enter_dataset(
-        self, dataset: Union[Dataset, IterableDataset], name: Optional[str] = None
-    ) -> None:
-        self.split_name = name
-
+    @abstractmethod
     def collect(self, doc: Document) -> Any:
-        """Collects any values from a document."""
+        """Collect any values from a document."""
 
     def _update(self, document: Document) -> None:
         values = self.collect(document)
-        self._values[self.split_name].append(values)
+        self._values.append(values)
 
-    def _compute(self) -> Dict[Tuple[str, ...], List[Any]]:
+    def _compute(self) -> Any:
+        """We just integrate the values by creating lists for each leaf of the (nested)
+        dictionary."""
         stats = defaultdict(list)
-        for split_name, split_metric_values in self._values.items():
-            for metric_result in split_metric_values:
-                if isinstance(metric_result, dict):
-                    measure_result_flat = dict(_flatten_dict_gen(metric_result))
-                    for k, v in measure_result_flat.items():
-                        if isinstance(v, list):
-                            stats[(split_name,) + k].extend(v)
-                        else:
-                            stats[(split_name,) + k].append(v)
-                else:
-                    if isinstance(metric_result, list):
-                        stats[(split_name,)].extend(metric_result)
+        for metric_result in self._values:
+            if isinstance(metric_result, dict):
+                measure_result_flat = flatten_dict(metric_result)
+                for k, v in measure_result_flat.items():
+                    if isinstance(v, list):
+                        stats[k].extend(v)
                     else:
-                        stats[(split_name,)].append(metric_result)
-        return dict(stats)
+                        stats[k].append(v)
+            else:
+                if isinstance(metric_result, list):
+                    stats[()].extend(metric_result)
+                else:
+                    stats[()].append(metric_result)
+        return unflatten_dict(dict(stats))
 
 
 class DocumentTokenCounter(DocumentStatistic):
