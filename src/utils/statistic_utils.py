@@ -2,12 +2,13 @@ from collections import defaultdict
 from math import sqrt
 from typing import Callable, Dict, Generator, Iterable, List, Optional, Tuple, Union
 
-import datasets
 import pandas as pd
+from pytorch_ie import DatasetDict
 from pytorch_ie.core import Document
 from pytorch_ie.utils.hydra import resolve_target
 from typing_extensions import TypeAlias
 
+from src.metrics.statistics import DocumentStatistic
 from src.utils.logging_utils import get_pylogger
 
 logger = get_pylogger(__name__)
@@ -194,32 +195,45 @@ ResultTerminal: TypeAlias = Union[BaseType, List[BaseType]]
 ResultDict: TypeAlias = Dict[str, Union[ResultTerminal, "ResultDict"]]
 
 
+def prepare_data(
+    dataset: DatasetDict,
+    metric: Union[str, Callable[[Document], Union[ResultTerminal, ResultDict]], DocumentStatistic],
+) -> Dict[Tuple[str, ...], List[BaseType]]:
+    if isinstance(metric, DocumentStatistic):
+        # disable caching for DocumentStatistic
+        dataset.map(metric, result_document_type=dataset.document_type, load_from_cache_file=False)
+        return metric.compute()
+    else:
+        metric_func = resolve_target(metric)
+        stats = defaultdict(list)
+        for s_name, split in dataset.items():
+            for doc in split:
+                metric_result = metric_func(doc)
+                if isinstance(metric_result, dict):
+                    measure_result_flat = dict(_flatten_dict_gen(metric_result))
+                    for k, v in measure_result_flat.items():
+                        if isinstance(v, list):
+                            stats[(s_name,) + k].extend(v)
+                        else:
+                            stats[(s_name,) + k].append(v)
+                else:
+                    if isinstance(metric_result, list):
+                        stats[(s_name,)].extend(metric_result)
+                    else:
+                        stats[(s_name,)].append(metric_result)
+        return dict(stats)
+
+
 def collect_statistics(
-    dataset: datasets.DatasetDict,
-    metric: Optional[Union[str, Callable[[Document], Union[ResultTerminal, ResultDict]]]],
+    dataset: DatasetDict,
+    metric: Union[str, Callable[[Document], Union[ResultTerminal, ResultDict]], DocumentStatistic],
     title: str,
     group_by_key: Optional[Union[str, int, List[Union[str, int]]]] = None,
     key_names: Optional[Tuple[str, ...]] = None,
     aggregate_functions: Optional[Iterable[str]] = None,
     **kwargs_show,
 ) -> None:
-    metric_func = resolve_target(metric)
-    stats = defaultdict(list)
-    for s_name, split in dataset.items():
-        for doc in split:
-            metric_result = metric_func(doc)
-            if isinstance(metric_result, dict):
-                measure_result_flat = dict(_flatten_dict_gen(metric_result))
-                for k, v in measure_result_flat.items():
-                    if isinstance(v, list):
-                        stats[(s_name,) + k].extend(v)
-                    else:
-                        stats[(s_name,) + k].append(v)
-            else:
-                if isinstance(metric_result, list):
-                    stats[(s_name,)].extend(metric_result)
-                else:
-                    stats[(s_name,)].append(metric_result)
+    stats = prepare_data(dataset=dataset, metric=metric)
 
     is_histogram_data = False
     num_keys = None

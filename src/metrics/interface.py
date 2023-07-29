@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, List, Union
+from typing import Any, List, Optional, Union
 
 from pytorch_ie import Dataset, IterableDataset
 from pytorch_ie.core import Document
@@ -14,12 +14,15 @@ class DocumentMetric(ABC):
 
     def __call__(
         self, document: Union[List[Document], Document, Dataset, IterableDataset]
-    ) -> None:
+    ) -> Optional[Document]:
         if isinstance(document, (list, Dataset, IterableDataset)):
             for doc in document:
                 self(doc)
+            return None
         elif isinstance(document, Document):
             self._update(document)
+            # return document to work with DatasetDict.map
+            return document
         else:
             raise Exception(f"document has unknown type: {type(document)}")
 
