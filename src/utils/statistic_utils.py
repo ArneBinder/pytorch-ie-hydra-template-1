@@ -81,8 +81,8 @@ def _stats_as_df(
 DEFAULT_AGGREGATE_FUNCTIONS = ("mean", "stddev", "min", "max")
 
 
-def _show_stats(
-    stats,
+def show_statistics(
+    data,
     title: str,
     format: str = "markdown",
     is_histogram_data: bool = False,
@@ -120,7 +120,7 @@ def _show_stats(
         )
 
         new_stats: Dict[Tuple[str, ...], Dict[Tuple[str, ...], BaseType]] = defaultdict(dict)
-        for keys, v in stats.items():
+        for keys, v in data.items():
             key_group = tuple(keys[idx] for idx in group_by_indices)
             keys_other = tuple(
                 keys[idx] for idx in range(len(keys)) if idx not in group_by_indices
@@ -129,8 +129,8 @@ def _show_stats(
                 keys_other = keys_other[0]
             new_stats[key_group][keys_other] = v
         for keys, v in new_stats.items():
-            _show_stats(
-                stats=v,
+            show_statistics(
+                data=v,
                 title=f"{title}: {', '.join(keys)}",
                 format=format,
                 is_histogram_data=is_histogram_data,
@@ -139,18 +139,18 @@ def _show_stats(
                 **kwargs_show,
             )
     else:
-        stats = {k[0] if isinstance(k, tuple) and len(k) == 1 else k: v for k, v in stats.items()}
+        data = {k[0] if isinstance(k, tuple) and len(k) == 1 else k: v for k, v in data.items()}
 
         if format == "markdown":
             df = _stats_as_df(
-                stats=stats,
+                stats=data,
                 key_names=key_names,
                 aggregate_functions=aggregate_functions or DEFAULT_AGGREGATE_FUNCTIONS,
             )
             logger.info(f"{title}:\n{df.to_markdown(**kwargs_show)}")
         elif format == "json":
             df = _stats_as_df(
-                stats=stats,
+                stats=data,
                 key_names=key_names,
                 aggregate_functions=aggregate_functions or DEFAULT_AGGREGATE_FUNCTIONS,
             )
@@ -159,14 +159,14 @@ def _show_stats(
             import plotext as plt
 
             if is_histogram_data and aggregate_functions is None:
-                for k, values in stats.items():
+                for k, values in data.items():
                     plt.hist(values, label=k, **kwargs_show)
                 plt.title(title)
                 plt.show()
                 plt.clear_figure()
             else:
                 df = _stats_as_df(
-                    stats=stats,
+                    stats=data,
                     key_names=key_names,
                     aggregate_functions=aggregate_functions or DEFAULT_AGGREGATE_FUNCTIONS,
                 )
@@ -242,8 +242,8 @@ def collect_statistics(
     if group_by_key is None and num_keys is not None and num_keys > 1:
         group_by_key = list(range(num_keys - 1))
     stats_sorted = dict(sorted(data.items()))
-    _show_stats(
-        stats_sorted,
+    show_statistics(
+        data=stats_sorted,
         title=title,
         is_histogram_data=is_histogram_data,
         aggregate_functions=aggregate_functions,
