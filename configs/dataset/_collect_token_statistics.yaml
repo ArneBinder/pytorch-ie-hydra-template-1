@@ -8,18 +8,18 @@ collect_token_statistics:
   _enabled_: true
 
 collect_token_numbers:
-  _processor_: src.utils.statistics.generic_collect_statistics
+  _processor_: src.utils.collect_statistics
   _enabled_: ${dataset.collect_token_statistics._enabled_}
   format: markdown
   title: number of tokens
   measure:
-    _target_: src.utils.statistics.DocumentTokenCounter
+    _target_: src.document.statistics.DocumentTokenCounter
     field: ${dataset.collect_token_statistics.text_field}
     tokenizer_name_or_path: ${dataset.collect_token_statistics.tokenizer_name_or_path}
     add_special_tokens: false
 
 collect_token_numbers_hist:
-  _processor_: src.utils.statistics.generic_collect_statistics
+  _processor_: src.document.collect_statistics
   _enabled_: ${dataset.collect_token_statistics._enabled_}
   format: plot
   title: number of tokens distribution

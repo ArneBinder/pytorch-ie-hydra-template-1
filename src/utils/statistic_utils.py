@@ -6,7 +6,6 @@ import datasets
 import pandas as pd
 from hydra._internal.instantiate._instantiate2 import _resolve_target
 from pytorch_ie.core import Document
-from transformers import AutoTokenizer
 from typing_extensions import TypeAlias
 
 from src.utils.logging_utils import get_pylogger
@@ -195,7 +194,7 @@ ResultTerminal: TypeAlias = Union[BaseType, List[BaseType]]
 ResultDict: TypeAlias = Dict[str, Union[ResultTerminal, "ResultDict"]]
 
 
-def generic_collect_statistics(
+def collect_statistics(
     dataset: datasets.DatasetDict,
     measure: Optional[Union[str, Callable[[Document], Union[ResultTerminal, ResultDict]]]],
     title: str,
@@ -250,68 +249,3 @@ def generic_collect_statistics(
         group_by_key=group_by_key,
         **kwargs_show,
     )
-
-
-class DocumentTokenCounter:
-    def __init__(self, tokenizer_name_or_path, field, **kwargs):
-        self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name_or_path)
-        self.kwargs = kwargs
-        self.field = field
-
-    def __call__(self, doc):
-        text = getattr(doc, self.field)
-        encodings = self.tokenizer(text, **self.kwargs)
-        tokens = encodings.tokens()
-        return len(tokens)
-
-
-class DocumentFieldLengthCounter:
-    def __init__(self, field):
-        self.field = field
-
-    def __call__(self, doc):
-        field_obj = getattr(doc, self.field)
-        return len(field_obj)
-
-
-class DocumentSubFieldLengthCounter:
-    def __init__(self, field, subfield):
-        self.field = field
-        self.subfield = subfield
-
-    def __call__(self, doc):
-        field_obj = getattr(doc, self.field)
-        lengths = []
-        for entry in field_obj:
-            subfield_obj = getattr(entry, self.subfield)
-            lengths.append(len(subfield_obj))
-        return lengths
-
-
-class DocumentSpanLengthCounter:
-    def __init__(self, field):
-        self.field = field
-
-    def __call__(self, doc):
-        field_obj = getattr(doc, self.field)
-        counts = defaultdict(list)
-        for elem in field_obj:
-            counts[elem.label].append(elem.end - elem.start)
-        return dict(counts)
-
-
-class DummyCounter:
-    def __call__(self, doc):
-        return 1
-
-
-class LabelCounter:
-    def __init__(self, field):
-        self.field = field
-
-    def __call__(self, doc):
-        field_obj = getattr(doc, self.field)
-        counts = defaultdict(lambda: 1)
-        for elem in field_obj:
-            counts[elem.label] += 1
-        return dict(counts)
