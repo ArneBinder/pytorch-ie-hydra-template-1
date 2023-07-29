@@ -30,7 +30,6 @@ pytest          # tests
 pytest-cov      # test coverage
 sh              # for running bash commands in some tests
 pudb            # debugger
-asciidag        # to print the document annotation graph on the console
 tabulate        # show statistics as markdown
 plotext         # show statistics as plots
 # huggingface-hub>=0.13  # interaction with HF hub
