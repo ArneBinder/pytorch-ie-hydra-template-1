@@ -1,11 +1,12 @@
 from abc import ABC, abstractmethod
-from typing import Any, List, Optional, Union
+from typing import Dict, Generic, Iterable, TypeVar, Union
 
-from pytorch_ie import Dataset, IterableDataset
 from pytorch_ie.core import Document
 
+T = TypeVar("T")
 
-class DocumentMetric(ABC):
+
+class DocumentMetric(ABC, Generic[T]):
     """This defines the interface for a document metric."""
 
     def reset(self) -> None:
@@ -13,20 +14,41 @@ class DocumentMetric(ABC):
         pass
 
     def __call__(
-        self, document: Union[List[Document], Document, Dataset, IterableDataset]
-    ) -> Optional[Document]:
-        if isinstance(document, (list, Dataset, IterableDataset)):
-            for doc in document:
-                self(doc)
-            return None
-        elif isinstance(document, Document):
-            self._update(document)
-            # return document to work with DatasetDict.map
-            return document
-        else:
-            raise Exception(f"document has unknown type: {type(document)}")
+        self,
+        document_or_collection: Union[Iterable[Document], Document, Dict[str, Iterable[Document]]],
+    ) -> Union[Dict[str, T], T]:
+        """This method is called to update the metric with a document or collection of documents.
 
-    def compute(self, reset: bool = True) -> Any:
+        If a collection is passed, the metric is also computed and the result is returned. If the
+        collection is a dictionary, the metric is computed for each split and the result is
+        returned as a dictionary.
+        """
+        if isinstance(document_or_collection, Document):
+            # do not reset here to allow for multiple calls
+            self._update(document_or_collection)
+            return self.compute(reset=False)
+        elif isinstance(document_or_collection, dict):
+            result: Dict[str, T] = {}
+            for split_name, split in document_or_collection.items():
+                self.reset()
+                split_values: T = self(split)  # type: ignore
+                result[split_name] = split_values
+            return result
+        elif isinstance(document_or_collection, Iterable):
+            for doc in document_or_collection:
+                if not isinstance(doc, Document):
+                    raise Exception(
+                        f"document_or_collection contains an object that is not a document: {type(doc)}"
+                    )
+                self._update(doc)
+            # do not reset here to allow for multiple calls
+            return self.compute(reset=False)
+        else:
+            raise Exception(
+                f"document_or_collection has unknown type: {type(document_or_collection)}"
+            )
+
+    def compute(self, reset: bool = True) -> T:
         metric_values = self._compute()
         if reset:
             self.reset()
@@ -38,6 +60,6 @@ class DocumentMetric(ABC):
         ...
 
     @abstractmethod
-    def _compute(self) -> Any:
+    def _compute(self) -> T:
         """This method is called to get the metric values."""
         ...
