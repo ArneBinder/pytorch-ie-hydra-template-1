@@ -189,7 +189,7 @@ def _flatten_dict_gen(d, parent_key: Tuple[str, ...] = ()) -> Generator:
             yield new_key, v
 
 
-# The measure should return a single int or float or a list of such values ...
+# The metric should return a single int or float or a list of such values ...
 ResultTerminal: TypeAlias = Union[BaseType, List[BaseType]]
 # ... or such entries nested arbitrarily deep inside dictionaries.
 ResultDict: TypeAlias = Dict[str, Union[ResultTerminal, "ResultDict"]]
@@ -210,8 +210,8 @@ def prepare_data(
             for doc in split:
                 metric_result = metric_func(doc)
                 if isinstance(metric_result, dict):
-                    measure_result_flat = dict(_flatten_dict_gen(metric_result))
-                    for k, v in measure_result_flat.items():
+                    metric_result_flat = dict(_flatten_dict_gen(metric_result))
+                    for k, v in metric_result_flat.items():
                         if isinstance(v, list):
                             stats[(s_name,) + k].extend(v)
                         else:
