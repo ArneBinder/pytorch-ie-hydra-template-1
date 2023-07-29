@@ -4,8 +4,8 @@ from typing import Callable, Dict, Generator, Iterable, List, Optional, Tuple, U
 
 import datasets
 import pandas as pd
-from hydra._internal.instantiate._instantiate2 import _resolve_target
 from pytorch_ie.core import Document
+from pytorch_ie.utils.hydra import resolve_target
 from typing_extensions import TypeAlias
 
 from src.utils.logging_utils import get_pylogger
@@ -202,11 +202,8 @@ def collect_statistics(
     key_names: Optional[Tuple[str, ...]] = None,
     aggregate_functions: Optional[Iterable[str]] = None,
     **kwargs_show,
-):
-    if isinstance(measure, str):
-        measure_func = _resolve_target(measure, full_key="")
-    else:
-        measure_func = measure
+) -> None:
+    measure_func = resolve_target(measure)
     stats = defaultdict(list)
     for s_name, split in dataset.items():
         for doc in split:

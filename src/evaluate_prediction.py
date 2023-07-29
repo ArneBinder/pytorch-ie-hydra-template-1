@@ -13,8 +13,8 @@ from itertools import chain
 from typing import Callable, Dict, List, Optional, Type, Union
 
 import pandas as pd
-from hydra._internal.instantiate._instantiate2 import _resolve_target
 from pytorch_ie.core import Document
+from pytorch_ie.utils.hydra import resolve_target
 
 from src.document.types import DocumentWithEntitiesRelationsAndLabeledPartitions
 from src.metrics import F1Metric
@@ -60,10 +60,6 @@ def evaluate_document_layer(
     return metric_values
 
 
-def get_type_or_callable(type_str: str) -> Union[Type, Callable]:
-    return _resolve_target(type_str, full_key="")
-
-
 def get_document_converter(document_converter: str) -> Callable:
     raise NotImplementedError(f"unknown document converter: {document_converter}.")
 
@@ -92,7 +88,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--document_type",
-        type=get_type_or_callable,
+        type=resolve_target,
         default=DocumentWithEntitiesRelationsAndLabeledPartitions,
         help="document type to load serialized documents",
     )
