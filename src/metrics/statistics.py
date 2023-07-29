@@ -62,11 +62,11 @@ class DocumentStatistic(DocumentMetric):
         self._values: List[Any] = []
 
     @abstractmethod
-    def collect(self, doc: Document) -> Any:
+    def _collect(self, doc: Document) -> Any:
         """Collect any values from a document."""
 
     def _update(self, document: Document) -> None:
-        values = self.collect(document)
+        values = self._collect(document)
         self._values.append(values)
 
     def _compute(self) -> Any:
@@ -100,7 +100,7 @@ class DocumentTokenCounter(DocumentStatistic):
         self.kwargs = kwargs
         self.field = field
 
-    def collect(self, doc: Document) -> int:
+    def _collect(self, doc: Document) -> int:
         text = getattr(doc, self.field)
         encodings = self.tokenizer(text, **self.kwargs)
         tokens = encodings.tokens()
@@ -116,7 +116,7 @@ class DocumentFieldLengthCounter(DocumentStatistic):
     def __init__(self, field: str):
         self.field = field
 
-    def collect(self, doc: Document) -> int:
+    def _collect(self, doc: Document) -> int:
         field_obj = getattr(doc, self.field)
         return len(field_obj)
 
@@ -128,7 +128,7 @@ class DocumentSubFieldLengthCounter(DocumentStatistic):
         self.field = field
         self.subfield = subfield
 
-    def collect(self, doc: Document) -> List[int]:
+    def _collect(self, doc: Document) -> List[int]:
         field_obj = getattr(doc, self.field)
         lengths = []
         for entry in field_obj:
@@ -146,7 +146,7 @@ class DocumentSpanLengthCounter(DocumentStatistic):
     def __init__(self, field: str):
         self.field = field
 
-    def collect(self, doc: Document) -> Dict[str, List[int]]:
+    def _collect(self, doc: Document) -> Dict[str, List[int]]:
         field_obj = getattr(doc, self.field)
         counts = defaultdict(list)
         for elem in field_obj:
@@ -160,7 +160,7 @@ class DummyCounter(DocumentStatistic):
     Can be used to count the number of documents.
     """
 
-    def collect(self, doc: Document) -> int:
+    def _collect(self, doc: Document) -> int:
         return 1
 
 
@@ -173,7 +173,7 @@ class LabelCounter(DocumentStatistic):
     def __init__(self, field: str):
         self.field = field
 
-    def collect(self, doc: Document) -> Dict[str, int]:
+    def _collect(self, doc: Document) -> Dict[str, int]:
         field_obj = getattr(doc, self.field)
         counts: Dict[str, int] = defaultdict(lambda: 1)
         for elem in field_obj:
