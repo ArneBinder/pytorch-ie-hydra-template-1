@@ -9,7 +9,7 @@ from pytorch_ie.core import Document
 from transformers import AutoTokenizer
 from typing_extensions import TypeAlias
 
-from src.utils.pylogger import get_pylogger
+from src.utils.logging_utils import get_pylogger
 
 logger = get_pylogger(__name__)
 

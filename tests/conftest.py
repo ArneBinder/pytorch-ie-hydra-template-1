@@ -4,7 +4,7 @@ from hydra import compose, initialize
 from hydra.core.global_hydra import GlobalHydra
 from omegaconf import DictConfig, open_dict
 
-from src.utils import utils
+from src.utils import prepare_omegaconf
 
 ROOT = pyrootutils.setup_root(
     search_from=__file__,
@@ -13,7 +13,7 @@ ROOT = pyrootutils.setup_root(
     dotenv=True,
     cwd=True,
 )
-utils.prepare_omegaconf()
+prepare_omegaconf()
 
 
 def cfg_train_global(overrides=None) -> DictConfig:

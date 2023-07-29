@@ -53,6 +53,26 @@ from src.taskmodules import *  # noqa: F403
 log = utils.get_pylogger(__name__)
 
 
+def get_metric_value(metric_dict: dict, metric_name: str) -> Optional[float]:
+    """Safely retrieves value of the metric logged in LightningModule."""
+
+    if not metric_name:
+        log.info("Metric name is None! Skipping metric value retrieval...")
+        return None
+
+    if metric_name not in metric_dict:
+        raise Exception(
+            f"Metric value not found! <metric_name={metric_name}>\n"
+            "Make sure metric name logged in LightningModule is correct!\n"
+            "Make sure `optimized_metric` name in `hparams_search` config is correct!"
+        )
+
+    metric_value = metric_dict[metric_name].item()
+    log.info(f"Retrieved metric value! <{metric_name}={metric_value}>")
+
+    return metric_value
+
+
 @utils.task_wrapper
 def train(cfg: DictConfig) -> Tuple[dict, dict]:
     """Trains the model. Can additionally evaluate on a testset, using best weights obtained during
@@ -198,7 +218,7 @@ def main(cfg: DictConfig) -> Optional[float]:
 
     # safely retrieve metric value for hydra-based hyperparameter optimization
     if cfg.get("optimized_metric") is not None:
-        metric_value = utils.get_metric_value(
+        metric_value = get_metric_value(
             metric_dict=metric_dict, metric_name=cfg.get("optimized_metric")
         )
 

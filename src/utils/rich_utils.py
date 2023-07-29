@@ -9,9 +9,9 @@ from omegaconf import DictConfig, OmegaConf, open_dict
 from pytorch_lightning.utilities import rank_zero_only
 from rich.prompt import Prompt
 
-from src.utils import pylogger
+from src.utils.logging_utils import get_pylogger
 
-log = pylogger.get_pylogger(__name__)
+log = get_pylogger(__name__)
 
 
 @rank_zero_only
