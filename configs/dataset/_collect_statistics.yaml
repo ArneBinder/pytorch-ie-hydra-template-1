@@ -15,7 +15,7 @@ count_documents:
   aggregate_functions:
     - sum
   metric:
-    _target_: src.metrics.statistics.DummyCounter
+    _target_: pytorch_ie.metrics.statistics.DummyCollector
 
 collect_label_counts:
   _processor_: src.utils.collect_statistics
@@ -25,7 +25,7 @@ collect_label_counts:
   aggregate_functions:
     - mean
   metric:
-    _target_: src.metrics.statistics.LabelCounter
+    _target_: pytorch_ie.metrics.statistics.LabelCountCollector
     field: ${dataset.collect_statistics.labeled_field}
 
 collect_label_counts_hist:
@@ -34,7 +34,7 @@ collect_label_counts_hist:
   format: plot
   title: ${dataset.collect_statistics.labeled_field} labels distribution
   metric:
-    _target_: src.metrics.statistics.LabelCounter
+    _target_: pytorch_ie.metrics.statistics.LabelCountCollector
     field: ${dataset.collect_statistics.labeled_field}
 
 collect_field_lengths:
@@ -43,7 +43,7 @@ collect_field_lengths:
   format: markdown
   title: number of characters
   metric:
-    _target_: src.metrics.statistics.DocumentFieldLengthCounter
+    _target_: pytorch_ie.metrics.statistics.FieldLengthCollector
     field: ${dataset.collect_statistics.text_field}
 #collect_span_lengths:
 #  _processor_: src.utils.collect_statistics
@@ -51,5 +51,5 @@ collect_field_lengths:
 #  format: plot
 #  title: ${dataset.collect_statistics.labeled_span_field} lengths distribution
 #  metric:
-#    _target_: src.utils.statistics.DocumentSpanLengthCounter
+#    _target_: pytorch_ie.metrics.statistics.LabeledSpanLengthCollector
 #    field: ${dataset.collect_statistics.labeled_span_field}
