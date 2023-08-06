@@ -24,7 +24,7 @@ collect_token_numbers_hist:
   format: plot
   title: number of tokens distribution
   metric:
-    _target_: src.utils.statistics.DocumentTokenCounter
+    _target_: src.metrics.statistics.DocumentTokenCounter
     field: ${dataset.collect_token_statistics.text_field}
     tokenizer_name_or_path: ${dataset.collect_token_statistics.tokenizer_name_or_path}
     add_special_tokens: false
