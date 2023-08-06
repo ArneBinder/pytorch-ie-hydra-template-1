@@ -4,7 +4,7 @@ import logging
 from copy import deepcopy
 from typing import Dict, List, Tuple, Union
 
-from pytorch_ie.annotations import BinaryRelation, LabeledSpan, Span
+from pytorch_ie.annotations import LabeledSpan, Span
 
 from src.document.types import (
     TextDocumentWithEntitiesAndRelations,
@@ -19,7 +19,6 @@ def token_based_document_with_entities_and_relations_to_text_based(
     doc: TokenDocumentWithEntitiesAndRelations,
     token_field: str = "tokens",
     entity_layer: str = "entities",
-    relation_layer: str = "relations",
     token_separator: str = " ",
 ) -> Union[TextDocumentWithEntitiesAndRelations, TextDocumentWithLabeledEntitiesAndRelations]:
     start = 0
@@ -33,28 +32,15 @@ def token_based_document_with_entities_and_relations_to_text_based(
 
     text = token_separator.join([token for token in tokens])
 
-    entity_map: Dict[Tuple[int, int], Span] = {}
-
+    entity_map: Dict[int, Span] = {}
     entities_have_labels = False
     for entity in doc[entity_layer]:
         char_start = token_offsets[entity.start][0]
         char_end = token_offsets[entity.end - 1][1]
+        char_offset_entity = entity.copy(start=char_start, end=char_end)
         if isinstance(entity, LabeledSpan):
-            char_offset_entity = LabeledSpan(start=char_start, end=char_end, label=entity.label)
             entities_have_labels = True
-        else:
-            char_offset_entity = Span(start=char_start, end=char_end)
-        entity_map[(entity.start, entity.end)] = char_offset_entity
-
-    relations: List[BinaryRelation] = []
-    for relation in doc[relation_layer]:
-        relations.append(
-            BinaryRelation(
-                head=entity_map[(relation.head.start, relation.head.end)],
-                tail=entity_map[(relation.tail.start, relation.tail.end)],
-                label=relation.label,
-            )
-        )
+        entity_map[entity._id] = char_offset_entity
 
     if entities_have_labels:
         new_doc = TextDocumentWithLabeledEntitiesAndRelations(
@@ -65,5 +51,7 @@ def token_based_document_with_entities_and_relations_to_text_based(
             text=text, id=doc.id, metadata=deepcopy(doc.metadata)
         )
     new_doc.entities.extend(entity_map.values())
-    new_doc.relations.extend(relations)
+    new_doc.add_all_annotations_from_other(
+        doc, override_annotation_mapping={"entities": entity_map}
+    )
     return new_doc

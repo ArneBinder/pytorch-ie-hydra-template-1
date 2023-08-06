@@ -14,10 +14,10 @@ from typing import Callable, Dict, List, Optional, Type, Union
 
 import pandas as pd
 from pytorch_ie.core import Document
+from pytorch_ie.metrics import F1Metric
 from pytorch_ie.utils.hydra import resolve_target
 
 from src.document.types import DocumentWithEntitiesRelationsAndLabeledPartitions
-from src.metrics import F1Metric
 from src.serializer import JsonSerializer
 
 logger = logging.getLogger(__name__)
@@ -29,7 +29,6 @@ def evaluate_document_layer(
     document_type: Optional[Type[Document]] = DocumentWithEntitiesRelationsAndLabeledPartitions,
     label_field: Optional[str] = "label",
     exclude_labels: Optional[List[str]] = None,
-    exclude_annotation_fields: Optional[List[str]] = None,
     show_as_markdown: bool = True,
 ) -> Dict[str, Dict[str, float]]:
     if isinstance(path_or_documents, str):
@@ -51,7 +50,6 @@ def evaluate_document_layer(
         layer=layer,
         label_field=label_field,
         labels=labels,
-        exclude_annotation_fields=exclude_annotation_fields,
         show_as_markdown=show_as_markdown,
     )
     f1metric(documents)
@@ -100,13 +98,6 @@ if __name__ == "__main__":
         help="labels to exclude from evaluation",
     )
     parser.add_argument(
-        "--exclude_annotation_fields",
-        type=str,
-        nargs="+",
-        default=["score"],
-        help="annotation fields to exclude from evaluation",
-    )
-    parser.add_argument(
         "--preprocess_documents",
         type=get_document_converter,
         default=None,
@@ -133,7 +124,6 @@ if __name__ == "__main__":
             layer=args.layer,
             label_field=args.label_field if not args.no_labels else None,
             exclude_labels=args.exclude_labels,
-            exclude_annotation_fields=args.exclude_annotation_fields,
         )
         all_metric_values.append(pd.DataFrame(metric_values).T)
 

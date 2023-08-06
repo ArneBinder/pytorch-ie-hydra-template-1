@@ -4,11 +4,10 @@ from typing import Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 import pandas as pd
 from pytorch_ie import DatasetDict
-from pytorch_ie.core import Document
+from pytorch_ie.core import Document, DocumentMetric
 from pytorch_ie.utils.hydra import resolve_target
 from typing_extensions import TypeAlias
 
-from src.metrics.interface import DocumentMetric
 from src.metrics.statistics import flatten_dict
 from src.utils.logging_utils import get_pylogger
 
