@@ -1,5 +1,8 @@
 # --------- pytorch-ie --------- #
-pytorch-ie>=0.18.0,<1.0.0
+#pytorch-ie>=0.19.0,<1.0.0
+# reqires:
+# - https://github.com/ChristophAlt/pytorch-ie/pull/312 for DocumentStatistics
+git+https://github.com/ChristophAlt/pytorch-ie
 git+https://github.com/ArneBinder/pie-utils@v0.5.1
 
 # --------- hydra --------- #

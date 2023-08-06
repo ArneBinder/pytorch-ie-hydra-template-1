@@ -1,17 +1,30 @@
 from collections import defaultdict
 from math import sqrt
-from typing import Callable, Dict, Iterable, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Generator, Iterable, List, Optional, Tuple, Union
 
 import pandas as pd
 from pytorch_ie import DatasetDict
-from pytorch_ie.core import Document, DocumentMetric
+from pytorch_ie.core.document import Document
+from pytorch_ie.core.metric import DocumentMetric
 from pytorch_ie.utils.hydra import resolve_target
 from typing_extensions import TypeAlias
 
-from src.metrics.statistics import flatten_dict
 from src.utils.logging_utils import get_pylogger
 
 logger = get_pylogger(__name__)
+
+
+def _flatten_dict_gen(d, parent_key: Tuple[str, ...] = ()) -> Generator:
+    for k, v in d.items():
+        new_key = parent_key + (k,)
+        if isinstance(v, dict):
+            yield from dict(_flatten_dict_gen(v, new_key)).items()
+        else:
+            yield new_key, v
+
+
+def flatten_dict(d: Dict[str, Any]) -> Dict[Tuple[str, ...], Any]:
+    return dict(_flatten_dict_gen(d))
 
 
 def _variance(data, ddof=0):
