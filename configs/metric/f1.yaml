@@ -1,6 +1,5 @@
-_target_: src.metrics.F1Metric
+_target_: pytorch_ie.metrics.F1Metric
 layer: ???
 show_as_markdown: true
-exclude_annotation_fields: ["score"]
-# label_field: label  # field of the annotation that contains the label. if set, calculate per label metrics
-# labels: ???  # all possible labels. required if label_field is set
+# labels: ???  # all possible labels. if set, calculate per label metrics
+# label_field: label  # field of the annotation that contains the label, default: label. required if label_field is set

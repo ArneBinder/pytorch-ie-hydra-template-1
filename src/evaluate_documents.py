@@ -39,9 +39,9 @@ import hydra
 import pytorch_lightning as pl
 from omegaconf import DictConfig
 from pytorch_ie import DatasetDict
+from pytorch_ie.core import DocumentMetric
 
 from src import utils
-from src.metrics.interface import DocumentMetric
 
 log = utils.get_pylogger(__name__)
 

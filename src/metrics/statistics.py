@@ -2,10 +2,8 @@ from abc import abstractmethod
 from collections import defaultdict
 from typing import Any, Dict, Generator, List, Tuple, Union
 
-from pytorch_ie.core import Document
+from pytorch_ie.core import Document, DocumentMetric
 from transformers import AutoTokenizer
-
-from src.metrics.interface import DocumentMetric
 
 
 def _flatten_dict_gen(d, parent_key: Tuple[str, ...] = ()) -> Generator:
