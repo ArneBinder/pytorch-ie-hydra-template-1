@@ -1363,26 +1363,28 @@ What it does
 
 ## 🚀 Quickstart
 
+
+
 ### Environment Setup
 
 ```bash
 # clone project
-git clone https://github.com/Cora4NLP/multi-task-knowledge-transfer
-cd multi-task-knowledge-transfer
+git clone https://github.com/your-github-name/your-project-name.git
+cd your-project-name
 
 # [OPTIONAL] create conda environment
-conda create -n multi-task-knowledge-transfer python=3.9
-conda activate multi-task-knowledge-transfer
+conda create -n your-project-name python=3.9
+conda activate your-project-name
 
-# install pytorch according to instructions
+# install PyTorch according to instructions
 # https://pytorch.org/get-started/
 
-# install requirements
+# install remaining requirements
 pip install -r requirements.txt
 
 # [OPTIONAL] symlink log directories and the default model directory to
-# "$HOME/experiments/multi-task-knowledge-transfer" since they can grow a lot
-bash setup_symlinks.sh $HOME/experiments/multi-task-knowledge-transfer
+# "$HOME/experiments/your-project-name" since they can grow a lot
+bash setup_symlinks.sh $HOME/experiments/your-project-name
 
 # [OPTIONAL] set any environment variables by creating an .env file
 # 1. copy the provided example file:
