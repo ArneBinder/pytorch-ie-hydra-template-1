@@ -18,10 +18,13 @@ seed: null
 name: "default"
 
 # path to the json file containing the documents to evaluate. May be used in the dataset config
-document_path: ???
+# document_path: ???
 
-# evaluate that split of the dataset. Note, that per default the data from the document_path gets loaded to the "test"
-# split of the dataset, see from_serialized_documents.yaml for details.
-split: test
+# If defined, evaluate only these splits of the dataset. Note, that per default the data from the
+# document_path gets loaded to the "test" split of the dataset when using
+# dataset=from_serialized_documents (see the respective dataset config for details).
+# splits:
+#   - train
+#   - test
 
 tags: ["dev"]

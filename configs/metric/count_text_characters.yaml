@@ -1,0 +1,8 @@
+# example call:
+# python src/evaluate_documents.py dataset=conll2003 metric=count_text_characters
+
+_target_: pytorch_ie.metrics.statistics.FieldLengthCollector
+title: text length (characters)
+field: text
+show_histogram: true
+# show_as_markdown: true
