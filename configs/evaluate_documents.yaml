@@ -17,9 +17,6 @@ seed: null
 
 name: "default"
 
-# path to the json file containing the documents to evaluate. May be used in the dataset config
-# document_path: ???
-
 # If defined, evaluate only these splits of the dataset. Note, that per default the data from the
 # document_path gets loaded to the "test" split of the dataset when using
 # dataset=from_serialized_documents (see the respective dataset config for details).
