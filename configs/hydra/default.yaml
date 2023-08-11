@@ -11,6 +11,9 @@ defaults:
 callbacks:
   save_job_return:
     _target_: src.hydra_callbacks.SaveJobReturnValueCallback
+    filenames:
+      - job_return_value.json
+      - job_return_value.md
 
 # output directory, generated dynamically on each run
 run:
