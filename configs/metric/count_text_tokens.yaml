@@ -1,0 +1,11 @@
+# example call:
+# python src/evaluate_documents.py dataset=conll2003 metric=count_text_tokens
+
+_target_: pytorch_ie.metrics.statistics.TokenCountCollector
+title: text length (tokens)
+text_field: text
+tokenizer: bert-base-uncased
+tokenizer_kwargs:
+  add_special_tokens: false
+show_histogram: true
+# show_as_markdown: true
