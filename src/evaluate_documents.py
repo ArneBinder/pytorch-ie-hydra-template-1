@@ -86,10 +86,13 @@ def evaluate_documents(cfg: DictConfig) -> Tuple[dict, dict]:
         for logger in loggers:
             logger.log_hyperparams(cfg)
 
-    documents = dataset[cfg["split"]]
-    metric(documents)
+    splits = cfg.get("splits", None)
+    if splits is None:
+        documents = dataset
+    else:
+        documents = type(dataset)({k: v for k, v in dataset.items() if k in splits})
 
-    metric_dict = metric.compute()
+    metric_dict = metric(documents)
 
     return metric_dict, object_dict
 
