@@ -1,4 +1,7 @@
 _target_: pytorch_ie.DatasetDict.from_json
 document_type: ??? # src.taskmodules.extractive_question_answering.ExtractiveQADocument
-data_files:
-  test: ${document_path}
+# either define data_files ...
+# data_files:
+#   test: path/to/documents.jsonl
+# ... or a data_dir
+# data_dir: path/to/directory/with/splits/as/subfolders/containing/documents.jsonl
