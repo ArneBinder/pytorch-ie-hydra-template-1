@@ -31,8 +31,13 @@ ckpt_path: null
 # which split from the loaded dataset will be used
 dataset_split: test
 
+## enable this to predict on the first GPU with batch size 32
+# pipeline:
+#   device: 0
+#   batch_size: 32
+
 # predefined path that can be used as output path for the serializer
-prediction_save_dir: ${paths.save_dir}/predictions/${name}/${dataset_split}/${now:%Y-%m-%d_%H-%M-%S}
+prediction_save_dir: ${paths.save_dir}/predictions/${name}/${now:%Y-%m-%d_%H-%M-%S}
 
 # if set, the final config including resolved paths etc. will be written to this location
 config_out_path: ${prediction_save_dir}/config.yaml
