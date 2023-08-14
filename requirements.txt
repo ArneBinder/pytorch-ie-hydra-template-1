@@ -1,9 +1,8 @@
 # --------- pytorch-ie --------- #
-#pytorch-ie>=0.19.0,<1.0.0
-# reqires:
-# - https://github.com/ChristophAlt/pytorch-ie/pull/312 for DocumentStatistics
-# - https://github.com/ChristophAlt/pytorch-ie/pull/313 for aggregated statistics
-git+https://github.com/ChristophAlt/pytorch-ie
+pytorch-ie>=0.19.0,<1.0.0
+# pie-utils provides some useful helper methods for pytorch-ie,
+# e.g. document processors or span utils (convert span annotations
+# to sequence encodings such as BIO, IO or BIOUL, and back).
 git+https://github.com/ArneBinder/pie-utils@v0.5.1
 
 # --------- hydra --------- #
