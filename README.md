@@ -1472,8 +1472,18 @@ This will evaluate serialized documents including predicted annotations (see [In
 **Have a look into the [evaluate_documents.yaml](configs/evaluate_documents.yaml) config to see all available options**
 
 ```bash
-python src/evaluate_documents.yaml document_path=PATH/TO/INFERENCE/OUTPUT metric=f1 metric.layer=entities
+python src/evaluate_documents.py metric=f1 metric.layer=entities +dataset.data_dir=PATH/TO/DIR/WITH/SPLITS +dataset.document_type=TYPE/OF/DOCUMENT/IN/JSONL/FILE
 ```
+
+Note: By default, this utilizes the dataset provided by the
+[from_serialized_documents](configs/dataset/from_serialized_documents.yaml) configuration. This configuration is
+designed to facilitate the loading of serialized documents, as generated during the [Inference](#inference) step. It
+requires to set the parameters `document_type` and `data_dir` or `data_files`. If you want to use a different dataset,
+you can override the `dataset` parameter as usual with any existing dataset config, e.g `dataset=conll2003`. But
+calculating the F1 score on the bare `conll2003` dataset does not make much sense, because it does not contain any
+predictions. However, it could be used with statistical metrics such as
+[count_text_tokens](configs/metric/count_text_tokens.yaml) or
+[count_entity_labels](configs/metric/count_entity_labels.yaml).
 
 ## Development
 
