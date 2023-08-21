@@ -145,12 +145,28 @@ class SaveJobReturnValueCallback(Callback):
                 [jr.return_value for jr in self.job_returns]
             )
             # also create an aggregated result
-            obj_flat = flatten_dict(obj)
-            obj_described = pd.DataFrame(obj_flat).describe()
-            # add the aggregation keys (e.g. mean, min, ...) as most inner keys and convert back to dict
-            obj_flat_aggregated = obj_described.T.stack().to_dict()
-            # unflatten because _save() works better with nested dicts
-            obj_aggregated = unflatten_dict(obj_flat_aggregated)
+            # convert to python object to allow selecting numeric columns
+            obj_py = to_py_obj(obj)
+            obj_flat = flatten_dict(obj_py)
+            # create dataframe from flattened dict
+            df_flat = pd.DataFrame(obj_flat)
+            # select only the numeric values
+            df_numbers_only = df_flat.select_dtypes(["number"])
+            cols_removed = set(df_flat.columns) - set(df_numbers_only.columns)
+            if len(cols_removed) > 0:
+                self.log.warning(
+                    f"Removed the following columns from the aggregated result because they are not numeric: "
+                    f"{cols_removed}"
+                )
+            if len(df_numbers_only.columns) == 0:
+                obj_aggregated = None
+            else:
+                # aggregate the numeric values
+                df_described = df_numbers_only.describe()
+                # add the aggregation keys (e.g. mean, min, ...) as most inner keys and convert back to dict
+                obj_flat_aggregated = df_described.T.stack().to_dict()
+                # unflatten because _save() works better with nested dicts
+                obj_aggregated = unflatten_dict(obj_flat_aggregated)
         else:
             # create a dict of the job return-values of all jobs from a multi-run
             # (_save() works better with nested dicts)
