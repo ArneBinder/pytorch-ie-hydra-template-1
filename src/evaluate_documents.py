@@ -106,5 +106,6 @@ def main(cfg: DictConfig) -> Any:
 
 
 if __name__ == "__main__":
+    utils.replace_sys_args_with_values_from_files()
     utils.prepare_omegaconf()
     main()
