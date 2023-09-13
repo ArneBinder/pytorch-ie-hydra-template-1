@@ -1,5 +1,6 @@
 # --------- pytorch-ie --------- #
-pytorch-ie>=0.23.0,<1.0.0
+#pytorch-ie>=0.24.0,<0.25.0
+git+https://github.com/ChristophAlt/pytorch-ie.git@dont_infer_doc_type_in_dataset_map
 # pie-utils provides some useful helper methods for pytorch-ie,
 # e.g. document processors or span utils (convert span annotations
 # to sequence encodings such as BIO, IO or BIOUL, and back).
