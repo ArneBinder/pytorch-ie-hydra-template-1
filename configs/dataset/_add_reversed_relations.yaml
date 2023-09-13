@@ -4,6 +4,3 @@ add_reversed_relations:
     _target_: pie_utils.document.processors.ReversedRelationAdder
     label_suffix: _reversed
     # symmetric_relation_labels: Optional[List[str]] = None,
-  # the result_document_type is required because ReversedRelationAdder is a generic document converter
-  # that does not define a specific return value
-  result_document_type: src.document.types.DocumentWithEntitiesRelationsAndLabeledPartitions
