@@ -1,5 +1,5 @@
 # --------- pytorch-ie --------- #
-pytorch-ie>=0.19.0,<1.0.0
+pytorch-ie>=0.23.0,<1.0.0
 # pie-utils provides some useful helper methods for pytorch-ie,
 # e.g. document processors or span utils (convert span annotations
 # to sequence encodings such as BIO, IO or BIOUL, and back).
