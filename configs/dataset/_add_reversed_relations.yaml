@@ -1,6 +1,8 @@
 add_reversed_relations:
   _processor_: pytorch_ie.DatasetDict.map
   function:
+    # see this for further information and options:
+    # https://github.com/ArneBinder/pie-utils/blob/main/src/pie_utils/document/processors/reversed_relation_adder.py
     _target_: pie_utils.document.processors.ReversedRelationAdder
     label_suffix: _reversed
     # symmetric_relation_labels: Optional[List[str]] = None,
