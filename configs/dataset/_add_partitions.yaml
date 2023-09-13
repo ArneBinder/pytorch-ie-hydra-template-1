@@ -1,6 +1,7 @@
 add_partitions:
   _processor_: pytorch_ie.DatasetDict.map
   function:
+    # see this for further information and options:
+    # https://github.com/ArneBinder/pie-utils/blob/main/src/pie_utils/document/processors/regex_partitioner.py
     _target_: pie_utils.document.processors.RegexPartitioner
     pattern: ???
-  result_document_type: src.document.types.DocumentWithEntitiesRelationsAndLabeledPartitions

@@ -1,9 +1,8 @@
 add_candidate_relations:
   _processor_: pytorch_ie.DatasetDict.map
   function:
+    # see this for further information and options:
+    # https://github.com/ArneBinder/pie-utils/blob/main/src/pie_utils/document/processors/candidate_relation_adder.py
     _target_: pie_utils.document.processors.CandidateRelationAdder
-  # the result_document_type is required because CandidateRelationAdder is a generic document
-  # converter that does not define a specific return values
-  result_document_type: src.document.types.DocumentWithEntitiesRelationsAndLabeledPartitions
-  #partition_layer: partitions
-  #max_distance: 177
+    #partition_layer: partitions
+    #max_distance: 177
