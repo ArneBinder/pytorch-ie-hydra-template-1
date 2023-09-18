@@ -1,6 +1,7 @@
-import json
 from dataclasses import dataclass
 
+import pytest
+from pytorch_ie import DatasetDict
 from pytorch_ie.annotations import BinaryRelation, LabeledSpan
 from pytorch_ie.core import AnnotationList, annotation_field
 from pytorch_ie.documents import TextDocument
@@ -14,7 +15,8 @@ class ExampleDocument(TextDocument):
     relations: AnnotationList[BinaryRelation] = annotation_field(target="entities")
 
 
-def test_serialize_json(tmp_path):
+@pytest.fixture
+def document():
     document = ExampleDocument(
         "“Making a super tasty alt-chicken wing is only half of it,” said Po Bronson, general partner at SOSV and managing director of IndieBio."
     )
@@ -35,11 +37,29 @@ def test_serialize_json(tmp_path):
     for rel in relations:
         document.relations.predictions.append(rel)
 
-    path = str(tmp_path / "out.jsonl")
+    return document
+
+
+def test_save_and_load(tmp_path, document):
+    path = str(tmp_path)
     serializer = JsonSerializer(path=path)
 
     serializer(documents=[document])
 
-    loaded = [json.loads(line) for line in open(path).readlines()]
-    document_loaded = ExampleDocument.fromdict(loaded[0])
-    assert document_loaded == document
+    loaded_document = serializer.read_with_defaults()[0]
+    assert loaded_document == document
+
+
+def test_save_and_load_with_dataset_dict(tmp_path, document):
+    path = str(tmp_path)
+    serializer = JsonSerializer(path=path)
+
+    serializer(documents=[document], split="train")
+    serializer(documents=[document], split="test")
+
+    loaded_dataset = DatasetDict.from_json(data_dir=path)
+    assert set(loaded_dataset) == {"train", "test"}
+    assert len(loaded_dataset["train"]) == 1
+    assert len(loaded_dataset["test"]) == 1
+    assert loaded_dataset["train"][0] == document
+    assert loaded_dataset["test"][0] == document

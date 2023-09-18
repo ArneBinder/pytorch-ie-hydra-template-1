@@ -35,7 +35,7 @@ def evaluate_document_layer(
         logger.warning(f"load documents from: {path_or_documents}")
         if document_type is None:
             raise Exception("document_type is required to load serialized documents")
-        documents = JsonSerializer.read(file_name=path_or_documents, document_type=document_type)
+        documents = JsonSerializer.read(path=path_or_documents, document_type=document_type)
     else:
         documents = path_or_documents
     if label_field is not None:
@@ -65,11 +65,11 @@ def get_document_converter(document_converter: str) -> Callable:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--serialized_documents",
+        "--path",
         type=str,
         nargs="+",
         required=True,
-        help="file name of serialized documents in jsonl format",
+        help="path to the directory that contains the serialized documents jsonl file 'documents.jsonl'",
     )
     parser.add_argument("--layer", type=str, required=True, help="annotation layer to evaluate")
     parser.add_argument(
@@ -110,10 +110,10 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     all_metric_values = []
-    for file_name in args.serialized_documents:
-        logger.info(f"evaluating {file_name} ...")
-        documents = JsonSerializer.read(
-            file_name=file_name,
+    for path in args.serialized_documents:
+        logger.info(f"evaluating {path} ...")
+        documents: List[Document] = JsonSerializer.read(
+            path=path,
             document_type=args.document_type,
         )
         if args.preprocess_documents is not None:

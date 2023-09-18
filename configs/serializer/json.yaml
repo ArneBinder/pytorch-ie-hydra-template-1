@@ -1,2 +1,3 @@
 _target_: src.serializer.JsonSerializer
-path: ${prediction_save_dir}/${dataset_split}/documents.jsonl
+path: ${prediction_save_dir}
+split: ${dataset_split}
