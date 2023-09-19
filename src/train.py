@@ -107,23 +107,7 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
     )
 
     # auto-convert the dataset if the taskmodule specifies a document type
-    if taskmodule.document_type is not None:
-        if issubclass(dataset.document_type, taskmodule.document_type):
-            log.info(
-                f"the dataset is already of the document type that is specified by the taskmodule: "
-                f"{taskmodule.document_type}"
-            )
-        else:
-            log.info(
-                f"convert the dataset to the document type that is specified by the taskmodule: "
-                f"{taskmodule.document_type}"
-            )
-            dataset = dataset.to_document_type(taskmodule.document_type)
-    else:
-        log.warning(
-            "The taskmodule does not specify a document type. The dataset can not be automatically converted "
-            "to a document type."
-        )
+    dataset = taskmodule.convert_dataset(dataset)
 
     # Init pytorch-ie datamodule
     log.info(f"Instantiating datamodule <{cfg.datamodule._target_}>")
