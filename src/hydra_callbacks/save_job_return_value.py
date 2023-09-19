@@ -157,7 +157,7 @@ class SaveJobReturnValueCallback(Callback):
     def __init__(
         self,
         filenames: Union[str, List[str]] = "job_return_value.json",
-        integrate_multirun_result: bool = True,
+        integrate_multirun_result: bool = False,
     ) -> None:
         self.log = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
         self.filenames = [filenames] if isinstance(filenames, str) else filenames
