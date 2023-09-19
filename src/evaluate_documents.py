@@ -70,6 +70,9 @@ def evaluate_documents(cfg: DictConfig) -> Tuple[dict, dict]:
     log.info(f"Instantiating metric <{cfg.metric._target_}>")
     metric: DocumentMetric = hydra.utils.instantiate(cfg.metric, _convert_="partial")
 
+    # auto-convert the dataset if the metric specifies a document type
+    dataset = metric.convert_dataset(dataset)
+
     # Init lightning loggers
     loggers = utils.instantiate_dict_entries(cfg, "logger")
 

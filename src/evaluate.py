@@ -76,6 +76,9 @@ def evaluate(cfg: DictConfig) -> Tuple[dict, dict]:
     log.info(f"Instantiating taskmodule <{cfg.taskmodule._target_}>")
     taskmodule: TaskModule = hydra.utils.instantiate(cfg.taskmodule, _convert_="partial")
 
+    # auto-convert the dataset if the taskmodule specifies a document type
+    dataset = taskmodule.convert_dataset(dataset)
+
     # Init pytorch-ie datamodule
     log.info(f"Instantiating datamodule <{cfg.datamodule._target_}>")
     datamodule: PieDataModule = hydra.utils.instantiate(
