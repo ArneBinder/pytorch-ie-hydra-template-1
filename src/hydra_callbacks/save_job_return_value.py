@@ -102,6 +102,38 @@ def unflatten_dict(d: Dict[Tuple[str, ...], Any]) -> Union[Dict[str, Any], Any]:
     return result
 
 
+def overrides_to_identifiers(overrides_per_result: List[List[str]], sep: str = "-") -> List[str]:
+    """Converts a list of lists of overrides to a list of identifiers. But takes only the overrides
+    into account, that are not identical for all results.
+
+    Example:
+        >>> overrides_per_result = [
+        ...     ["a=1", "b=2", "c=3"],
+        ...     ["a=1", "b=2", "c=4"],
+        ...     ["a=1", "b=3", "c=3"],
+        ]
+        >>> overrides_to_identifiers(overrides_per_result)
+        ['b=2-c=3', 'b=2-c=4', 'b=3-c=3']
+
+    Args:
+        overrides_per_result (List[List[str]]): A list of lists of overrides.
+        sep (str, optional): The separator to use between the overrides. Defaults to "-".
+
+    Returns:
+        List[str]: A list of identifiers.
+    """
+    # get the overrides that are not identical for all results
+    overrides_per_result_transposed = np.array(overrides_per_result).T.tolist()
+    indices = [
+        i for i, entries in enumerate(overrides_per_result_transposed) if len(set(entries)) > 1
+    ]
+    # convert the overrides to identifiers
+    identifiers = [
+        sep.join([overrides[idx] for idx in indices]) for overrides in overrides_per_result
+    ]
+    return identifiers
+
+
 class SaveJobReturnValueCallback(Callback):
     """Save the job return-value in ${output_dir}/{job_return_value_filename}.
 
@@ -170,7 +202,8 @@ class SaveJobReturnValueCallback(Callback):
         else:
             # create a dict of the job return-values of all jobs from a multi-run
             # (_save() works better with nested dicts)
-            obj = {i: jr.return_value for i, jr in enumerate(self.job_returns)}
+            ids = overrides_to_identifiers([jr.overrides for jr in self.job_returns])
+            obj = {identifier: jr.return_value for identifier, jr in zip(ids, self.job_returns)}
             obj_aggregated = None
         output_dir = Path(config.hydra.sweep.dir)
         for filename in self.filenames:
