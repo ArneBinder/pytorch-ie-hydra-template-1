@@ -6,3 +6,4 @@ title: text length (characters)
 field: text
 show_histogram: true
 # show_as_markdown: true
+document_type: pytorch_ie.documents.TextBasedDocument
