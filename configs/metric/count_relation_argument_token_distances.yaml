@@ -1,0 +1,12 @@
+_target_: src.metrics.statistics.RelationArgumentDistanceCollector
+title: Relation argument (outer) token distances
+layer: relations
+distance_type: outer
+tokenize: true
+tokenizer: bert-base-uncased
+# tokenize_kwargs:
+#   strict_span_conversion: false
+tokenized_document_type: src.document.types.TokenDocumentWithLabeledEntitiesAndRelations
+show_histogram: true
+show_as_markdown: true
+document_type: pytorch_ie.documents.TextDocumentWithLabeledEntitiesAndRelations

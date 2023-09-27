@@ -1,0 +1,7 @@
+_target_: src.metrics.statistics.RelationArgumentDistanceCollector
+title: Relation argument (outer) character distances
+layer: relations
+distance_type: outer
+show_histogram: true
+show_as_markdown: true
+document_type: pytorch_ie.documents.TextDocumentWithLabeledEntitiesAndRelations
