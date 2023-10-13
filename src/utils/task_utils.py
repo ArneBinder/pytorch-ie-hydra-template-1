@@ -1,10 +1,11 @@
+import inspect
 import json
 import os
 import sys
 import time
 import warnings
 from pathlib import Path
-from typing import Callable, Dict
+from typing import Callable, Dict, List, Type
 
 from omegaconf import DictConfig
 from pytorch_lightning.utilities import rank_zero_only
@@ -176,3 +177,40 @@ def replace_sys_args_with_values_from_files(
             updated_args.append(arg)
     # Set sys.argv to the updated arguments
     sys.argv = [sys.argv[0]] + updated_args
+
+
+def get_required_arguments_of_class(class_type: Type) -> List[str]:
+    """Get the names of the required arguments needed to instantiate a given class.
+
+    Parameters:
+    - class_type (type): The class type for which to retrieve required arguments.
+
+    Returns:
+    - list: A list of names of required arguments.
+    """
+
+    # Ensure that the input is a class type
+    if not inspect.isclass(class_type):
+        raise ValueError("Input must be a class type.")
+
+    # Get the constructor (init) method
+    init_method = getattr(class_type, "__init__", None)
+
+    # Check if the class has an __init__ method
+    if init_method is None:
+        raise ValueError("The class does not have an __init__ method.")
+
+    # Get the parameters of the constructor
+    parameters = inspect.signature(init_method).parameters
+
+    # Filter out 'self' parameter for classes
+    required_args = [
+        param
+        for param in parameters.values()
+        if param.default == param.empty and param.name != "self"
+    ]
+
+    # Get the names of the required arguments
+    required_arg_names = [param.name for param in required_args]
+
+    return required_arg_names
