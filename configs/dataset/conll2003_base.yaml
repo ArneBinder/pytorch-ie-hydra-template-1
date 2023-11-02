@@ -5,3 +5,4 @@ _target_: src.utils.execute_pipeline
 input:
   _target_: pytorch_ie.DatasetDict.load_dataset
   path: pie/conll2003
+  revision: 1eceef918e5e2acc4cb24d4594ba5551e8967e3a
