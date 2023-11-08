@@ -3,8 +3,8 @@
 
 _target_: pytorch_ie.metrics.statistics.LabelCountCollector
 title: entity label distribution
-field: entities
-labels: ???
+field: labeled_spans
+labels: INFERRED
 show_histogram: true
 show_as_markdown: true
-document_type: pytorch_ie.documents.TextDocumentWithLabeledEntities
+document_type: pytorch_ie.documents.TextDocumentWithLabeledSpans
