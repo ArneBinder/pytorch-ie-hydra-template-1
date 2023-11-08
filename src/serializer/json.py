@@ -2,8 +2,8 @@ import json
 import os
 from typing import Dict, List, Optional, Sequence, Type, TypeVar
 
+from pie_datasets.core.dataset_dict import METADATA_FILE_NAME
 from pytorch_ie.core import Document
-from pytorch_ie.data.dataset_dict import METADATA_FILE_NAME
 from pytorch_ie.utils.hydra import resolve_optional_document_type, serialize_document_type
 
 from src.serializer.interface import DocumentSerializer

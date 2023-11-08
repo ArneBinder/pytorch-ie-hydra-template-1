@@ -38,7 +38,7 @@ from typing import Any, Tuple
 import hydra
 import pytorch_lightning as pl
 from omegaconf import DictConfig
-from pytorch_ie import DatasetDict
+from pie_datasets import DatasetDict
 from pytorch_ie.core import DocumentMetric
 
 from src import utils
