@@ -1,3 +1,4 @@
 convert_documents:
-  _processor_: pytorch_ie.DatasetDict.to_document_type
+  # see https://github.com/ArneBinder/pie-datasets/blob/main/src/pie_datasets/core/dataset_dict.py
+  _processor_: pie_datasets.DatasetDict.to_document_type
   document_type: ???

@@ -1,4 +1,4 @@
-_target_: pytorch_ie.DatasetDict.from_json
+_target_: pie_datasets.DatasetDict.from_json
 # either define data_files ...
 # data_files:
 #   test: path/to/documents.jsonl
@@ -7,4 +7,4 @@ _target_: pytorch_ie.DatasetDict.from_json
 
 # The document_type field is required if you do not use "data_dir" or have no metadata.json file in that directory:
 # the document type depends on the task and the dataset. For example, for relation extraction, it can be:
-# document_type: pytorch_ie.documents.TextDocumentWithLabeledEntitiesRelationsAndLabeledPartitions
+# document_type: pytorch_ie.documents.TextDocumentWithLabeledSpansBinaryRelationsAndLabeledPartitions

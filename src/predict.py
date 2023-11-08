@@ -39,7 +39,8 @@ from typing import Optional, Tuple
 import hydra
 import pytorch_lightning as pl
 from omegaconf import DictConfig, OmegaConf
-from pytorch_ie import DatasetDict, Pipeline
+from pie_datasets import DatasetDict
+from pytorch_ie import Pipeline
 
 from src import utils
 from src.models import *  # noqa: F403
