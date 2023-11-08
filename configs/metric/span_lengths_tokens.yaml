@@ -1,0 +1,15 @@
+# example call:
+# python src/evaluate_documents.py dataset=conll2003 metric=span_lengths_tokens
+
+_target_: pie_datasets.statistics.SpanLengthCollector
+title: span lengths (tokens)
+layer: labeled_spans
+tokenize: true
+tokenizer: bert-base-uncased
+tokenize_kwargs:
+  add_special_tokens: false
+  # strict_span_conversion: false
+tokenized_document_type: src.document.types.TokenDocumentWithLabeledSpans
+show_histogram: true
+show_as_markdown: true
+document_type: pytorch_ie.documents.TextDocumentWithLabeledSpans

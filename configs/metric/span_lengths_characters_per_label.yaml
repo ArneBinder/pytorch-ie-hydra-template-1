@@ -1,0 +1,10 @@
+# example call:
+# python src/evaluate_documents.py dataset=conll2003 metric=span_lengths_characters_per_label
+
+_target_: pie_datasets.statistics.SpanLengthCollector
+title: span lengths (characters)
+layer: labeled_spans
+labels: INFERRED
+show_histogram: true
+show_as_markdown: true
+document_type: pytorch_ie.documents.TextDocumentWithLabeledSpans
