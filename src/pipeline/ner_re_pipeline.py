@@ -4,7 +4,6 @@ import logging
 from functools import partial
 from typing import Callable, Dict, List, Optional, Sequence, TypeVar
 
-from pie_utils.document.processors import CandidateRelationAdder
 from pytorch_ie import AutoPipeline
 from pytorch_ie.core import Document
 
@@ -170,12 +169,12 @@ class NerRePipeline:
                     layer_names=["entities"],
                     **self.processor_kwargs.get("use_predicted_entities", {}),
                 ),
-                "create_candidate_relations": partial(
-                    process_documents,
-                    processor=CandidateRelationAdder(
-                        **self.processor_kwargs.get("create_candidate_relations", {})
-                    ),
-                ),
+                # "create_candidate_relations": partial(
+                #    process_documents,
+                #    processor=CandidateRelationAdder(
+                #        **self.processor_kwargs.get("create_candidate_relations", {})
+                #    ),
+                # ),
                 "re_pipeline": AutoPipeline.from_pretrained(
                     self.re_model_path, **self.processor_kwargs.get("re_pipeline", {})
                 ),
