@@ -50,6 +50,10 @@ train: True
 # lightning chooses best weights based on the metric specified in checkpoint callback
 test: False
 
+# evaluate on validation set, using best model weights achieved during training
+# lightning chooses best weights based on the metric specified in checkpoint callback
+validate: True
+
 # metric with mode (minimize or maximize) to monitor for checkpointing and early stopping callbacks
 monitor_metric: "val/f1"
 monitor_mode: "max"

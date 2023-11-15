@@ -79,6 +79,8 @@ class PieDataModule(LightningDataModule, Generic[DocumentType, InputEncoding, Ta
 
         if stage == "fit":
             split_names = [self.train_split, self.val_split]
+        elif stage == "validate":
+            split_names = [self.val_split]
         elif stage == "test":
             split_names = [self.test_split]
         else:
