@@ -690,14 +690,15 @@ hydra:
 
 Before creating your own setup, have a look into the
 [Pytorch-IE documentation](https://github.com/ChristophAlt/pytorch-ie#-concepts--architecture) to make yourself
-familiar with the Pytorch-IE core concepts like the `dataset`, `model`, and `taskmodule`.
+familiar with the Pytorch-IE core concepts like the `document`, `model`, and `taskmodule`.
 
-1. Write your PyTorch-IE dataset (see [pytorch_ie/datasets/conll2003/conll2003.py](https://github.com/ChristophAlt/pytorch-ie/blob/main/datasets/conll2003/conll2003.py)) or try out one of PIE datasets hosted at huggingface.co/pie
-2. Write your PyTorch-IE model (see [pytorch_ie/models/transformer_token_classification.py](https://github.com/ChristophAlt/pytorch-ie/blob/main/src/pytorch_ie/models/transformer_token_classification.py) for example)
-3. Write your PyTorch-IE taskmodule (see [pytorch_ie/taskmodules/transformer_token_classification.py](https://github.com/ChristophAlt/pytorch-ie/blob/main/src/pytorch_ie/taskmodules/transformer_token_classification.py) for example)
-4. Write your experiment config, containing paths to your model, taskmodule and dataset
-5. If necessary, define `additional_model_kwargs` for your model class in the [train.py](src/train.py) (see line with `# NOTE: DEFINE THE additional_model_kwargs ...`")
-6. Run training with chosen experiment config: `python train.py experiment=experiment_name`
+1. Write your PyTorch-IE dataset (see [pie-datasets/dataset_builders/conll2003/conll2003.py](https://github.com/ArneBinder/pie-datasets/dataset_builders/conll2003/conll2003.py)) or try out one of PIE datasets hosted at [huggingface.co/pie](https://huggingface.co/pie).
+2. Write your PyTorch-IE model (see [pytorch_ie/models/transformer_token_classification.py](https://github.com/ChristophAlt/pytorch-ie/blob/main/src/pytorch_ie/models/transformer_token_classification.py) for example) or use one of the implementations from [pie-models](https://github.com/ArneBinder/pie-models).
+3. Write your PyTorch-IE taskmodule (see [pytorch_ie/taskmodules/transformer_token_classification.py](https://github.com/ChristophAlt/pytorch-ie/blob/main/src/pytorch_ie/taskmodules/transformer_token_classification.py) for example) or use one of the implementations from [pie-models](https://github.com/ArneBinder/pie-models).
+4. Write your experiment config, containing paths to your model, taskmodule and dataset (see [configs/experiment/conll2003.yaml](configs/experiment/conll2003.yaml) for example). You may need to also write configs for your model, taskmodule and dataset, if you do not want to use the default ones.
+5. If necessary, define `additional_model_kwargs` for your model class in the [train.py](src/train.py) (see line with `# NOTE: MODIFY THE additional_model_kwargs IF YOUR MODEL REQUIRES ...`").
+6. Execute a dev run for your setup to ensure that everything works as expected (assuming that `configs/experiments/experiment_name.yaml` is your experiment config file): `python train.py experiment=experiment_name +trainer.fast_dev_run=true`
+7. Run training with chosen experiment config on the GPU: `python train.py experiment=experiment_name trainer=gpu`
 
 <br>
 
