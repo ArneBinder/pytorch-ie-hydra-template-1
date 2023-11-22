@@ -692,7 +692,7 @@ Before creating your own setup, have a look into the
 [Pytorch-IE documentation](https://github.com/ChristophAlt/pytorch-ie#-concepts--architecture) to make yourself
 familiar with the Pytorch-IE core concepts like the `document`, `model`, and `taskmodule`.
 
-1. Write your PyTorch-IE dataset loader (see [pie-datasets/dataset_builders/conll2003/conll2003.py](https://github.com/ArneBinder/pie-datasets/tree/main/dataset_builders/pie/conll2003)) or try out one of PIE datasets hosted at [huggingface.co/pie](https://huggingface.co/pie).
+1. Write your PyTorch-IE dataset loader (see [pie-datasets/dataset_builders/conll2003/conll2003.py](https://github.com/ArneBinder/pie-datasets/tree/main/dataset_builders/pie/conll2003) for an example) or try out one of PIE datasets hosted at [huggingface.co/pie](https://huggingface.co/pie).
 2. Write your PyTorch-IE model (see [pytorch_ie/models/transformer_token_classification.py](https://github.com/ChristophAlt/pytorch-ie/blob/main/src/pytorch_ie/models/transformer_token_classification.py) for example) or use one of the implementations from [pie-models](https://github.com/ArneBinder/pie-models).
 3. Write your PyTorch-IE taskmodule (see [pytorch_ie/taskmodules/transformer_token_classification.py](https://github.com/ChristophAlt/pytorch-ie/blob/main/src/pytorch_ie/taskmodules/transformer_token_classification.py) for example) or use one of the implementations from [pie-models](https://github.com/ArneBinder/pie-models).
 4. Write your experiment config, containing paths to your model, taskmodule and dataset (see [configs/experiment/conll2003.yaml](configs/experiment/conll2003.yaml) for example). You may need to also write configs for your model, taskmodule and dataset, if you do not want to use the default ones.
