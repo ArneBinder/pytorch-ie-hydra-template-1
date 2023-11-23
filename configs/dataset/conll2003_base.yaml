@@ -4,5 +4,7 @@
 _target_: src.utils.execute_pipeline
 input:
   _target_: pie_datasets.DatasetDict.load_dataset
-  path: pie/conll2003
-  revision: 95ee94f78010d00cb5a94c38ebbddd07273be8c0
+  path: dataset_builders/pie/conll2003
+  ## to use the script from the HuggingFace Hub instead of the local version:
+  # path: pie/conll2003
+  # revision: 95ee94f78010d00cb5a94c38ebbddd07273be8c0
