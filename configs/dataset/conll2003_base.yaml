@@ -5,4 +5,4 @@ _target_: src.utils.execute_pipeline
 input:
   _target_: pie_datasets.DatasetDict.load_dataset
   path: pie/conll2003
-  revision: 0fa8689b44ca9885b77276205a7dab3b562266b9
+  revision: 95ee94f78010d00cb5a94c38ebbddd07273be8c0
