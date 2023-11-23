@@ -1,4 +1,4 @@
-_target_: pytorch_ie.taskmodules.TransformerTokenClassificationTaskModule
+_target_: src.taskmodules.MyTransformerTokenClassificationTaskModule
 
 tokenizer_name_or_path: bert-base-uncased
 

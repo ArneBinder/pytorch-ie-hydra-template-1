@@ -1,4 +1,4 @@
-_target_: pytorch_ie.metrics.F1Metric
+_target_: src.metrics.F1Metric
 layer: ???
 show_as_markdown: true
 # labels: ???  # all possible labels. if set, calculate per label metrics
