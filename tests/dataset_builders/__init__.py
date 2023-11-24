@@ -1,0 +1,5 @@
+from pathlib import Path
+
+DATASET_BUILDER_BASE_PATH = Path("dataset_builders")
+PIE_BASE_PATH = DATASET_BUILDER_BASE_PATH / "pie"
+HF_BASE_PATH = DATASET_BUILDER_BASE_PATH / "hf"
