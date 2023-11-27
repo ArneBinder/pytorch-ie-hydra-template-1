@@ -7,4 +7,4 @@ input:
   path: dataset_builders/pie/conll2003
   ## to use the script from the HuggingFace Hub instead of the local version:
   # path: pie/conll2003
-  # revision: 95ee94f78010d00cb5a94c38ebbddd07273be8c0
+  # revision: 91cdf58a1e4c66fd835749674c7eece8539c1ca9
