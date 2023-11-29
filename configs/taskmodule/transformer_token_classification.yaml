@@ -1,14 +1,18 @@
-_target_: src.taskmodules.MyTransformerTokenClassificationTaskModule
+_target_: src.taskmodules.MyTokenClassificationTaskModule
 
 tokenizer_name_or_path: bert-base-uncased
+## Long sequence handling
+## example: split the input into windows of 512 tokens that have 64 tokens overlap
+# tokenizer_kwargs:
+#   max_length: 512
+#   truncation: True
+#   return_overflowing_tokens: True
+#   stride: 64
+## Alternative to fixed size windowing: use span annotations to partition the input.
+## Note, that this requires to add these annotations to the documents beforehand!
+## Both methods, fixed size windowing and span annotation partitioning, can be used together.
+## example: partition the input with span annotations from the "paragraphs" annotation layer
+# partition_annotation: paragraphs
 
-entity_annotation: entities
-# Long sequence handling
-#max_window: 512
-#window_overlap: 64
-# Alternative to fixed size windowing: use span annotations to partition the input
-# (this requires to add these annotations to the documents beforehand!)
-#partition_annotation: paragraphs
-
-# Further parameters (also see the source code of TransformerTokenClassificationTaskModule)
-#include_ill_formed_predictions: false
+## Further parameters (also see the source code of TransformerTokenClassificationTaskModule)
+# include_ill_formed_predictions: false
