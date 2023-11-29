@@ -1,1 +1,1 @@
-from .transformer_token_classification import MyTransformerTokenClassificationTaskModule
+from .transformer_token_classification import MyTokenClassificationTaskModule
