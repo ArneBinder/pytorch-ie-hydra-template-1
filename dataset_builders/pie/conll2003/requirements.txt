@@ -1,1 +1,1 @@
-pie-datasets>=0.6.0,<0.8.0
+pie-datasets>=0.8.1,<0.9.0
