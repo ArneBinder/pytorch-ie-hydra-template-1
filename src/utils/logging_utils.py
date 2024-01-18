@@ -1,6 +1,11 @@
 import logging
 from importlib.util import find_spec
+from typing import List, Optional, Union
 
+from omegaconf import DictConfig, OmegaConf
+from pie_modules.models.interface import RequiresTaskmoduleConfig
+from pytorch_ie import PyTorchIEModel, TaskModule
+from pytorch_lightning.loggers import Logger
 from pytorch_lightning.utilities import rank_zero_only
 
 
@@ -22,7 +27,14 @@ log = get_pylogger(__name__)
 
 
 @rank_zero_only
-def log_hyperparameters(object_dict: dict) -> None:
+def log_hyperparameters(
+    logger: Optional[List[Logger]] = None,
+    config: Optional[Union[dict, DictConfig]] = None,
+    model: Optional[PyTorchIEModel] = None,
+    taskmodule: Optional[TaskModule] = None,
+    key_prefix: str = "_",
+    **kwargs,
+) -> None:
     """Controls which config parts are saved by lightning loggers.
 
     Additional saves:
@@ -31,48 +43,42 @@ def log_hyperparameters(object_dict: dict) -> None:
 
     hparams = {}
 
-    cfg = object_dict["cfg"]
-    model = object_dict["model"]
-    taskmodule = object_dict["taskmodule"]
-    trainer = object_dict["trainer"]
-
-    if not trainer.logger:
+    if not logger:
         log.warning("Logger not found! Skipping hyperparameter logging...")
         return
 
-    # choose which parts of hydra config will be saved to loggers
-    # here we use the taskmodule/model config how it is after preparation/initialization
-    hparams["taskmodule"] = taskmodule._config()
-    hparams["model"] = model._config()
+    # this is just for backwards compatibility: usually, the taskmodule_config should be passed to
+    # the model and, thus, be logged there automatically
+    if model is not None and not isinstance(model, RequiresTaskmoduleConfig):
+        if taskmodule is None:
+            raise ValueError(
+                "If model is not an instance of RequiresTaskmoduleConfig, taskmodule must be passed!"
+            )
+        # here we use the taskmodule/model config how it is after preparation/initialization
+        hparams["taskmodule_config"] = taskmodule.config
 
-    # save number of model parameters
-    hparams["model/params/total"] = sum(p.numel() for p in model.parameters())
-    hparams["model/params/trainable"] = sum(
-        p.numel() for p in model.parameters() if p.requires_grad
-    )
-    hparams["model/params/non_trainable"] = sum(
-        p.numel() for p in model.parameters() if not p.requires_grad
-    )
+    if model is not None:
+        # save number of model parameters
+        hparams[f"{key_prefix}num_params/total"] = sum(p.numel() for p in model.parameters())
+        hparams[f"{key_prefix}num_params/trainable"] = sum(
+            p.numel() for p in model.parameters() if p.requires_grad
+        )
+        hparams[f"{key_prefix}num_params/non_trainable"] = sum(
+            p.numel() for p in model.parameters() if not p.requires_grad
+        )
 
-    hparams["dataset"] = cfg["dataset"]
-    hparams["trainer"] = cfg["trainer"]
+    if config is not None:
+        hparams[f"{key_prefix}config"] = (
+            OmegaConf.to_container(config, resolve=True) if OmegaConf.is_config(config) else config
+        )
 
-    hparams["callbacks"] = cfg.get("callbacks")
-    hparams["extras"] = cfg.get("extras")
-
-    hparams["pipeline_type"] = cfg.get("pipeline_type")
-    hparams["tags"] = cfg.get("tags")
-    hparams["ckpt_path"] = cfg.get("ckpt_path")
-    hparams["seed"] = cfg.get("seed")
-
-    hparams["monitor_metric"] = cfg.get("monitor_metric")
-    hparams["monitor_mode"] = cfg.get("monitor_mode")
-
-    hparams["model_save_dir"] = cfg.get("model_save_dir")
+    # add additional hparams
+    for k, v in kwargs.items():
+        hparams[f"{key_prefix}{k}"] = v
 
     # send hparams to all loggers
-    for logger in trainer.loggers:
-        logger.log_hyperparams(hparams)
+    for current_logger in logger:
+        current_logger.log_hyperparams(hparams)
 
 
 def close_loggers() -> None:
