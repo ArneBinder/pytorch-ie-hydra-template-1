@@ -33,13 +33,14 @@ root = pyrootutils.setup_root(
 # https://github.com/ashleve/pyrootutils
 # ------------------------------------------------------------------------------------ #
 
+import os
 from typing import Any, Dict, List, Optional, Tuple
 
 import hydra
 import pytorch_lightning as pl
-from hydra.utils import get_class
 from omegaconf import DictConfig
 from pie_datasets import DatasetDict
+from pie_modules.models.interface import RequiresTaskmoduleConfig
 from pytorch_ie.core import PyTorchIEModel, TaskModule
 from pytorch_ie.models import *  # noqa: F403
 from pytorch_ie.models.interface import RequiresModelNameOrPath, RequiresNumClasses
@@ -121,7 +122,7 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
     log.info(f"Instantiating model <{cfg.model._target_}>")
     # get additional model arguments
     additional_model_kwargs: Dict[str, Any] = {}
-    model_cls = get_class(cfg.model["_target_"])
+    model_cls = hydra.utils.get_class(cfg.model["_target_"])
     # NOTE: MODIFY THE additional_model_kwargs IF YOUR MODEL REQUIRES ANY MORE PARAMETERS FROM THE TASKMODULE!
     # SEE EXAMPLES BELOW.
     if issubclass(model_cls, RequiresNumClasses):
@@ -133,6 +134,9 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
             )
     if isinstance(taskmodule, ChangesTokenizerVocabSize):
         additional_model_kwargs["tokenizer_vocab_size"] = len(taskmodule.tokenizer)
+
+    if issubclass(model_cls, RequiresTaskmoduleConfig):
+        additional_model_kwargs["taskmodule_config"] = taskmodule.config
 
     # initialize the model
     model: PyTorchIEModel = hydra.utils.instantiate(
@@ -160,7 +164,7 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
 
     if logger:
         log.info("Logging hyperparameters!")
-        utils.log_hyperparameters(object_dict)
+        utils.log_hyperparameters(logger=logger, model=model, taskmodule=taskmodule, config=cfg)
 
     if cfg.model_save_dir is not None:
         log.info(f"Save taskmodule to {cfg.model_save_dir} [push_to_hub={cfg.push_to_hub}]")
@@ -177,6 +181,12 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
     best_ckpt_path = trainer.checkpoint_callback.best_model_path
     if best_ckpt_path != "":
         log.info(f"Best ckpt path: {best_ckpt_path}")
+        best_checkpoint_file = os.path.basename(best_ckpt_path)
+        utils.log_hyperparameters(
+            logger=logger,
+            best_checkpoint=best_checkpoint_file,
+            checkpoint_dir=trainer.checkpoint_callback.dirpath,
+        )
 
     if not cfg.trainer.get("fast_dev_run"):
         if cfg.model_save_dir is not None:
