@@ -1,11 +1,13 @@
 import json
 import os
 from collections import defaultdict
-from typing import DefaultDict, Dict, Optional, Sequence, TypeVar
+from typing import DefaultDict, Dict, List, Optional, Sequence, Tuple, TypeVar, Union
 
 from pie_datasets.core.dataset_dict import METADATA_FILE_NAME
 from pie_modules.annotations import LabeledMultiSpan, LabeledSpan
+from pytorch_ie import AnnotationLayer
 from pytorch_ie.core import Document
+from pytorch_ie.core.document import BaseAnnotationList
 from pytorch_ie.utils.hydra import serialize_document_type
 
 from src.serializer.interface import DocumentSerializer
@@ -16,7 +18,11 @@ log = get_pylogger(__name__)
 D = TypeVar("D", bound=Document)
 
 
-def spans_to_ann_entities(document, entities, label_prefix=None):
+def spans_to_ann_entities(
+    document: Document,
+    entities: Union[BaseAnnotationList, AnnotationLayer],
+    label_prefix=None,
+) -> Tuple[List[str], DefaultDict[LabeledSpan, str]]:
     span2id: DefaultDict[LabeledSpan, str] = defaultdict()
     ann_entities = []
     for i, entity in enumerate(entities):
@@ -45,7 +51,11 @@ def spans_to_ann_entities(document, entities, label_prefix=None):
     return ann_entities, span2id
 
 
-def relations_to_ann_relations(relations, span2id, label_prefix=None):
+def relations_to_ann_relations(
+    relations: Union[BaseAnnotationList, AnnotationLayer],
+    span2id: DefaultDict[LabeledSpan, str],
+    label_prefix: Optional[str] = None,
+) -> List[str]:
     ann_relations = []
     for i, relation in enumerate(relations):
         relation_id = f"R{i}"
@@ -58,7 +68,13 @@ def relations_to_ann_relations(relations, span2id, label_prefix=None):
     return ann_relations
 
 
-def write_annotations_to_file(document, entities, relations, file_descriptor, label_prefix):
+def write_annotations_to_file(
+    document: Document,
+    entities: Union[BaseAnnotationList, AnnotationLayer],
+    relations: Union[BaseAnnotationList, AnnotationLayer],
+    label_prefix: str,
+    file_descriptor,
+):
     ann_entities, span2id = spans_to_ann_entities(document, entities, label_prefix=label_prefix)
     ann_relations = relations_to_ann_relations(relations, span2id)
     for ann_entity in ann_entities:
@@ -78,10 +94,16 @@ class BratSerializer(DocumentSerializer):
 
     def __call__(self, documents: Sequence[Document], **kwargs) -> Dict[str, str]:
         documents = list(map(self.document_processor, documents))
+        if self.document_processor.result_document_type is not None:
+            result_field_mapping = self.document_processor.result_field_mapping
+        else:
+            #  default as BratDocument
+            result_field_mapping = {"labeled_spans": "spans", "binary_relations": "relations"}
         return self.write_with_defaults(
             documents=documents,
             prediction_label_prefix=self.prediction_label_prefix,
             gold_label_prefix=self.gold_label_prefix,
+            result_field_mapping=result_field_mapping,
             **kwargs,
         )
 
@@ -93,11 +115,12 @@ class BratSerializer(DocumentSerializer):
     def write(
         cls,
         documents: Sequence[Document],
+        result_field_mapping: Dict[str, str],
         path: str,
         metadata_file_name: str = METADATA_FILE_NAME,
         split: Optional[str] = None,
-        gold_label_prefix=None,
-        prediction_label_prefix=None,
+        gold_label_prefix: Optional[str] = None,
+        prediction_label_prefix: Optional[str] = None,
         **kwargs,
     ) -> Dict[str, str]:
 
@@ -121,13 +144,25 @@ class BratSerializer(DocumentSerializer):
             ann_path = os.path.join(realpath, file_name)
             with open(ann_path, "w+") as f:
                 if gold_label_prefix is not None:
-                    entities = doc.spans
-                    relations = doc.relations
-                    write_annotations_to_file(doc, entities, relations, f, gold_label_prefix)
+                    entities = doc[result_field_mapping["labeled_spans"]]
+                    relations = doc[result_field_mapping["binary_relations"]]
+                    write_annotations_to_file(
+                        document=doc,
+                        entities=entities,
+                        relations=relations,
+                        file_descriptor=f,
+                        label_prefix=gold_label_prefix,
+                    )
                 if prediction_label_prefix is not None:
-                    entities = doc.spans.predictions
-                    relations = doc.relations.predictions
-                    write_annotations_to_file(doc, entities, relations, f, prediction_label_prefix)
+                    entities = doc[result_field_mapping["labeled_spans"]].predictions
+                    relations = doc[result_field_mapping["binary_relations"]].predictions
+                    write_annotations_to_file(
+                        document=doc,
+                        entities=entities,
+                        relations=relations,
+                        file_descriptor=f,
+                        label_prefix=prediction_label_prefix,
+                    )
             f.close()
 
         metadata["text"] = metadata_text
