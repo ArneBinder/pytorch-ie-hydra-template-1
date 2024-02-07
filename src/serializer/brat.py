@@ -1,13 +1,14 @@
 import json
 import os
 from collections import defaultdict
-from typing import DefaultDict, Dict, List, Optional, Sequence, Tuple, TypeVar, Union
+from typing import DefaultDict, Dict, List, Optional, Sequence, Tuple, TypeVar
 
 from pie_datasets.core.dataset_dict import METADATA_FILE_NAME
-from pie_modules.annotations import LabeledMultiSpan, LabeledSpan
+from pie_modules.annotations import BinaryRelation, LabeledMultiSpan, LabeledSpan
+from pie_modules.documents import TextBasedDocument
 from pytorch_ie import AnnotationLayer
 from pytorch_ie.core import Document
-from pytorch_ie.core.document import BaseAnnotationList
+from pytorch_ie.core.document import Annotation, BaseAnnotationList
 from pytorch_ie.utils.hydra import serialize_document_type
 
 from src.serializer.interface import DocumentSerializer
@@ -18,29 +19,27 @@ log = get_pylogger(__name__)
 D = TypeVar("D", bound=Document)
 
 
-def spans_to_ann_entities(
-    document: Document,
-    entities: Union[BaseAnnotationList, AnnotationLayer],
+def serialize_labeled_spans(
+    entities: BaseAnnotationList,
     label_prefix: Optional[str] = None,
-    last_span_id: int = 0,
-) -> Tuple[List[str], DefaultDict[LabeledSpan, str]]:
+    first_span_id: int = 0,
+) -> Tuple[List[str], Dict[LabeledSpan, str]]:
     """Converts entity annotations of type LabeledMultiSpan and LabeledSpan to annotations in the
     Brat format.
 
     Parameters:
-        document (Document): The document containing the annotations.
-        entities (Union[BaseAnnotationList, AnnotationLayer]): The list of entity annotations.
+        entities (BaseAnnotationList): The list of entity annotations.
         label_prefix (Optional[str]): An optional prefix to add to entity labels.
-        last_span_id: An integer value used for creating span annotation IDs. It ensures the proper assignment of IDs
+        first_span_id: An integer value used for creating span annotation IDs. It ensures the proper assignment of IDs
             for predicted annotations, particularly when gold annotations have already been included.
 
     Returns:
         Tuple[List[str], DefaultDict[LabeledSpan, str]]: A tuple containing a list of strings representing
         entity annotations in the Brat format, and a dictionary mapping labeled spans to their IDs.
     """
-    span2id: DefaultDict[LabeledSpan, str] = defaultdict()
+    span2id: Dict[LabeledSpan, str] = defaultdict()
     ann_entities = []
-    for i, entity in enumerate(entities, start=last_span_id):
+    for i, entity in enumerate(entities, start=first_span_id):
         entity_id = f"T{i}"
         label = entity.label if label_prefix is None else f"{label_prefix}-{entity.label}"
         if isinstance(entity, LabeledMultiSpan):
@@ -49,7 +48,7 @@ def spans_to_ann_entities(
             for slice in entity.slices:
                 start_idx = slice[0]
                 end_idx = slice[1]
-                texts.append(document.text[start_idx:end_idx])
+                texts.append(entity.target[start_idx:end_idx])
                 locations.append(f"{start_idx} {end_idx}")
             location = ";".join(locations)
             text = " ".join(texts)
@@ -57,37 +56,39 @@ def spans_to_ann_entities(
         elif isinstance(entity, LabeledSpan):
             start_idx = entity.start
             end_idx = entity.end
-            entity_text = document.text[start_idx:end_idx]
+            entity_text = entity.target[start_idx:end_idx]
             entry = f"{entity_id}\t{label} {start_idx} {end_idx}\t{entity_text}\n"
         else:
-            raise Warning(f"Unknown entity type: {type(entity)}")
+            raise Warning(f"labeled span has unknown type: {type(entity)}")
         span2id[entity] = entity_id
         ann_entities.append(entry)
     return ann_entities, span2id
 
 
-def relations_to_ann_relations(
-    relations: Union[BaseAnnotationList, AnnotationLayer],
-    span2id: DefaultDict[LabeledSpan, str],
+def serialize_binary_relations(
+    relations: BaseAnnotationList,
+    span2id: Dict[Annotation, str],
     label_prefix: Optional[str] = None,
-    last_rel_id: int = 0,
+    first_relation_id: int = 0,
 ) -> List[str]:
     """
     Converts relation annotations to annotations in the Brat format.
     e.g: R0 Arg1 Arg2 LABEL
 
     Parameters:
-        relations (Union[BaseAnnotationList, AnnotationLayer]): The list of relation annotations.
-        span2id (DefaultDict[LabeledSpan, str]): A dictionary mapping labeled spans to their annotation IDs.
+        relations (BaseAnnotationList): The list of relation annotations.
+        span2id (Dict[Annotation, str]): A dictionary mapping labeled spans to their annotation IDs.
         label_prefix (Optional[str]): An optional prefix to add to relation labels.
-        last_rel_id: An integer value used for creating relation annotation IDs. It ensures the proper assignment
+        first_relation_id: An integer value used for creating relation annotation IDs. It ensures the proper assignment
             of IDs for predicted annotations, particularly when gold annotations have already been included.
 
     Returns:
         List[str]: A list of strings representing relation annotations in the Brat format.
     """
     ann_relations = []
-    for i, relation in enumerate(relations, start=last_rel_id):
+    for i, relation in enumerate(relations, start=first_relation_id):
+        if not isinstance(relation, BinaryRelation):
+            raise Warning(f"relation has unknown type: {type(relation)}")
         relation_id = f"R{i}"
         arg1 = span2id[relation.head]
         arg2 = span2id[relation.tail]
@@ -98,48 +99,49 @@ def relations_to_ann_relations(
     return ann_relations
 
 
-def write_annotations_to_file(
-    document: Document,
-    entities: Union[BaseAnnotationList, AnnotationLayer],
-    relations: Union[BaseAnnotationList, AnnotationLayer],
-    file_descriptor,
-    label_prefix: Optional[str] = None,
-    last_span_id: int = 0,
-    last_rel_id: int = 0,
-) -> Tuple[List[str], List[str]]:
-    """Writes annotations to a file descriptor in the Brat format.
-
-    Parameters:
-        document (Document): The document containing the annotations.
-        entities (Union[BaseAnnotationList, AnnotationLayer]): The list of entity annotations.
-        relations (Union[BaseAnnotationList, AnnotationLayer]): The list of relation annotations.
-        label_prefix (Optional[str]): An optional prefix to add to relation labels.
-        file_descriptor: The file descriptor to write the annotations to.
-        last_span_id: An integer value used for creating span annotation IDs.
-        last_rel_id: An integer value used for creating relation annotation IDs.
-
-    Returns:
-        Tuple[List[str],List[str]]: A tuple containing a list of strings representing entity annotations
-        and a list of strings representing relation annotations in the Brat format.
-    """
-    ann_entities, span2id = spans_to_ann_entities(
-        document=document,
-        entities=entities,
-        label_prefix=label_prefix,
-        last_span_id=last_span_id,
+def serialize_annotations(
+    labeled_span_layer: AnnotationLayer,
+    binary_relation_layer: AnnotationLayer,
+    gold_label_prefix: Optional[str] = None,
+    prediction_label_prefix: Optional[str] = None,
+) -> List[str]:
+    serialized_labeled_spans = []
+    serialized_binary_relations = []
+    if gold_label_prefix is not None:
+        serialized_labeled_spans_gold, span2id = serialize_labeled_spans(
+            entities=labeled_span_layer,
+            label_prefix=gold_label_prefix,
+            first_span_id=0,
+        )
+        serialized_labeled_spans.extend(serialized_labeled_spans_gold)
+        serialized_binary_relations_gold = serialize_binary_relations(
+            relations=binary_relation_layer,
+            span2id=span2id,
+            label_prefix=gold_label_prefix,
+            first_relation_id=0,
+        )
+        serialized_binary_relations.extend(serialized_binary_relations_gold)
+        last_span_id = len(serialized_labeled_spans_gold)
+        last_rel_id = len(serialized_binary_relations_gold)
+    else:
+        last_span_id = 0
+        last_rel_id = 0
+        span2id = {}
+    serialized_labeled_spans_pred, span2id_pred = serialize_labeled_spans(
+        entities=labeled_span_layer.predictions,
+        label_prefix=prediction_label_prefix,
+        first_span_id=last_span_id,
     )
-    ann_relations = relations_to_ann_relations(
-        relations=relations,
+    span2id.update(span2id_pred)
+    serialized_labeled_spans.extend(serialized_labeled_spans_pred)
+    serialized_binary_relations_pred = serialize_binary_relations(
+        relations=binary_relation_layer.predictions,
         span2id=span2id,
-        label_prefix=label_prefix,
-        last_rel_id=last_rel_id,
+        label_prefix=prediction_label_prefix,
+        first_relation_id=last_rel_id,
     )
-    for ann_entity in ann_entities:
-        file_descriptor.write(ann_entity)
-    for ann_relation in ann_relations:
-        file_descriptor.write(ann_relation)
-
-    return ann_entities, ann_relations
+    serialized_binary_relations.extend(serialized_binary_relations_pred)
+    return serialized_labeled_spans + serialized_binary_relations
 
 
 class BratSerializer(DocumentSerializer):
@@ -201,7 +203,6 @@ class BratSerializer(DocumentSerializer):
         split: Optional[str] = None,
         gold_label_prefix: Optional[str] = None,
         prediction_label_prefix: Optional[str] = None,
-        **kwargs,
     ) -> Dict[str, str]:
 
         realpath = os.path.realpath(path)
@@ -218,43 +219,26 @@ class BratSerializer(DocumentSerializer):
             realpath = os.path.join(realpath, split)
             os.makedirs(realpath, exist_ok=True)
         metadata_text = defaultdict(str)
-        for doc in documents:
-            file_name = f"{doc.id}.ann"
+        for i, doc in enumerate(documents):
+            doc_id = doc.id or f"doc_{i}"
+            if not isinstance(doc, TextBasedDocument):
+                raise TypeError(
+                    f"Document {doc_id} has unexpected type: {type(doc)}. "
+                    "BratSerializer can only serialize TextBasedDocuments."
+                )
+            file_name = f"{doc_id}.ann"
             metadata_text[f"{file_name}"] = doc.text
             ann_path = os.path.join(realpath, file_name)
+            serialized_annotations = serialize_annotations(
+                labeled_span_layer=doc[entity_layer],
+                binary_relation_layer=doc[relation_layer],
+                gold_label_prefix=gold_label_prefix,
+                prediction_label_prefix=prediction_label_prefix,
+            )
             with open(ann_path, "w+") as f:
-                last_span_id = 0
-                last_rel_id = 0
-                if gold_label_prefix is not None:
-                    entities = doc[entity_layer]
-                    relations = doc[relation_layer]
-                    ann_entities, ann_relations = write_annotations_to_file(
-                        document=doc,
-                        entities=entities,
-                        relations=relations,
-                        file_descriptor=f,
-                        label_prefix=gold_label_prefix,
-                        last_span_id=last_span_id,
-                        last_rel_id=last_rel_id,
-                    )
-                    last_span_id = len(ann_entities)
-                    last_rel_id = len(ann_relations)
-
-                entities = doc[entity_layer].predictions
-                relations = doc[relation_layer].predictions
-                write_annotations_to_file(
-                    document=doc,
-                    entities=entities,
-                    relations=relations,
-                    file_descriptor=f,
-                    label_prefix=prediction_label_prefix,
-                    last_span_id=last_span_id,
-                    last_rel_id=last_rel_id,
-                )
-            f.close()
+                f.writelines(serialized_annotations)
 
         metadata["text"] = metadata_text
-        print(realpath)
 
         if os.path.exists(full_metadata_file_name):
             log.warning(
