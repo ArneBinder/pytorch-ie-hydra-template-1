@@ -21,11 +21,26 @@ D = TypeVar("D", bound=Document)
 def spans_to_ann_entities(
     document: Document,
     entities: Union[BaseAnnotationList, AnnotationLayer],
-    label_prefix=None,
+    label_prefix: Optional[str] = None,
+    last_span_id: int = 0,
 ) -> Tuple[List[str], DefaultDict[LabeledSpan, str]]:
+    """Converts entity annotations of type LabeledMultiSpan and LabeledSpan to annotations in the
+    Brat format.
+
+    Parameters:
+        document (Document): The document containing the annotations.
+        entities (Union[BaseAnnotationList, AnnotationLayer]): The list of entity annotations.
+        label_prefix (Optional[str]): An optional prefix to add to entity labels.
+        last_span_id: An integer value used for creating span annotation IDs. It ensures the proper assignment of IDs
+            for predicted annotations, particularly when gold annotations have already been included.
+
+    Returns:
+        Tuple[List[str], DefaultDict[LabeledSpan, str]]: A tuple containing a list of strings representing
+        entity annotations in the Brat format, and a dictionary mapping labeled spans to their IDs.
+    """
     span2id: DefaultDict[LabeledSpan, str] = defaultdict()
     ann_entities = []
-    for i, entity in enumerate(entities):
+    for i, entity in enumerate(entities, start=last_span_id):
         entity_id = f"T{i}"
         label = entity.label if label_prefix is None else f"{label_prefix}-{entity.label}"
         if isinstance(entity, LabeledMultiSpan):
@@ -55,9 +70,24 @@ def relations_to_ann_relations(
     relations: Union[BaseAnnotationList, AnnotationLayer],
     span2id: DefaultDict[LabeledSpan, str],
     label_prefix: Optional[str] = None,
+    last_rel_id: int = 0,
 ) -> List[str]:
+    """
+    Converts relation annotations to annotations in the Brat format.
+    e.g: R0 Arg1 Arg2 LABEL
+
+    Parameters:
+        relations (Union[BaseAnnotationList, AnnotationLayer]): The list of relation annotations.
+        span2id (DefaultDict[LabeledSpan, str]): A dictionary mapping labeled spans to their annotation IDs.
+        label_prefix (Optional[str]): An optional prefix to add to relation labels.
+        last_rel_id: An integer value used for creating relation annotation IDs. It ensures the proper assignment
+            of IDs for predicted annotations, particularly when gold annotations have already been included.
+
+    Returns:
+        List[str]: A list of strings representing relation annotations in the Brat format.
+    """
     ann_relations = []
-    for i, relation in enumerate(relations):
+    for i, relation in enumerate(relations, start=last_rel_id):
         relation_id = f"R{i}"
         arg1 = span2id[relation.head]
         arg2 = span2id[relation.tail]
@@ -72,38 +102,87 @@ def write_annotations_to_file(
     document: Document,
     entities: Union[BaseAnnotationList, AnnotationLayer],
     relations: Union[BaseAnnotationList, AnnotationLayer],
-    label_prefix: str,
     file_descriptor,
-):
-    ann_entities, span2id = spans_to_ann_entities(document, entities, label_prefix=label_prefix)
-    ann_relations = relations_to_ann_relations(relations, span2id)
+    label_prefix: Optional[str] = None,
+    last_span_id: int = 0,
+    last_rel_id: int = 0,
+) -> Tuple[List[str], List[str]]:
+    """Writes annotations to a file descriptor in the Brat format.
+
+    Parameters:
+        document (Document): The document containing the annotations.
+        entities (Union[BaseAnnotationList, AnnotationLayer]): The list of entity annotations.
+        relations (Union[BaseAnnotationList, AnnotationLayer]): The list of relation annotations.
+        label_prefix (Optional[str]): An optional prefix to add to relation labels.
+        file_descriptor: The file descriptor to write the annotations to.
+        last_span_id: An integer value used for creating span annotation IDs.
+        last_rel_id: An integer value used for creating relation annotation IDs.
+
+    Returns:
+        Tuple[List[str],List[str]]: A tuple containing a list of strings representing entity annotations
+        and a list of strings representing relation annotations in the Brat format.
+    """
+    ann_entities, span2id = spans_to_ann_entities(
+        document=document,
+        entities=entities,
+        label_prefix=label_prefix,
+        last_span_id=last_span_id,
+    )
+    ann_relations = relations_to_ann_relations(
+        relations=relations,
+        span2id=span2id,
+        label_prefix=label_prefix,
+        last_rel_id=last_rel_id,
+    )
     for ann_entity in ann_entities:
         file_descriptor.write(ann_entity)
     for ann_relation in ann_relations:
         file_descriptor.write(ann_relation)
 
+    return ann_entities, ann_relations
+
 
 class BratSerializer(DocumentSerializer):
+    """BratSerializer serialize documents into the Brat format. It requires a document processor
+    which converts predicted annotations into the desired format. "entity_layer" and
+    "relation_layer" parameters must align with the respective entity and relation annotation layer
+    of resulting document from the document processor. BratSerializer additionally provides the
+    functionality to include both gold and predicted annotations in the resulting annotation file,
+    with the option to differentiate them using the label_prefix.
+
+    Attributes:
+        document_processor: A function or callable object to process documents before serialization.
+        entity_layer: The name of the entity annotation layer.
+        relation_layer: The name of the relation annotation layer.
+        prediction_label_prefix: An optional prefix for labels in predicted annotations.
+        gold_label_prefix: An optional prefix for labels in gold annotations.
+        default_kwargs: Additional keyword arguments to be used as defaults during serialization.
+    """
+
     def __init__(
-        self, document_processor, prediction_label_prefix=None, gold_label_prefix=None, **kwargs
+        self,
+        document_processor,
+        entity_layer,
+        relation_layer,
+        prediction_label_prefix=None,
+        gold_label_prefix=None,
+        **kwargs,
     ):
         self.document_processor = document_processor
+        self.entity_layer = entity_layer
+        self.relation_layer = relation_layer
         self.prediction_label_prefix = prediction_label_prefix
         self.gold_label_prefix = gold_label_prefix
         self.default_kwargs = kwargs
 
     def __call__(self, documents: Sequence[Document], **kwargs) -> Dict[str, str]:
         documents = list(map(self.document_processor, documents))
-        if self.document_processor.result_document_type is not None:
-            result_field_mapping = self.document_processor.result_field_mapping
-        else:
-            #  default as BratDocument
-            result_field_mapping = {"labeled_spans": "spans", "binary_relations": "relations"}
         return self.write_with_defaults(
             documents=documents,
+            entity_layer=self.entity_layer,
+            relation_layer=self.relation_layer,
             prediction_label_prefix=self.prediction_label_prefix,
             gold_label_prefix=self.gold_label_prefix,
-            result_field_mapping=result_field_mapping,
             **kwargs,
         )
 
@@ -115,7 +194,8 @@ class BratSerializer(DocumentSerializer):
     def write(
         cls,
         documents: Sequence[Document],
-        result_field_mapping: Dict[str, str],
+        entity_layer: str,
+        relation_layer: str,
         path: str,
         metadata_file_name: str = METADATA_FILE_NAME,
         split: Optional[str] = None,
@@ -143,26 +223,34 @@ class BratSerializer(DocumentSerializer):
             metadata_text[f"{file_name}"] = doc.text
             ann_path = os.path.join(realpath, file_name)
             with open(ann_path, "w+") as f:
+                last_span_id = 0
+                last_rel_id = 0
                 if gold_label_prefix is not None:
-                    entities = doc[result_field_mapping["labeled_spans"]]
-                    relations = doc[result_field_mapping["binary_relations"]]
-                    write_annotations_to_file(
+                    entities = doc[entity_layer]
+                    relations = doc[relation_layer]
+                    ann_entities, ann_relations = write_annotations_to_file(
                         document=doc,
                         entities=entities,
                         relations=relations,
                         file_descriptor=f,
                         label_prefix=gold_label_prefix,
+                        last_span_id=last_span_id,
+                        last_rel_id=last_rel_id,
                     )
-                if prediction_label_prefix is not None:
-                    entities = doc[result_field_mapping["labeled_spans"]].predictions
-                    relations = doc[result_field_mapping["binary_relations"]].predictions
-                    write_annotations_to_file(
-                        document=doc,
-                        entities=entities,
-                        relations=relations,
-                        file_descriptor=f,
-                        label_prefix=prediction_label_prefix,
-                    )
+                    last_span_id = len(ann_entities)
+                    last_rel_id = len(ann_relations)
+
+                entities = doc[entity_layer].predictions
+                relations = doc[relation_layer].predictions
+                write_annotations_to_file(
+                    document=doc,
+                    entities=entities,
+                    relations=relations,
+                    file_descriptor=f,
+                    label_prefix=prediction_label_prefix,
+                    last_span_id=last_span_id,
+                    last_rel_id=last_rel_id,
+                )
             f.close()
 
         metadata["text"] = metadata_text
