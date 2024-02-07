@@ -111,26 +111,20 @@ def serialize_annotations(
         serialized_labeled_spans_gold, span2id = serialize_labeled_spans(
             entities=labeled_span_layer,
             label_prefix=gold_label_prefix,
-            first_span_id=0,
         )
         serialized_labeled_spans.extend(serialized_labeled_spans_gold)
         serialized_binary_relations_gold = serialize_binary_relations(
             relations=binary_relation_layer,
             span2id=span2id,
             label_prefix=gold_label_prefix,
-            first_relation_id=0,
         )
         serialized_binary_relations.extend(serialized_binary_relations_gold)
-        last_span_id = len(serialized_labeled_spans_gold)
-        last_rel_id = len(serialized_binary_relations_gold)
     else:
-        last_span_id = 0
-        last_rel_id = 0
         span2id = {}
     serialized_labeled_spans_pred, span2id_pred = serialize_labeled_spans(
         entities=labeled_span_layer.predictions,
         label_prefix=prediction_label_prefix,
-        first_span_id=last_span_id,
+        first_span_id=len(serialized_labeled_spans),
     )
     span2id.update(span2id_pred)
     serialized_labeled_spans.extend(serialized_labeled_spans_pred)
@@ -138,7 +132,7 @@ def serialize_annotations(
         relations=binary_relation_layer.predictions,
         span2id=span2id,
         label_prefix=prediction_label_prefix,
-        first_relation_id=last_rel_id,
+        first_relation_id=len(serialized_binary_relations),
     )
     serialized_binary_relations.extend(serialized_binary_relations_pred)
     return serialized_labeled_spans + serialized_binary_relations
