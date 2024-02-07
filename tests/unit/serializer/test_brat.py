@@ -108,31 +108,39 @@ def document():
     document = TextDocumentWithLabeledSpansAndBinaryRelations(
         text="Harry lives in Berlin. He works at DFKI.", id="tmp_1"
     )
-    predicted_labeled_spans = [
-        LabeledSpan(start=0, end=5, label="PERSON"),  # Harry
-        LabeledSpan(start=15, end=21, label="LOCATION"),  # Berlin
-    ]
-    document.labeled_spans.predictions.extend(predicted_labeled_spans)
 
-    labeled_spans = [
-        LabeledSpan(start=0, end=5, label="PERSON"),  # Harry
-        LabeledSpan(start=15, end=21, label="LOCATION"),  # Berlin
-        LabeledSpan(start=35, end=39, label="ORGANIZATION"),  # DFKI
-    ]
+    document.labeled_spans.predictions.extend(
+        [
+            LabeledSpan(start=0, end=5, label="PERSON"),  # Harry
+            LabeledSpan(start=15, end=21, label="LOCATION"),  # Berlin
+        ]
+    )
 
-    document.labeled_spans.extend(labeled_spans)
+    document.labeled_spans.extend(
+        [
+            LabeledSpan(start=0, end=5, label="PERSON"),  # Harry
+            LabeledSpan(start=15, end=21, label="LOCATION"),  # Berlin
+            LabeledSpan(start=35, end=39, label="ORGANIZATION"),  # DFKI
+        ]
+    )
 
-    predicted_binary_relations = [
-        BinaryRelation(head=labeled_spans[0], tail=labeled_spans[1], label="lives_in"),
-    ]
-    document.binary_relations.predictions.extend(predicted_binary_relations)
-
-    binary_relations = [
-        BinaryRelation(head=labeled_spans[0], tail=labeled_spans[1], label="lives_in"),
-        BinaryRelation(head=labeled_spans[0], tail=labeled_spans[2], label="works_at"),
-    ]
-
-    document.binary_relations.extend(binary_relations)
+    document.binary_relations.predictions.extend(
+        [
+            BinaryRelation(
+                head=document.labeled_spans[0], tail=document.labeled_spans[1], label="lives_in"
+            ),
+        ]
+    )
+    document.binary_relations.extend(
+        [
+            BinaryRelation(
+                head=document.labeled_spans[0], tail=document.labeled_spans[1], label="lives_in"
+            ),
+            BinaryRelation(
+                head=document.labeled_spans[0], tail=document.labeled_spans[2], label="works_at"
+            ),
+        ]
+    )
 
     return document
 
@@ -362,35 +370,50 @@ def document_with_multispan():
     document = TextDocumentWithLabeledSpansAndBinaryRelations(
         text="Harry lives in Berlin, Germany. He works at DFKI.", id="tmp"
     )
-    entities = [
-        LabeledSpan(start=0, end=5, label="PERSON"),
-        LabeledSpan(start=15, end=21, label="LOCATION"),
-        LabeledSpan(start=23, end=30, label="LOCATION"),
-        LabeledSpan(start=44, end=48, label="ORGANIZATION"),
-    ]
-    for ent in entities:
-        document.labeled_spans.predictions.append(ent)
-
-    relations = [
-        BinaryRelation(head=entities[0], tail=entities[1], label="lives_in"),
-        BinaryRelation(
-            head=entities[1], tail=entities[2], label="parts_of_same"
-        ),  # should be removed
-        BinaryRelation(
-            head=entities[1], tail=entities[3], label="parts_of_same"
-        ),  # should be removed
-        BinaryRelation(head=entities[0], tail=entities[3], label="works_at"),
-        BinaryRelation(
-            head=entities[3], tail=entities[1], label="located_in"
-        ),  # tail should be a new merged entity
-        BinaryRelation(
-            head=entities[3], tail=entities[2], label="located_in"
-        ),  # tail should be a new merged entity
-    ]
-
+    document.labeled_spans.predictions.extend(
+        [
+            LabeledSpan(start=0, end=5, label="PERSON"),
+            LabeledSpan(start=15, end=21, label="LOCATION"),
+            LabeledSpan(start=23, end=30, label="LOCATION"),
+            LabeledSpan(start=44, end=48, label="ORGANIZATION"),
+        ]
+    )
     # add relations as predictions
-    for rel in relations:
-        document.binary_relations.predictions.append(rel)
+
+    document.binary_relations.predictions.extend(
+        [
+            BinaryRelation(
+                head=document.labeled_spans.predictions[0],
+                tail=document.labeled_spans.predictions[1],
+                label="lives_in",
+            ),
+            BinaryRelation(
+                head=document.labeled_spans.predictions[1],
+                tail=document.labeled_spans.predictions[2],
+                label="parts_of_same",
+            ),  # should be removed
+            BinaryRelation(
+                head=document.labeled_spans.predictions[1],
+                tail=document.labeled_spans.predictions[3],
+                label="parts_of_same",
+            ),  # should be removed
+            BinaryRelation(
+                head=document.labeled_spans.predictions[0],
+                tail=document.labeled_spans.predictions[3],
+                label="works_at",
+            ),
+            BinaryRelation(
+                head=document.labeled_spans.predictions[3],
+                tail=document.labeled_spans.predictions[1],
+                label="located_in",
+            ),  # tail should be a new merged entity
+            BinaryRelation(
+                head=document.labeled_spans.predictions[3],
+                tail=document.labeled_spans.predictions[2],
+                label="located_in",
+            ),  # tail should be a new merged entity
+        ]
+    )
 
     return document
 
