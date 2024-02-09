@@ -173,7 +173,8 @@ def serialize_annotation_layers(
             annotations=layer.predictions,
             label_prefix=prediction_label_prefix,
             first_idx=len(serialized_annotations),
-            # predicted annotations can reference both gold and predicted annotations
+            # Predicted annotations can reference both gold and predicted annotations.
+            # Note that predictions take precedence over gold annotations.
             annotation2id={**gold_annotation2id, **prediction_annotation2id},
         )
         prediction_annotation2id.update(new_pred_ann2id)
