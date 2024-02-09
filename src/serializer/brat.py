@@ -89,8 +89,6 @@ def serialize_binary_relation(
     Returns:
         str: The id and serialized representation of the binary relation.
     """
-    if not isinstance(annotation, BinaryRelation):
-        raise Warning(f"relation has unknown type: {type(annotation)}")
 
     arg1 = annotation2id[annotation.head]
     arg2 = annotation2id[annotation.tail]

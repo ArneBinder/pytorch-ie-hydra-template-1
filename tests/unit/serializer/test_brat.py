@@ -68,16 +68,6 @@ def test_serialize_labeled_multi_span():
     assert serialized_annotation == "LOCATION 15 21;23 30\tBerlin Germany\n"
 
 
-def test_serialize_unknown_annotation():
-
-    with pytest.raises(Warning) as w:
-        serialize_annotation(idx=0, annotation=Annotation(), annotation2id={})
-    assert (
-        str(w.value)
-        == "annotation has unknown type: <class 'pytorch_ie.core.document.Annotation'>"
-    )
-
-
 def test_serialize_binary_relation():
     binary_relation = BinaryRelation(
         head=LabeledSpan(start=0, end=5, label="PERSON"),
@@ -93,10 +83,15 @@ def test_serialize_binary_relation():
     assert annotation_id == "R1"
     assert serialized_binary_relation == "lives_in Arg1:T1 Arg2:T2\n"
 
-    # Unknown relation type
+
+def test_serialize_unknown_annotation():
+
     with pytest.raises(Warning) as w:
-        serialize_binary_relation(idx=0, annotation=None, annotation2id={})
-    assert str(w.value) == "relation has unknown type: <class 'NoneType'>"
+        serialize_annotation(idx=0, annotation=Annotation(), annotation2id={})
+    assert (
+        str(w.value)
+        == "annotation has unknown type: <class 'pytorch_ie.core.document.Annotation'>"
+    )
 
 
 @dataclass
