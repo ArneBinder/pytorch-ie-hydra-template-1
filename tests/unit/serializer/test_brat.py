@@ -1,3 +1,4 @@
+import dataclasses
 import os
 from dataclasses import dataclass
 from typing import TypeVar
@@ -24,6 +25,84 @@ log = get_pylogger(__name__)
 D = TypeVar("D", bound=Document)
 
 
+def test_serialize_labeled_span():
+    # labeled span
+    document = TextDocumentWithLabeledSpansAndBinaryRelations(
+        text="Harry lives in Berlin, Germany. He works at DFKI.", id="tmp"
+    )
+    document.labeled_spans.extend(
+        [
+            LabeledSpan(start=15, end=30, label="LOCATION"),
+        ]
+    )
+    labeled_span = document.labeled_spans[0]
+    serialized_labeled_span = serialize_labeled_span(
+        span_id="T1",
+        labeled_span=labeled_span,
+    )
+    assert serialized_labeled_span == "T1\tLOCATION 15 30\tBerlin, Germany\n"
+
+    # labeled multi span
+    @dataclasses.dataclass
+    class TextDocumentWithLabeledMultiSpansAndBinaryRelations(TextBasedDocument):
+        labeled_multi_spans: AnnotationLayer[LabeledMultiSpan] = annotation_field(target="text")
+        binary_relations: AnnotationLayer[BinaryRelation] = annotation_field(
+            target="labeled_multi_spans"
+        )
+
+    document = TextDocumentWithLabeledMultiSpansAndBinaryRelations(
+        text="Harry lives in Berlin, Germany. He works at DFKI.", id="tmp"
+    )
+    document.labeled_multi_spans.extend(
+        [
+            LabeledMultiSpan(slices=((15, 21), (23, 30)), label="LOCATION"),
+        ]
+    )
+    labeled_multi_span = document.labeled_multi_spans[0]
+    serialized_labeled_multi_span = serialize_labeled_span(
+        span_id="T2",
+        labeled_span=labeled_multi_span,
+    )
+    assert serialized_labeled_multi_span == "T2\tLOCATION 15 21;23 30\tBerlin Germany\n"
+
+    # Unknown type
+    binary_relation = BinaryRelation(
+        head=document.labeled_multi_spans[0],
+        tail=document.labeled_multi_spans[0],
+        label="self",
+    )
+    with pytest.raises(Warning) as w:
+        serialize_labeled_span(
+            span_id="T0",
+            labeled_span=binary_relation,
+        )
+    assert (
+        str(w.value)
+        == "labeled span has unknown type: <class 'pytorch_ie.annotations.BinaryRelation'>"
+    )
+
+
+def test_serialize_binary_relation():
+    binary_relation = BinaryRelation(
+        head=LabeledSpan(start=0, end=5, label="PERSON"),
+        tail=LabeledSpan(start=15, end=30, label="LOCATION"),
+        label="lives_in",
+    )
+    span2id = {binary_relation.head: "T1", binary_relation.tail: "T2"}
+    serialized_binary_relation = serialize_binary_relation(
+        relation_id="R1",
+        binary_relation=binary_relation,
+        span2id=span2id,
+    )
+
+    assert serialized_binary_relation == "R1\tlives_in Arg1:T1 Arg2:T2\n"
+
+    # Unknown relation type
+    with pytest.raises(Warning) as w:
+        serialize_binary_relation(relation_id=0, binary_relation=None, span2id={})
+    assert str(w.value) == "relation has unknown type: <class 'NoneType'>"
+
+
 @dataclass
 class TextDocumentWithLabeledMultiSpansAndBinaryRelations(TextBasedDocument):
     labeled_spans: AnnotationLayer[LabeledMultiSpan] = annotation_field(target="text")
@@ -48,12 +127,12 @@ def document():
     document.labeled_spans.extend(
         [
             LabeledSpan(start=0, end=5, label="PERSON"),
-            LabeledMultiSpan(slices=((15, 21), (23, 30)), label="LOCATION"),
+            LabeledSpan(start=15, end=30, label="LOCATION"),
             LabeledSpan(start=44, end=48, label="ORGANIZATION"),
         ]
     )
     assert str(document.labeled_spans[0]) == "Harry"
-    assert str(document.labeled_spans[1]) == "('Berlin', 'Germany')"
+    assert str(document.labeled_spans[1]) == "Berlin, Germany"
     assert str(document.labeled_spans[2]) == "DFKI"
 
     document.binary_relations.predictions.extend(
@@ -82,54 +161,6 @@ def document():
     )
 
     return document
-
-
-def test_serialize_labeled_span(document):
-    # labeled span
-    labeled_span = document.labeled_spans[0]
-    serialized_labeled_span = serialize_labeled_span(
-        span_id="T1",
-        labeled_span=labeled_span,
-    )
-
-    assert serialized_labeled_span == "T1\tPERSON 0 5\tHarry\n"
-
-    # labeled multi span
-    labeled_span = document.labeled_spans[1]
-    serialized_labeled_span = serialize_labeled_span(
-        span_id="T2",
-        labeled_span=labeled_span,
-    )
-
-    assert serialized_labeled_span == "T2\tLOCATION 15 21;23 30\tBerlin Germany\n"
-
-    # Unknown type
-    with pytest.raises(Warning) as w:
-        serialize_labeled_span(
-            span_id="T0",
-            labeled_span=document.binary_relations[0],
-        )
-    assert (
-        str(w.value)
-        == "labeled span has unknown type: <class 'pytorch_ie.annotations.BinaryRelation'>"
-    )
-
-
-def test_serialize_binary_relation(document):
-    binary_relation = document.binary_relations[0]
-    span2id = {binary_relation.head: "T1", binary_relation.tail: "T2"}
-    serialized_binary_relation = serialize_binary_relation(
-        relation_id="R1",
-        binary_relation=binary_relation,
-        span2id=span2id,
-    )
-
-    assert serialized_binary_relation == "R1\tlives_in Arg1:T1 Arg2:T2\n"
-
-    # Unknown relation type
-    with pytest.raises(Warning) as w:
-        serialize_binary_relation(relation_id=0, binary_relation=None, span2id={})
-    assert str(w.value) == "relation has unknown type: <class 'NoneType'>"
 
 
 @pytest.fixture
@@ -162,7 +193,7 @@ def test_serialize_annotations(document, gold_label_prefix, prediction_label_pre
         assert len(serialized_annotations) == 8
         assert serialized_annotations == [
             "T0\tGOLD-PERSON 0 5\tHarry\n",
-            "T1\tGOLD-LOCATION 15 21;23 30\tBerlin Germany\n",
+            "T1\tGOLD-LOCATION 15 30\tBerlin, Germany\n",
             "T2\tGOLD-ORGANIZATION 44 48\tDFKI\n",
             "T3\tPRED-PERSON 0 5\tHarry\n",
             "T4\tPRED-ORGANIZATION 44 48\tDFKI\n",
@@ -174,7 +205,7 @@ def test_serialize_annotations(document, gold_label_prefix, prediction_label_pre
         assert len(serialized_annotations) == 8
         assert serialized_annotations == [
             "T0\tGOLD-PERSON 0 5\tHarry\n",
-            "T1\tGOLD-LOCATION 15 21;23 30\tBerlin Germany\n",
+            "T1\tGOLD-LOCATION 15 30\tBerlin, Germany\n",
             "T2\tGOLD-ORGANIZATION 44 48\tDFKI\n",
             "T3\tPERSON 0 5\tHarry\n",
             "T4\tORGANIZATION 44 48\tDFKI\n",
@@ -199,9 +230,7 @@ def test_serialize_annotations(document, gold_label_prefix, prediction_label_pre
 
 
 def document_processor(document) -> TextBasedDocument:
-    # document.copy doesn't work with LabeledMultiSpan,
-    # throws error: TypeError: __init__() got an unexpected keyword argument 'slices'
-    doc = document
+    doc = document.copy()
     doc["labeled_spans"].append(LabeledSpan(start=0, end=0, label="empty"))
     return doc
 
