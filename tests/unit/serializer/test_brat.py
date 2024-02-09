@@ -1,34 +1,29 @@
 import dataclasses
 import os
 from dataclasses import dataclass
-from typing import TypeVar
 
 import pytest
 from pie_modules.annotations import BinaryRelation, LabeledMultiSpan, LabeledSpan
-from pie_modules.documents import (
-    TextBasedDocument,
-    TextDocumentWithLabeledSpansAndBinaryRelations,
-    TokenDocumentWithLabeledSpansAndBinaryRelations,
-)
-from pytorch_ie import Annotation, AnnotationLayer
-from pytorch_ie.core import Document, annotation_field
+from pie_modules.documents import TextBasedDocument
+from pytorch_ie import Annotation, AnnotationLayer, Document
+from pytorch_ie.core import annotation_field
 
 from src.serializer import BratSerializer
 from src.serializer.brat import (
     serialize_annotation,
     serialize_annotation_layers,
     serialize_binary_relation,
-    serialize_labeled_multi_span,
-    serialize_labeled_span,
 )
-from src.utils import get_pylogger
 
-log = get_pylogger(__name__)
-D = TypeVar("D", bound=Document)
+
+@dataclasses.dataclass
+class TextDocumentWithLabeledSpansAndBinaryRelations(TextBasedDocument):
+    labeled_spans: AnnotationLayer[LabeledSpan] = annotation_field(target="text")
+    binary_relations: AnnotationLayer[BinaryRelation] = annotation_field(target="labeled_spans")
 
 
 def test_serialize_labeled_span():
-    # labeled span
+
     document = TextDocumentWithLabeledSpansAndBinaryRelations(
         text="Harry lives in Berlin, Germany. He works at DFKI.", id="tmp"
     )
@@ -48,8 +43,6 @@ def test_serialize_labeled_span():
 
 
 def test_serialize_labeled_multi_span():
-
-    # labeled multi span
     @dataclasses.dataclass
     class TextDocumentWithLabeledMultiSpansAndBinaryRelations(TextBasedDocument):
         labeled_multi_spans: AnnotationLayer[LabeledMultiSpan] = annotation_field(target="text")
@@ -173,8 +166,7 @@ def serialized_annotations(
     prediction_label_prefix=None,
 ):
     return serialize_annotation_layers(
-        labeled_span_layer=document.labeled_spans,
-        binary_relation_layer=document.binary_relations,
+        layers=[document.labeled_spans, document.binary_relations],
         gold_label_prefix=gold_label_prefix,
         prediction_label_prefix=prediction_label_prefix,
     )
@@ -186,8 +178,7 @@ def serialized_annotations(
 )
 def test_serialize_annotations(document, gold_label_prefix, prediction_label_prefix):
     serialized_annotations = serialize_annotation_layers(
-        labeled_span_layer=document.labeled_spans,
-        binary_relation_layer=document.binary_relations,
+        layers=[document.labeled_spans, document.binary_relations],
         gold_label_prefix=gold_label_prefix,
         prediction_label_prefix=prediction_label_prefix,
     )
@@ -243,8 +234,7 @@ def test_write(tmp_path, document, serialized_annotations):
     serializer = BratSerializer(
         path=path,
         document_processor=document_processor,
-        entity_layer="labeled_spans",
-        relation_layer="binary_relations",
+        layers=["labeled_spans", "binary_relations"],
     )
 
     metadata = serializer(documents=[document])
@@ -257,22 +247,9 @@ def test_write(tmp_path, document, serialized_annotations):
     file.close()
 
 
-@pytest.fixture
-def dummy_document():
-    document = TokenDocumentWithLabeledSpansAndBinaryRelations(
-        id="tmp_1",
-        tokens=(),
-    )
-    return document
-
-
-def test_write_with_exceptions_and_warnings(tmp_path, caplog, document, dummy_document):
+def test_write_with_exceptions_and_warnings(tmp_path, caplog, document):
     path = str(tmp_path)
-    serializer = BratSerializer(
-        path=path,
-        entity_layer="labeled_spans",
-        relation_layer="binary_relations",
-    )
+    serializer = BratSerializer(path=path, layers=["labeled_spans", "binary_relations"])
 
     # list of empty documents
     with pytest.raises(Exception) as e:
@@ -281,11 +258,10 @@ def test_write_with_exceptions_and_warnings(tmp_path, caplog, document, dummy_do
 
     # List of documents with type unexpected Document type
     with pytest.raises(TypeError) as type_error:
-        serializer(documents=[dummy_document])
+        serializer(documents=[Document()])
     assert str(type_error.value) == (
-        "Document tmp_1 has unexpected type: <class "
-        "'pie_modules.documents.TokenDocumentWithLabeledSpansAndBinaryRelations'>. BratSerializer "
-        "can only serialize TextBasedDocuments."
+        "Document doc_0 has unexpected type: <class 'pytorch_ie.core.document.Document'>. "
+        "BratSerializer can only serialize TextBasedDocuments."
     )
 
     # Warning when metadata file already exists
@@ -304,7 +280,7 @@ def test_write_with_exceptions_and_warnings(tmp_path, caplog, document, dummy_do
 def test_write_with_split(tmp_path, document, split):
     path = str(tmp_path)
     serializer = BratSerializer(
-        path=path, entity_layer="labeled_spans", relation_layer="binary_relations", split=split
+        path=path, layers=["labeled_spans", "binary_relations"], split=split
     )
 
     metadata = serializer(documents=[document])

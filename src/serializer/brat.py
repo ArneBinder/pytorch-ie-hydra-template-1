@@ -6,9 +6,7 @@ from typing import Dict, Iterable, List, Optional, Sequence, Tuple, TypeVar, Uni
 from pie_datasets.core.dataset_dict import METADATA_FILE_NAME
 from pie_modules.annotations import BinaryRelation, LabeledMultiSpan, LabeledSpan
 from pie_modules.documents import TextBasedDocument
-from pytorch_ie import AnnotationLayer
-from pytorch_ie.core import Document
-from pytorch_ie.core.document import Annotation, BaseAnnotationList
+from pytorch_ie.core import Annotation, AnnotationLayer, Document
 from pytorch_ie.utils.hydra import serialize_document_type
 
 from src.serializer.interface import DocumentSerializer
@@ -126,8 +124,9 @@ def serialize_annotations(
     annotation2id: Dict[Annotation, str],
     label_prefix: Optional[str] = None,
     first_idx: int = 0,
-) -> List[str]:
+) -> Tuple[List[str], Dict[Annotation, str]]:
     serialized_annotations = []
+    new_annotation2id: Dict[Annotation, str] = {}
     for i, annotation in enumerate(annotations, start=first_idx):
         annotation_id, serialized_annotation = serialize_annotation(
             idx=i,
@@ -136,22 +135,20 @@ def serialize_annotations(
             label_prefix=label_prefix,
         )
         serialized_annotations.append(f"{annotation_id}\t{serialized_annotation}")
-        annotation2id[annotation] = annotation_id
+        new_annotation2id[annotation] = annotation_id
 
-    return serialized_annotations
+    return serialized_annotations, new_annotation2id
 
 
 def serialize_annotation_layers(
-    labeled_span_layer: AnnotationLayer,
-    binary_relation_layer: AnnotationLayer,
+    layers: List[AnnotationLayer],
     gold_label_prefix: Optional[str] = None,
     prediction_label_prefix: Optional[str] = None,
 ) -> List[str]:
-    """Serialize annotations including labeled spans and binary relations into a list of strings.
+    """Serialize annotations from given annotation layers into a list of strings.
 
     Args:
-        labeled_span_layer (AnnotationLayer): Annotation layer containing labeled spans.
-        binary_relation_layer (AnnotationLayer): Annotation layer containing binary relations.
+        layers (List[AnnotationLayer]): Annotation layers to be serialized.
         gold_label_prefix (Optional[str], optional): Prefix to be added to gold labels.
             Defaults to None.
         prediction_label_prefix (Optional[str], optional): Prefix to be added to prediction labels.
@@ -160,70 +157,61 @@ def serialize_annotation_layers(
     Returns:
         List[str]: List of serialized annotations.
     """
-    serialized_labeled_spans = []
-    serialized_binary_relations = []
-    annotation2id: Dict[Annotation, str] = {}
-    if gold_label_prefix is not None:
-        serialized_labeled_spans_gold = serialize_annotations(
-            annotations=labeled_span_layer,
-            label_prefix=gold_label_prefix,
-            annotation2id=annotation2id,
+    all_serialized_annotations = []
+    gold_annotation2id: Dict[Annotation, str] = {}
+    prediction_annotation2id: Dict[Annotation, str] = {}
+    for layer in layers:
+        serialized_annotations = []
+        if gold_label_prefix is not None:
+            serialized_gold_annotations, new_gold_ann2id = serialize_annotations(
+                annotations=layer,
+                label_prefix=gold_label_prefix,
+                # gold annotations can only reference other gold annotations
+                annotation2id=gold_annotation2id,
+            )
+            serialized_annotations.extend(serialized_gold_annotations)
+            gold_annotation2id.update(new_gold_ann2id)
+        serialized_predicted_annotations, new_pred_ann2id = serialize_annotations(
+            annotations=layer.predictions,
+            label_prefix=prediction_label_prefix,
+            first_idx=len(serialized_annotations),
+            # predicted annotations can reference both gold and predicted annotations
+            annotation2id={**gold_annotation2id, **prediction_annotation2id},
         )
-        serialized_labeled_spans.extend(serialized_labeled_spans_gold)
-        serialized_binary_relations_gold = serialize_annotations(
-            annotations=binary_relation_layer,
-            annotation2id=annotation2id,
-            label_prefix=gold_label_prefix,
-        )
-        serialized_binary_relations.extend(serialized_binary_relations_gold)
-    else:
-        annotation2id = {}
-    serialized_labeled_spans_pred = serialize_annotations(
-        annotations=labeled_span_layer.predictions,
-        label_prefix=prediction_label_prefix,
-        first_idx=len(serialized_labeled_spans),
-        annotation2id=annotation2id,
-    )
-    serialized_labeled_spans.extend(serialized_labeled_spans_pred)
-    serialized_binary_relations_pred = serialize_annotations(
-        annotations=binary_relation_layer.predictions,
-        annotation2id=annotation2id,
-        label_prefix=prediction_label_prefix,
-        first_idx=len(serialized_binary_relations),
-    )
-    serialized_binary_relations.extend(serialized_binary_relations_pred)
-    return serialized_labeled_spans + serialized_binary_relations
+        prediction_annotation2id.update(new_pred_ann2id)
+        serialized_annotations.extend(serialized_predicted_annotations)
+        all_serialized_annotations.extend(serialized_annotations)
+    return all_serialized_annotations
 
 
 class BratSerializer(DocumentSerializer):
-    """BratSerializer serialize documents into the Brat format. It requires "entity_layer" and
-    "relation_layer" parameters which defines the entity and relation annotation layer names. If
-    document processor is provided then these parameters must align with the respective entity and
-    relation annotation layer of resulting document from the document processor. BratSerializer
-    additionally provides the functionality to include both gold and predicted annotations in the
-    resulting annotation file, with the option to differentiate them using the label_prefix.
+    """BratSerializer serialize documents into the Brat format. It requires a "layers" parameter to
+    specify the annotation layers to serialize.
+
+    If a gold_label_prefix is provided, the gold annotations are serialized with the given prefix.
+    Otherwise, only the predicted annotations are serialized. A document_processor can be provided
+    to process documents before serialization.
 
     Attributes:
-        entity_layer: The name of the entity annotation layer.
-        relation_layer: The name of the relation annotation layer.
+        layers: The names of the annotation layers to serialize.
         document_processor: A function or callable object to process documents before serialization.
-        prediction_label_prefix: An optional prefix for labels in predicted annotations.
-        gold_label_prefix: An optional prefix for labels in gold annotations.
+        gold_label_prefix: If provided, gold annotations are serialized and its labels are prefixed
+            with the given string. Otherwise, only predicted annotations are serialized.
+        prediction_label_prefix: If provided, labels of predicted annotations are prefixed with the
+            given string.
         default_kwargs: Additional keyword arguments to be used as defaults during serialization.
     """
 
     def __init__(
         self,
-        entity_layer,
-        relation_layer,
+        layers: List[str],
         document_processor=None,
         prediction_label_prefix=None,
         gold_label_prefix=None,
         **kwargs,
     ):
         self.document_processor = document_processor
-        self.entity_layer = entity_layer
-        self.relation_layer = relation_layer
+        self.layers = layers
         self.prediction_label_prefix = prediction_label_prefix
         self.gold_label_prefix = gold_label_prefix
         self.default_kwargs = kwargs
@@ -233,8 +221,7 @@ class BratSerializer(DocumentSerializer):
             documents = list(map(self.document_processor, documents))
         return self.write_with_defaults(
             documents=documents,
-            entity_layer=self.entity_layer,
-            relation_layer=self.relation_layer,
+            layers=self.layers,
             prediction_label_prefix=self.prediction_label_prefix,
             gold_label_prefix=self.gold_label_prefix,
             **kwargs,
@@ -248,8 +235,7 @@ class BratSerializer(DocumentSerializer):
     def write(
         cls,
         documents: Sequence[Document],
-        entity_layer: str,
-        relation_layer: str,
+        layers: List[str],
         path: str,
         metadata_file_name: str = METADATA_FILE_NAME,
         split: Optional[str] = None,
@@ -272,7 +258,7 @@ class BratSerializer(DocumentSerializer):
             os.makedirs(realpath, exist_ok=True)
         metadata_text = defaultdict(str)
         for i, doc in enumerate(documents):
-            doc_id = doc.id or f"doc_{i}"
+            doc_id = getattr(doc, "id", None) or f"doc_{i}"
             if not isinstance(doc, TextBasedDocument):
                 raise TypeError(
                     f"Document {doc_id} has unexpected type: {type(doc)}. "
@@ -282,8 +268,7 @@ class BratSerializer(DocumentSerializer):
             metadata_text[f"{file_name}"] = doc.text
             ann_path = os.path.join(realpath, file_name)
             serialized_annotations = serialize_annotation_layers(
-                labeled_span_layer=doc[entity_layer],
-                binary_relation_layer=doc[relation_layer],
+                layers=[doc[layer] for layer in layers],
                 gold_label_prefix=gold_label_prefix,
                 prediction_label_prefix=prediction_label_prefix,
             )
