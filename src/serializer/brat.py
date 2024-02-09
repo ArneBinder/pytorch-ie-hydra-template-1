@@ -184,7 +184,8 @@ def serialize_annotation_layers(
 
 class BratSerializer(DocumentSerializer):
     """BratSerializer serialize documents into the Brat format. It requires a "layers" parameter to
-    specify the annotation layers to serialize.
+    specify the annotation layers to serialize. For now, it supports layers containing LabeledSpan,
+    LabeledMultiSpan, and BinaryRelation annotations.
 
     If a gold_label_prefix is provided, the gold annotations are serialized with the given prefix.
     Otherwise, only the predicted annotations are serialized. A document_processor can be provided
