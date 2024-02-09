@@ -33,12 +33,11 @@ def test_serialize_labeled_span():
         ]
     )
     labeled_span = document.labeled_spans[0]
-    annotation_id, serialized_annotation = serialize_annotation(
-        idx=1,
+    annotation_type, serialized_annotation = serialize_annotation(
         annotation=labeled_span,
         annotation2id={},
     )
-    assert annotation_id == "T1"
+    assert annotation_type == "T"
     assert serialized_annotation == "LOCATION 15 30\tBerlin, Germany\n"
 
 
@@ -59,12 +58,11 @@ def test_serialize_labeled_multi_span():
         ]
     )
     labeled_multi_span = document.labeled_multi_spans[0]
-    annotation_id, serialized_annotation = serialize_annotation(
-        idx=2,
+    annotation_type, serialized_annotation = serialize_annotation(
         annotation=labeled_multi_span,
         annotation2id={},
     )
-    assert annotation_id == "T2"
+    assert annotation_type == "T"
     assert serialized_annotation == "LOCATION 15 21;23 30\tBerlin Germany\n"
 
 
@@ -75,19 +73,18 @@ def test_serialize_binary_relation():
         label="lives_in",
     )
     span2id = {binary_relation.head: "T1", binary_relation.tail: "T2"}
-    annotation_id, serialized_binary_relation = serialize_binary_relation(
-        idx=1,
+    annotation_type, serialized_binary_relation = serialize_binary_relation(
         annotation=binary_relation,
         annotation2id=span2id,
     )
-    assert annotation_id == "R1"
+    assert annotation_type == "R"
     assert serialized_binary_relation == "lives_in Arg1:T1 Arg2:T2\n"
 
 
 def test_serialize_unknown_annotation():
 
     with pytest.raises(Warning) as w:
-        serialize_annotation(idx=0, annotation=Annotation(), annotation2id={})
+        serialize_annotation(annotation=Annotation(), annotation2id={})
     assert (
         str(w.value)
         == "annotation has unknown type: <class 'pytorch_ie.core.document.Annotation'>"

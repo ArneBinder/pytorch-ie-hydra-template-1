@@ -18,42 +18,38 @@ D = TypeVar("D", bound=Document)
 
 
 def serialize_labeled_span(
-    idx: int,
     annotation: LabeledSpan,
     label_prefix: Optional[str] = None,
 ) -> Tuple[str, str]:
     """Serialize a labeled span into a string representation.
 
     Args:
-        idx (str): The index for the labeled span.
         annotation (LabeledSpan): The labeled span object to serialize.
         label_prefix (Optional[str], optional): A prefix to be added to the label. Defaults to None.
 
     Returns:
-        str: The id and serialized representation of the labeled span.
+        str: The annotation type and serialized representation of the labeled span.
     """
     label = annotation.label if label_prefix is None else f"{label_prefix}-{annotation.label}"
     start_idx = annotation.start
     end_idx = annotation.end
     entity_text = annotation.target[start_idx:end_idx]
     serialized_labeled_span = f"{label} {start_idx} {end_idx}\t{entity_text}\n"
-    return f"T{idx}", serialized_labeled_span
+    return "T", serialized_labeled_span
 
 
 def serialize_labeled_multi_span(
-    idx: int,
     annotation: LabeledMultiSpan,
     label_prefix: Optional[str] = None,
 ) -> Tuple[str, str]:
     """Serialize a labeled multi span into a string representation.
 
     Args:
-        idx (int): The index for the labeled multi span.
         annotation (LabeledMultiSpan): The labeled multi span object to serialize.
         label_prefix (Optional[str], optional): A prefix to be added to the label. Defaults to None.
 
     Returns:
-        str: The id and serialized representation of the labeled multi span.
+        str: The annotation type and serialized representation of the labeled multi span.
     """
     label = annotation.label if label_prefix is None else f"{label_prefix}-{annotation.label}"
 
@@ -67,11 +63,10 @@ def serialize_labeled_multi_span(
     location = ";".join(locations)
     text = " ".join(texts)
     serialized_labeled_span = f"{label} {location}\t{text}\n"
-    return f"T{idx}", serialized_labeled_span
+    return "T", serialized_labeled_span
 
 
 def serialize_binary_relation(
-    idx: int,
     annotation: BinaryRelation,
     annotation2id: Dict[Annotation, str],
     label_prefix: Optional[str] = None,
@@ -79,7 +74,6 @@ def serialize_binary_relation(
     """Serialize a binary relation into a string representation.
 
     Args:
-        idx (str): The index for the binary relation.
         annotation (Union[LabeledMultiSpan, LabeledSpan]): The binary relation object to serialize.
             Labeled Spans in the binary relation can be either a LabeledMultiSpan or a LabeledSpan.
         annotation2id (Dict[Annotation, str]): A dictionary mapping span annotations to their IDs.
@@ -87,31 +81,28 @@ def serialize_binary_relation(
             Defaults to None.
 
     Returns:
-        str: The id and serialized representation of the binary relation.
+        str: The annotation type and serialized representation of the binary relation.
     """
 
     arg1 = annotation2id[annotation.head]
     arg2 = annotation2id[annotation.tail]
     label = annotation.label if label_prefix is None else f"{label_prefix}-{annotation.label}"
     serialized_binary_relation = f"{label} Arg1:{arg1} Arg2:{arg2}\n"
-    return f"R{idx}", serialized_binary_relation
+    return "R", serialized_binary_relation
 
 
 def serialize_annotation(
-    idx: int,
     annotation: Annotation,
     annotation2id: Dict[Annotation, str],
     label_prefix: Optional[str] = None,
 ) -> Tuple[str, str]:
     if isinstance(annotation, LabeledMultiSpan):
-        return serialize_labeled_multi_span(
-            idx=idx, annotation=annotation, label_prefix=label_prefix
-        )
+        return serialize_labeled_multi_span(annotation=annotation, label_prefix=label_prefix)
     elif isinstance(annotation, LabeledSpan):
-        return serialize_labeled_span(idx=idx, annotation=annotation, label_prefix=label_prefix)
+        return serialize_labeled_span(annotation=annotation, label_prefix=label_prefix)
     elif isinstance(annotation, BinaryRelation):
         return serialize_binary_relation(
-            idx=idx, annotation=annotation, label_prefix=label_prefix, annotation2id=annotation2id
+            annotation=annotation, label_prefix=label_prefix, annotation2id=annotation2id
         )
     else:
         raise Warning(f"annotation has unknown type: {type(annotation)}")
@@ -119,21 +110,23 @@ def serialize_annotation(
 
 def serialize_annotations(
     annotations: Iterable[Annotation],
+    indices: Dict[str, int],
     annotation2id: Dict[Annotation, str],
     label_prefix: Optional[str] = None,
-    first_idx: int = 0,
 ) -> Tuple[List[str], Dict[Annotation, str]]:
     serialized_annotations = []
     new_annotation2id: Dict[Annotation, str] = {}
-    for i, annotation in enumerate(annotations, start=first_idx):
-        annotation_id, serialized_annotation = serialize_annotation(
-            idx=i,
+    for annotation in annotations:
+        annotation_type, serialized_annotation = serialize_annotation(
             annotation=annotation,
             annotation2id=annotation2id,
             label_prefix=label_prefix,
         )
+        idx = indices[annotation_type]
+        annotation_id = f"{annotation_type}{idx}"
         serialized_annotations.append(f"{annotation_id}\t{serialized_annotation}")
         new_annotation2id[annotation] = annotation_id
+        indices[annotation_type] += 1
 
     return serialized_annotations, new_annotation2id
 
@@ -158,24 +151,26 @@ def serialize_annotation_layers(
     all_serialized_annotations = []
     gold_annotation2id: Dict[Annotation, str] = {}
     prediction_annotation2id: Dict[Annotation, str] = {}
+    indices: Dict[str, int] = defaultdict(int)
     for layer in layers:
         serialized_annotations = []
         if gold_label_prefix is not None:
             serialized_gold_annotations, new_gold_ann2id = serialize_annotations(
                 annotations=layer,
-                label_prefix=gold_label_prefix,
+                indices=indices,
                 # gold annotations can only reference other gold annotations
                 annotation2id=gold_annotation2id,
+                label_prefix=gold_label_prefix,
             )
             serialized_annotations.extend(serialized_gold_annotations)
             gold_annotation2id.update(new_gold_ann2id)
         serialized_predicted_annotations, new_pred_ann2id = serialize_annotations(
             annotations=layer.predictions,
-            label_prefix=prediction_label_prefix,
-            first_idx=len(serialized_annotations),
+            indices=indices,
             # Predicted annotations can reference both gold and predicted annotations.
             # Note that predictions take precedence over gold annotations.
             annotation2id={**gold_annotation2id, **prediction_annotation2id},
+            label_prefix=prediction_label_prefix,
         )
         prediction_annotation2id.update(new_pred_ann2id)
         serialized_annotations.extend(serialized_predicted_annotations)
