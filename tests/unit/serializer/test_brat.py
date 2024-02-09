@@ -10,13 +10,15 @@ from pie_modules.documents import (
     TextDocumentWithLabeledSpansAndBinaryRelations,
     TokenDocumentWithLabeledSpansAndBinaryRelations,
 )
-from pytorch_ie import AnnotationLayer
+from pytorch_ie import Annotation, AnnotationLayer
 from pytorch_ie.core import Document, annotation_field
 
 from src.serializer import BratSerializer
 from src.serializer.brat import (
-    serialize_annotations,
+    serialize_annotation,
+    serialize_annotation_layers,
     serialize_binary_relation,
+    serialize_labeled_multi_span,
     serialize_labeled_span,
 )
 from src.utils import get_pylogger
@@ -36,11 +38,16 @@ def test_serialize_labeled_span():
         ]
     )
     labeled_span = document.labeled_spans[0]
-    serialized_labeled_span = serialize_labeled_span(
-        span_id="T1",
-        labeled_span=labeled_span,
+    annotation_id, serialized_annotation = serialize_annotation(
+        idx=1,
+        annotation=labeled_span,
+        annotation2id={},
     )
-    assert serialized_labeled_span == "T1\tLOCATION 15 30\tBerlin, Germany\n"
+    assert annotation_id == "T1"
+    assert serialized_annotation == "LOCATION 15 30\tBerlin, Germany\n"
+
+
+def test_serialize_labeled_multi_span():
 
     # labeled multi span
     @dataclasses.dataclass
@@ -59,26 +66,22 @@ def test_serialize_labeled_span():
         ]
     )
     labeled_multi_span = document.labeled_multi_spans[0]
-    serialized_labeled_multi_span = serialize_labeled_span(
-        span_id="T2",
-        labeled_span=labeled_multi_span,
+    annotation_id, serialized_annotation = serialize_annotation(
+        idx=2,
+        annotation=labeled_multi_span,
+        annotation2id={},
     )
-    assert serialized_labeled_multi_span == "T2\tLOCATION 15 21;23 30\tBerlin Germany\n"
+    assert annotation_id == "T2"
+    assert serialized_annotation == "LOCATION 15 21;23 30\tBerlin Germany\n"
 
-    # Unknown type
-    binary_relation = BinaryRelation(
-        head=document.labeled_multi_spans[0],
-        tail=document.labeled_multi_spans[0],
-        label="self",
-    )
+
+def test_serialize_unknown_annotation():
+
     with pytest.raises(Warning) as w:
-        serialize_labeled_span(
-            span_id="T0",
-            labeled_span=binary_relation,
-        )
+        serialize_annotation(idx=0, annotation=Annotation(), annotation2id={})
     assert (
         str(w.value)
-        == "labeled span has unknown type: <class 'pytorch_ie.annotations.BinaryRelation'>"
+        == "annotation has unknown type: <class 'pytorch_ie.core.document.Annotation'>"
     )
 
 
@@ -89,17 +92,17 @@ def test_serialize_binary_relation():
         label="lives_in",
     )
     span2id = {binary_relation.head: "T1", binary_relation.tail: "T2"}
-    serialized_binary_relation = serialize_binary_relation(
-        relation_id="R1",
-        binary_relation=binary_relation,
-        span2id=span2id,
+    annotation_id, serialized_binary_relation = serialize_binary_relation(
+        idx=1,
+        annotation=binary_relation,
+        annotation2id=span2id,
     )
-
-    assert serialized_binary_relation == "R1\tlives_in Arg1:T1 Arg2:T2\n"
+    assert annotation_id == "R1"
+    assert serialized_binary_relation == "lives_in Arg1:T1 Arg2:T2\n"
 
     # Unknown relation type
     with pytest.raises(Warning) as w:
-        serialize_binary_relation(relation_id=0, binary_relation=None, span2id={})
+        serialize_binary_relation(idx=0, annotation=None, annotation2id={})
     assert str(w.value) == "relation has unknown type: <class 'NoneType'>"
 
 
@@ -169,7 +172,7 @@ def serialized_annotations(
     gold_label_prefix=None,
     prediction_label_prefix=None,
 ):
-    return serialize_annotations(
+    return serialize_annotation_layers(
         labeled_span_layer=document.labeled_spans,
         binary_relation_layer=document.binary_relations,
         gold_label_prefix=gold_label_prefix,
@@ -182,7 +185,7 @@ def serialized_annotations(
     [(None, None), ("GOLD", None), (None, "PRED"), ("GOLD", "PRED")],
 )
 def test_serialize_annotations(document, gold_label_prefix, prediction_label_prefix):
-    serialized_annotations = serialize_annotations(
+    serialized_annotations = serialize_annotation_layers(
         labeled_span_layer=document.labeled_spans,
         binary_relation_layer=document.binary_relations,
         gold_label_prefix=gold_label_prefix,
