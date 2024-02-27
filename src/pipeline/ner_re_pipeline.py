@@ -121,6 +121,8 @@ class NerRePipeline:
         self,
         ner_model_path: str,
         re_model_path: str,
+        entity_layer: str,
+        relation_layer: str,
         device: Optional[int] = None,
         batch_size: Optional[int] = None,
         show_progress_bar: Optional[bool] = None,
@@ -129,6 +131,8 @@ class NerRePipeline:
         self.ner_model_path = ner_model_path
         self.re_model_path = re_model_path
         self.processor_kwargs = processor_kwargs or {}
+        self.entity_layer = entity_layer
+        self.relation_layer = relation_layer
         # set some values for the inference processors, if provided
         for inference_pipeline in ["ner_pipeline", "re_pipeline"]:
             if inference_pipeline not in self.processor_kwargs:
@@ -157,7 +161,7 @@ class NerRePipeline:
                 "clear_annotations": partial(
                     process_documents,
                     processor=clear_annotation_layers,
-                    layer_names=["entities", "relations"],
+                    layer_names=[self.entity_layer, self.relation_layer],
                     **self.processor_kwargs.get("clear_annotations", {}),
                 ),
                 "ner_pipeline": AutoPipeline.from_pretrained(
@@ -166,7 +170,7 @@ class NerRePipeline:
                 "use_predicted_entities": partial(
                     process_documents,
                     processor=move_annotations_from_predictions,
-                    layer_names=["entities"],
+                    layer_names=[self.entity_layer],
                     **self.processor_kwargs.get("use_predicted_entities", {}),
                 ),
                 # "create_candidate_relations": partial(
@@ -182,19 +186,19 @@ class NerRePipeline:
                 "clear_candidate_relations": partial(
                     process_documents,
                     processor=clear_annotation_layers,
-                    layer_names=["relations"],
+                    layer_names=[self.relation_layer],
                     **self.processor_kwargs.get("clear_candidate_relations", {}),
                 ),
                 "move_entities_to_predictions": partial(
                     process_documents,
                     processor=move_annotations_to_predictions,
-                    layer_names=["entities"],
+                    layer_names=[self.entity_layer],
                     **self.processor_kwargs.get("move_entities_to_predictions", {}),
                 ),
                 "re_add_gold_data": partial(
                     add_annotations_from_other_documents,
                     other_docs=documents,
-                    layer_names=["entities", "relations"],
+                    layer_names=[self.entity_layer, self.relation_layer],
                     **self.processor_kwargs.get("re_add_gold_data", {}),
                 ),
             },

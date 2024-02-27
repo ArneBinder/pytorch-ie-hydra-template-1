@@ -1,6 +1,8 @@
 _target_: src.pipeline.NerRePipeline
 ner_model_path: ???
 re_model_path: ???
+entity_layer: labeled_spans
+relation_layer: binary_relations
 
 # some settings for the ner / re inference
 show_progress_bar: true
