@@ -5,14 +5,6 @@ from pie_modules.annotations import BinaryRelation, LabeledSpan
 from pie_modules.documents import TextBasedDocument
 from pytorch_ie import AnnotationLayer
 from pytorch_ie.core import annotation_field
-from pytorch_ie.models import (
-    TransformerSpanClassificationModel,
-    TransformerTextClassificationModel,
-)
-from pytorch_ie.taskmodules import (
-    TransformerRETextClassificationTaskModule,
-    TransformerSpanClassificationTaskModule,
-)
 
 from src.pipeline.ner_re_pipeline import (
     NerRePipeline,
@@ -63,12 +55,14 @@ def document():
 @pytest.fixture
 def document_with_relations(document):
 
+    document = document.copy()
+
     document.binary_relations.predictions.extend(
         [
             BinaryRelation(
                 head=document.labeled_spans[0],
                 tail=document.labeled_spans[2],
-                label="works_at",
+                label="per:employee_of",
             ),
         ]
     )
@@ -77,13 +71,8 @@ def document_with_relations(document):
         [
             BinaryRelation(
                 head=document.labeled_spans[0],
-                tail=document.labeled_spans[1],
-                label="lives_in",
-            ),
-            BinaryRelation(
-                head=document.labeled_spans[0],
                 tail=document.labeled_spans[2],
-                label="works_at",
+                label="per:employee_of",
             ),
         ]
     )
@@ -92,126 +81,73 @@ def document_with_relations(document):
 
 
 def test_clear_annotation_layers(document):
-    new_doc = clear_annotation_layers(
-        document,
-        layer_names=["labeled_spans"],
-    )
-
     original_entities = document["labeled_spans"]
     assert len(original_entities) == 3
 
     original_predictions = document["labeled_spans"].predictions
     assert len(original_predictions) == 2
 
-    new_entities = new_doc["labeled_spans"]
+    clear_annotation_layers(
+        document,
+        layer_names=["labeled_spans"],
+    )
+
+    new_entities = document["labeled_spans"]
     assert len(new_entities) == 0
 
-    new_predictions = new_doc["labeled_spans"].predictions
-    assert len(new_predictions) == 2
+    predictions = document["labeled_spans"].predictions
+    assert len(predictions) == 2
 
     # clear predictions
-
-    new_doc = clear_annotation_layers(
+    clear_annotation_layers(
         document,
         layer_names=["labeled_spans"],
         predictions=True,
     )
 
-    new_entities = new_doc["labeled_spans"]
-    assert len(new_entities) == 3
+    new_entities = document["labeled_spans"]
+    assert len(new_entities) == 0
 
-    new_predictions = new_doc["labeled_spans"].predictions
+    new_predictions = document["labeled_spans"].predictions
     assert len(new_predictions) == 0
-
-    # clear inplace
-
-    new_doc = clear_annotation_layers(
-        document,
-        layer_names=["labeled_spans"],
-        predictions=True,
-        inplace=True,
-    )
-
-    original_entities = document["labeled_spans"]
-    assert len(original_entities) == 3
-
-    original_predictions = document["labeled_spans"].predictions
-    assert len(original_predictions) == 0
-
-    new_doc = clear_annotation_layers(
-        document,
-        layer_names=["labeled_spans"],
-        inplace=True,
-    )
-
-    original_entities = document["labeled_spans"]
-    assert len(original_entities) == 0
 
 
 def test_move_annotations_from_predictions(document):
-    new_doc = move_annotations_from_predictions(
-        document,
-        layer_names=["labeled_spans"],
-    )
-
     original_entities = document["labeled_spans"]
     assert len(original_entities) == 3
 
     original_predictions = document["labeled_spans"].predictions
     assert len(original_predictions) == 2
 
-    new_entities = new_doc["labeled_spans"]
-    assert len(new_entities) == 2
-
-    new_predictions = new_doc["labeled_spans"].predictions
-    assert len(new_predictions) == 0
-
-    # inplace
-
-    new_doc = move_annotations_from_predictions(
+    move_annotations_from_predictions(
         document,
         layer_names=["labeled_spans"],
-        inplace=True,
     )
 
-    original_entities = document["labeled_spans"]
-    assert len(original_entities) == 2
+    new_entities = document["labeled_spans"]
+    assert len(new_entities) == 2
 
-    original_predictions = document["labeled_spans"].predictions
-    assert len(original_predictions) == 0
+    new_predictions = document["labeled_spans"].predictions
+    assert len(new_predictions) == 0
 
 
 def test_move_annotations_to_predictions(document):
-    new_doc = move_annotations_to_predictions(
-        document,
-        layer_names=["labeled_spans"],
-    )
-
     original_entities = document["labeled_spans"]
     assert len(original_entities) == 3
 
     original_predictions = document["labeled_spans"].predictions
     assert len(original_predictions) == 2
 
-    new_entities = new_doc["labeled_spans"]
-    assert len(new_entities) == 0
-
-    new_predictions = new_doc["labeled_spans"].predictions
-    assert len(new_predictions) == 3
-
-    # inplace
-
-    new_doc = move_annotations_from_predictions(
+    move_annotations_to_predictions(
         document,
         layer_names=["labeled_spans"],
-        inplace=True,
     )
 
-    original_entities = document["labeled_spans"]
-    assert len(original_entities) == 2
+    new_entities = document["labeled_spans"]
+    assert len(new_entities) == 0
 
-    original_predictions = document["labeled_spans"].predictions
-    assert len(original_predictions) == 0
+    new_predictions = document["labeled_spans"].predictions
+    assert len(new_predictions) == 3
 
 
 def document_processor(document) -> TextBasedDocument:
@@ -250,81 +186,70 @@ def documents_processor(documents) -> TextBasedDocument:
     return documents
 
 
-def test_process_pipeline_steps(document):
-    docs = process_pipeline_steps(
-        documents=[document], processors={"add_span": documents_processor}
-    )
-
-    doc = docs[0]
-
-    spans = doc["labeled_spans"]
+@pytest.mark.parametrize("inplace", [True, False])
+def test_process_pipeline_steps(document, inplace):
     original_spans = document["labeled_spans"]
-    assert len(spans) == 4
     assert len(original_spans) == 3
 
     docs = process_pipeline_steps(
         documents=[document],
         processors={"add_span": documents_processor},
-        inplace=True,
+        inplace=inplace,
     )
 
-    original_spans = document["labeled_spans"]
-    assert len(original_spans) == 4
+    doc = docs[0]
+
+    if inplace:
+        original_spans = document["labeled_spans"]
+        assert len(original_spans) == 4
+    else:
+        original_spans = document["labeled_spans"]
+        assert len(original_spans) == 3
+        spans = doc["labeled_spans"]
+        assert len(spans) == 4
 
 
 def test_add_annotations_from_other_documents(document, document_with_relations):
 
     original_relations = document_with_relations["binary_relations"]
-    assert len(original_relations) == 2
+    assert len(original_relations) == 1
     original_relations_predictions = document_with_relations["binary_relations"].predictions
     assert len(original_relations_predictions) == 1
 
-    prepared_docs = add_annotations_from_other_documents(
+    add_annotations_from_other_documents(
         docs=[document], other_docs=[document_with_relations], layer_names=["binary_relations"]
     )
 
-    prepared_doc = prepared_docs[0]
-
-    relations = prepared_doc["binary_relations"]
-    assert len(relations) == 2
+    relations = document["binary_relations"]
+    assert len(relations) == 1
 
     # from predictions
 
-    prepared_docs = add_annotations_from_other_documents(
+    add_annotations_from_other_documents(
         docs=[document],
         other_docs=[document_with_relations],
         layer_names=["binary_relations"],
         from_predictions=True,
     )
 
-    prepared_doc = prepared_docs[0]
-    relations = prepared_doc["binary_relations"]
+    relations = document["binary_relations"]
     assert len(relations) == 1
+
+    assert relations[0] == document_with_relations["binary_relations"].predictions[0]
 
     # to predictions
 
-    prepared_docs = add_annotations_from_other_documents(
+    add_annotations_from_other_documents(
         docs=[document],
         other_docs=[document_with_relations],
         layer_names=["binary_relations"],
         to_predictions=True,
     )
 
-    prepared_doc = prepared_docs[0]
-    relations = prepared_doc["binary_relations"].predictions
-    assert len(relations) == 3  # adds to previously existing predictions
+    relations = document["binary_relations"].predictions
+    assert len(relations) == 1
 
-    # inplace
-
-    prepared_docs = add_annotations_from_other_documents(
-        docs=[document],
-        other_docs=[document_with_relations],
-        layer_names=["binary_relations"],
-        inplace=True,
-    )
-
-    relations = document["binary_relations"]
-    assert len(relations) == 2
+    assert relations[0] == document_with_relations["binary_relations"].predictions[0]
 
 
 @dataclasses.dataclass
@@ -333,17 +258,27 @@ class TextDocumentWithEntitiesAndRelations(TextBasedDocument):
     relations: AnnotationLayer[BinaryRelation] = annotation_field(target="entities")
 
 
-@pytest.fixture
-def old_document():
+@pytest.mark.slow
+def test_ner_re_pipeline():
+    # These imports register the respective taskmodules and models for NER and RE
+    from pytorch_ie.models import (
+        TransformerSpanClassificationModel,
+        TransformerTextClassificationModel,
+    )
+    from pytorch_ie.taskmodules import (
+        TransformerRETextClassificationTaskModule,
+        TransformerSpanClassificationTaskModule,
+    )
+
     document = TextDocumentWithEntitiesAndRelations(
         text="Harry lives in Berlin, Germany. He works at DFKI.", id="tmp"
     )
 
     document.entities.extend(
         [
-            LabeledSpan(start=0, end=5, label="PERSON"),
-            LabeledSpan(start=15, end=30, label="LOCATION"),
-            LabeledSpan(start=44, end=48, label="ORGANIZATION"),
+            LabeledSpan(start=0, end=5, label="PER"),
+            LabeledSpan(start=15, end=30, label="LOC"),
+            LabeledSpan(start=44, end=48, label="ORG"),
         ]
     )
     assert str(document.entities[0]) == "Harry"
@@ -354,22 +289,13 @@ def old_document():
         [
             BinaryRelation(
                 head=document.entities[0],
-                tail=document.entities[1],
-                label="lives_in",
-            ),
-            BinaryRelation(
-                head=document.entities[0],
                 tail=document.entities[2],
-                label="works_at",
+                label="per:employee_of",
             ),
         ]
     )
+    re_pipeline_args = {"taskmodule_kwargs": {"create_relation_candidates": True}}
 
-    return document
-
-
-@pytest.mark.slow
-def test_ner_re_pipeline(old_document):
     pipeline = NerRePipeline(
         ner_model_path="pie/example-ner-spanclf-conll03",
         re_model_path="pie/example-re-textclf-tacred",
@@ -377,14 +303,59 @@ def test_ner_re_pipeline(old_document):
         relation_layer="relations",
         device=-1,
         batch_size=1,
+        re_pipeline=re_pipeline_args,
         show_progress_bar=False,
     )
-
-    docs = pipeline(documents=[old_document])
+    docs = pipeline(documents=[document])
     assert len(docs) == 1
 
     doc = docs[0]
+
+    # gold entities and relations
+    gold_entities = doc.entities
+    assert len(gold_entities) == 3
+    gold_relations = doc.relations
+    assert len(gold_relations) == 1
+
+    # predicted entities and relations
     predicted_entities = doc.entities.predictions
     assert len(predicted_entities) == 4
+
+    assert str(predicted_entities[0]) == "Harry"
+    assert predicted_entities[0].label == "PER"
+
+    assert str(predicted_entities[1]) == "Berlin"
+    assert predicted_entities[1].label == "LOC"
+
+    assert str(predicted_entities[2]) == "Germany"
+    assert predicted_entities[2].label == "LOC"
+
+    assert str(predicted_entities[3]) == "DFKI"
+    assert predicted_entities[3].label == "ORG"
+
     predicted_relations = doc.relations.predictions
-    assert len(predicted_relations) == 0
+    assert len(predicted_relations) == 6
+
+    assert str(predicted_relations[0].head) == "Harry"
+    assert str(predicted_relations[0].tail) == "Berlin"
+    assert predicted_relations[0].label == "per:cities_of_residence"
+
+    assert str(predicted_relations[1].head) == "Harry"
+    assert str(predicted_relations[1].tail) == "Germany"
+    assert predicted_relations[1].label == "per:countries_of_residence"
+
+    assert str(predicted_relations[2].head) == "Harry"
+    assert str(predicted_relations[2].tail) == "DFKI"
+    assert predicted_relations[2].label == "per:employee_of"
+
+    assert str(predicted_relations[3].head) == "Berlin"
+    assert str(predicted_relations[3].tail) == "Harry"
+    assert predicted_relations[3].label == "per:cities_of_residence"
+
+    assert str(predicted_relations[4].head) == "Germany"
+    assert str(predicted_relations[4].tail) == "Harry"
+    assert predicted_relations[4].label == "per:countries_of_residence"
+
+    assert str(predicted_relations[5].head) == "DFKI"
+    assert str(predicted_relations[5].tail) == "Harry"
+    assert predicted_relations[5].label == "per:employee_of"
