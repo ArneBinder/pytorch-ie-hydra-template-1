@@ -13,22 +13,15 @@ logger = logging.getLogger(__name__)
 D = TypeVar("D", bound=Document)
 
 
-def clear_annotation_layers(
-    doc: D, layer_names: List[str], predictions: bool = False, inplace: bool = False
-) -> D:
-    if not inplace:
-        doc = type(doc).fromdict(doc.asdict())
+def clear_annotation_layers(doc: D, layer_names: List[str], predictions: bool = False) -> None:
     for layer_name in layer_names:
         if predictions:
             doc[layer_name].predictions.clear()
         else:
             doc[layer_name].clear()
-    return doc
 
 
-def move_annotations_from_predictions(doc: D, layer_names: List[str], inplace: bool = False) -> D:
-    if not inplace:
-        doc = type(doc).fromdict(doc.asdict())
+def move_annotations_from_predictions(doc: D, layer_names: List[str]) -> None:
     for layer_name in layer_names:
         annotations = list(doc[layer_name].predictions)
         # remove any previous annotations
@@ -36,12 +29,9 @@ def move_annotations_from_predictions(doc: D, layer_names: List[str], inplace: b
         # each annotation can be attached to just one annotation container, so we need to clear the predictions
         doc[layer_name].predictions.clear()
         doc[layer_name].extend(annotations)
-    return doc
 
 
-def move_annotations_to_predictions(doc: D, layer_names: List[str], inplace: bool = False) -> D:
-    if not inplace:
-        doc = type(doc).fromdict(doc.asdict())
+def move_annotations_to_predictions(doc: D, layer_names: List[str]) -> None:
     for layer_name in layer_names:
         annotations = list(doc[layer_name])
         # each annotation can be attached to just one annotation container, so we need to clear the layer
@@ -49,7 +39,6 @@ def move_annotations_to_predictions(doc: D, layer_names: List[str], inplace: boo
         # remove any previous annotations
         doc[layer_name].predictions.clear()
         doc[layer_name].predictions.extend(annotations)
-    return doc
 
 
 def add_annotations_from_other_documents(
@@ -59,12 +48,8 @@ def add_annotations_from_other_documents(
     from_predictions: bool = False,
     to_predictions: bool = False,
     clear_before: bool = True,
-    inplace: bool = False,
-) -> List[D]:
-    prepared_documents = []
+) -> None:
     for i, doc in enumerate(docs):
-        if not inplace:
-            doc = type(doc).fromdict(doc.asdict())
         other_doc = other_docs[i]
         # copy to not modify the input
         other_doc = type(other_doc).fromdict(other_doc.asdict())
@@ -81,8 +66,6 @@ def add_annotations_from_other_documents(
                 doc[layer_name].predictions.extend(other_annotations)
             else:
                 doc[layer_name].extend(other_annotations)
-        prepared_documents.append(doc)
-    return prepared_documents
 
 
 def process_pipeline_steps(
@@ -152,11 +135,10 @@ class NerRePipeline:
 
     def __call__(self, documents: Sequence[Document], inplace: bool = False):
 
-        if not inplace:
-            documents = [type(doc).fromdict(doc.asdict()) for doc in documents]
+        docs = [type(doc).fromdict(doc.asdict()) for doc in documents]
 
         docs_with_predictions = process_pipeline_steps(
-            documents=documents,
+            documents=docs,
             processors={
                 "clear_annotations": partial(
                     process_documents,
@@ -202,5 +184,6 @@ class NerRePipeline:
                     **self.processor_kwargs.get("re_add_gold_data", {}),
                 ),
             },
+            inplace=inplace,
         )
         return docs_with_predictions
