@@ -12,5 +12,3 @@ ner_pipeline:
   batch_size: 1
 re_pipeline:
   batch_size: 1
-  taskmodule_kwargs:
-    create_relation_candidates: True
