@@ -14,23 +14,23 @@ from typing import Any, Dict, Iterator, List, Optional, Sequence, Set, Tuple, Ty
 
 import torch
 import torch.nn.functional as F
+from pie_modules.annotations import LabeledSpan
 from pie_modules.document.processing import token_based_document_to_text_based, tokenize_document
-from pytorch_ie import AnnotationLayer, annotation_field
-from pytorch_ie.annotations import LabeledSpan
-from pytorch_ie.core import TaskEncoding, TaskModule
-from pytorch_ie.documents import (
-    TextDocument,
+from pie_modules.documents import (
     TextDocumentWithLabeledSpans,
     TextDocumentWithLabeledSpansAndLabeledPartitions,
     TokenBasedDocument,
 )
+from pytorch_ie import AnnotationLayer, annotation_field
+from pytorch_ie.core import TaskEncoding, TaskModule
+from pytorch_ie.documents import TextBasedDocument
 from pytorch_ie.models.transformer_token_classification import ModelOutputType, ModelStepInputType
 from pytorch_ie.utils.span import bio_tags_to_spans
 from tokenizers import Encoding
 from transformers import AutoTokenizer
 from typing_extensions import TypeAlias
 
-DocumentType: TypeAlias = TextDocument
+DocumentType: TypeAlias = TextBasedDocument
 
 InputEncodingType: TypeAlias = Encoding
 TargetEncodingType: TypeAlias = Sequence[int]
@@ -152,8 +152,8 @@ class MyTokenClassificationTaskModule(TaskModuleType):
         self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name_or_path)
 
     @property
-    def document_type(self) -> Optional[Type[TextDocument]]:
-        dt: Type[TextDocument]
+    def document_type(self) -> Optional[Type[TextBasedDocument]]:
+        dt: Type[TextBasedDocument]
         errors = []
         if self.span_annotation != "labeled_spans":
             errors.append(
@@ -207,7 +207,7 @@ class MyTokenClassificationTaskModule(TaskModuleType):
 
     def encode_input(
         self,
-        document: TextDocument,
+        document: TextBasedDocument,
     ) -> Optional[Union[TaskEncodingType, Sequence[TaskEncodingType]]]:
         if self.partition_annotation is None:
             tokenized_document_type = TokenDocumentWithLabeledSpans
