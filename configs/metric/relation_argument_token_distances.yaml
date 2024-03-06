@@ -1,0 +1,15 @@
+# example call:
+# python src/evaluate_documents.py dataset=argmicro_prepared metric=relation_argument_token_distances
+
+_target_: pie_modules.metrics.RelationArgumentDistanceCollector
+title: Relation argument (outer) token distances
+layer: binary_relations
+distance_type: outer
+tokenize: true
+tokenizer: bert-base-uncased
+# tokenize_kwargs:
+#   strict_span_conversion: false
+tokenized_document_type: pie_modules.documents.TokenDocumentWithLabeledSpansAndBinaryRelations
+show_histogram: true
+show_as_markdown: true
+document_type: pie_modules.documents.TextDocumentWithLabeledSpansAndBinaryRelations
