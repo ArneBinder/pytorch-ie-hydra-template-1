@@ -2,15 +2,15 @@ from dataclasses import dataclass
 
 import pytest
 from pie_datasets import DatasetDict
-from pytorch_ie.annotations import BinaryRelation, LabeledSpan
+from pie_modules.annotations import BinaryRelation, LabeledSpan
 from pytorch_ie.core import AnnotationList, annotation_field
-from pytorch_ie.documents import TextDocument
+from pytorch_ie.documents import TextBasedDocument
 
 from src.serializer import JsonSerializer
 
 
 @dataclass
-class ExampleDocument(TextDocument):
+class ExampleDocument(TextBasedDocument):
     entities: AnnotationList[LabeledSpan] = annotation_field(target="text")
     relations: AnnotationList[BinaryRelation] = annotation_field(target="entities")
 

@@ -6,4 +6,4 @@ title: span lengths (characters)
 layer: labeled_spans
 show_histogram: true
 show_as_markdown: true
-document_type: pytorch_ie.documents.TextDocumentWithLabeledSpans
+document_type: pie_modules.documents.TextDocumentWithLabeledSpans

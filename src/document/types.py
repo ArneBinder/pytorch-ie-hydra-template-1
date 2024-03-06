@@ -1,9 +1,9 @@
 import dataclasses
 from typing import Optional
 
-from pytorch_ie.annotations import BinaryRelation, LabeledSpan
+from pie_modules.annotations import LabeledSpan
 from pytorch_ie.core import Annotation, AnnotationList, annotation_field
-from pytorch_ie.documents import TextBasedDocument, TokenBasedDocument
+from pytorch_ie.documents import TextBasedDocument
 
 # =========================== Annotation Types ============================= #
 
@@ -40,20 +40,3 @@ class Attribute(Annotation):
 class TextDocumentWithLabeledEntitiesAndEntityAttributes(TextBasedDocument):
     entities: AnnotationList[LabeledSpan] = annotation_field(target="text")
     entity_attributes: AnnotationList[Attribute] = annotation_field(target="entities")
-
-
-@dataclasses.dataclass
-class TokenDocumentWithLabeledSpans(TokenBasedDocument):
-    labeled_spans: AnnotationList[LabeledSpan] = annotation_field(target="tokens")
-
-
-@dataclasses.dataclass
-class TokenDocumentWithLabeledSpansAndBinaryRelations(TokenDocumentWithLabeledSpans):
-    binary_relations: AnnotationList[BinaryRelation] = annotation_field(target="labeled_spans")
-
-
-@dataclasses.dataclass
-class TokenDocumentWithLabeledSpansBinaryRelationsAndLabeledPartitions(
-    TokenDocumentWithLabeledSpansAndBinaryRelations
-):
-    labeled_partitions: AnnotationList[LabeledSpan] = annotation_field(target="tokens")

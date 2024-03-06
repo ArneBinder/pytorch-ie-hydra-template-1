@@ -4,12 +4,12 @@ import datasets
 from pie_datasets import GeneratorBasedBuilder
 from pytorch_ie.annotations import LabeledSpan
 from pytorch_ie.core import AnnotationList, annotation_field
-from pytorch_ie.documents import TextDocument, TextDocumentWithLabeledSpans
+from pytorch_ie.documents import TextBasedDocument, TextDocumentWithLabeledSpans
 from pytorch_ie.utils.span import tokens_and_tags_to_text_and_labeled_spans
 
 
 @dataclass
-class CoNLL2003Document(TextDocument):
+class CoNLL2003Document(TextBasedDocument):
     entities: AnnotationList[LabeledSpan] = annotation_field(target="text")
 
 
