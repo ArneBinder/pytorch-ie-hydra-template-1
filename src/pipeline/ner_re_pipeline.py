@@ -13,22 +13,15 @@ logger = logging.getLogger(__name__)
 D = TypeVar("D", bound=Document)
 
 
-def clear_annotation_layers(
-    doc: D, layer_names: List[str], predictions: bool = False, inplace: bool = False
-) -> D:
-    if not inplace:
-        doc = type(doc).fromdict(doc.asdict())
+def clear_annotation_layers(doc: D, layer_names: List[str], predictions: bool = False) -> None:
     for layer_name in layer_names:
         if predictions:
             doc[layer_name].predictions.clear()
         else:
             doc[layer_name].clear()
-    return doc
 
 
-def move_annotations_from_predictions(doc: D, layer_names: List[str], inplace: bool = False) -> D:
-    if not inplace:
-        doc = type(doc).fromdict(doc.asdict())
+def move_annotations_from_predictions(doc: D, layer_names: List[str]) -> None:
     for layer_name in layer_names:
         annotations = list(doc[layer_name].predictions)
         # remove any previous annotations
@@ -36,12 +29,9 @@ def move_annotations_from_predictions(doc: D, layer_names: List[str], inplace: b
         # each annotation can be attached to just one annotation container, so we need to clear the predictions
         doc[layer_name].predictions.clear()
         doc[layer_name].extend(annotations)
-    return doc
 
 
-def move_annotations_to_predictions(doc: D, layer_names: List[str], inplace: bool = False) -> D:
-    if not inplace:
-        doc = type(doc).fromdict(doc.asdict())
+def move_annotations_to_predictions(doc: D, layer_names: List[str]) -> None:
     for layer_name in layer_names:
         annotations = list(doc[layer_name])
         # each annotation can be attached to just one annotation container, so we need to clear the layer
@@ -49,7 +39,6 @@ def move_annotations_to_predictions(doc: D, layer_names: List[str], inplace: boo
         # remove any previous annotations
         doc[layer_name].predictions.clear()
         doc[layer_name].predictions.extend(annotations)
-    return doc
 
 
 def add_annotations_from_other_documents(
@@ -59,12 +48,8 @@ def add_annotations_from_other_documents(
     from_predictions: bool = False,
     to_predictions: bool = False,
     clear_before: bool = True,
-    inplace: bool = False,
-) -> List[D]:
-    prepared_documents = []
+) -> None:
     for i, doc in enumerate(docs):
-        if not inplace:
-            doc = type(doc).fromdict(doc.asdict())
         other_doc = other_docs[i]
         # copy to not modify the input
         other_doc = type(other_doc).fromdict(other_doc.asdict())
@@ -81,21 +66,16 @@ def add_annotations_from_other_documents(
                 doc[layer_name].predictions.extend(other_annotations)
             else:
                 doc[layer_name].extend(other_annotations)
-        prepared_documents.append(doc)
-    return prepared_documents
 
 
 def process_pipeline_steps(
     documents: Sequence[Document],
-    processors: Dict[str, Callable[[Document], Optional[Document]]],
-    inplace: bool = False,
-):
-    if not inplace:
-        documents = [type(doc).fromdict(doc.asdict()) for doc in documents]
+    processors: Dict[str, Callable[[Sequence[Document]], Optional[Sequence[Document]]]],
+) -> Sequence[Document]:
 
-    # do the actual inference
+    # call the processors in the order they are provided
     for step_name, processor in processors.items():
-        print(f"process {step_name} ...")
+        logger.info(f"process {step_name} ...")
         processed_documents = processor(documents)
         if processed_documents is not None:
             documents = processed_documents
@@ -121,6 +101,8 @@ class NerRePipeline:
         self,
         ner_model_path: str,
         re_model_path: str,
+        entity_layer: str,
+        relation_layer: str,
         device: Optional[int] = None,
         batch_size: Optional[int] = None,
         show_progress_bar: Optional[bool] = None,
@@ -129,6 +111,8 @@ class NerRePipeline:
         self.ner_model_path = ner_model_path
         self.re_model_path = re_model_path
         self.processor_kwargs = processor_kwargs or {}
+        self.entity_layer = entity_layer
+        self.relation_layer = relation_layer
         # set some values for the inference processors, if provided
         for inference_pipeline in ["ner_pipeline", "re_pipeline"]:
             if inference_pipeline not in self.processor_kwargs:
@@ -146,18 +130,25 @@ class NerRePipeline:
             ):
                 self.processor_kwargs[inference_pipeline]["show_progress_bar"] = show_progress_bar
 
-    def __call__(self, documents: Sequence[Document], inplace: bool = False):
+    def __call__(self, documents: Sequence[Document], inplace: bool = False) -> Sequence[Document]:
 
-        if not inplace:
-            documents = [type(doc).fromdict(doc.asdict()) for doc in documents]
+        input_docs: Sequence[Document]
+        # we need to keep the original documents to add the gold data back
+        original_docs: Sequence[Document]
+        if inplace:
+            input_docs = documents
+            original_docs = [doc.copy() for doc in documents]
+        else:
+            input_docs = [doc.copy() for doc in documents]
+            original_docs = documents
 
         docs_with_predictions = process_pipeline_steps(
-            documents=documents,
+            documents=input_docs,
             processors={
                 "clear_annotations": partial(
                     process_documents,
                     processor=clear_annotation_layers,
-                    layer_names=["entities", "relations"],
+                    layer_names=[self.entity_layer, self.relation_layer],
                     **self.processor_kwargs.get("clear_annotations", {}),
                 ),
                 "ner_pipeline": AutoPipeline.from_pretrained(
@@ -166,7 +157,7 @@ class NerRePipeline:
                 "use_predicted_entities": partial(
                     process_documents,
                     processor=move_annotations_from_predictions,
-                    layer_names=["entities"],
+                    layer_names=[self.entity_layer],
                     **self.processor_kwargs.get("use_predicted_entities", {}),
                 ),
                 # "create_candidate_relations": partial(
@@ -182,19 +173,19 @@ class NerRePipeline:
                 "clear_candidate_relations": partial(
                     process_documents,
                     processor=clear_annotation_layers,
-                    layer_names=["relations"],
+                    layer_names=[self.relation_layer],
                     **self.processor_kwargs.get("clear_candidate_relations", {}),
                 ),
                 "move_entities_to_predictions": partial(
                     process_documents,
                     processor=move_annotations_to_predictions,
-                    layer_names=["entities"],
+                    layer_names=[self.entity_layer],
                     **self.processor_kwargs.get("move_entities_to_predictions", {}),
                 ),
                 "re_add_gold_data": partial(
                     add_annotations_from_other_documents,
-                    other_docs=documents,
-                    layer_names=["entities", "relations"],
+                    other_docs=original_docs,
+                    layer_names=[self.entity_layer, self.relation_layer],
                     **self.processor_kwargs.get("re_add_gold_data", {}),
                 ),
             },
