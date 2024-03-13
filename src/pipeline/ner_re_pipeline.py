@@ -70,15 +70,12 @@ def add_annotations_from_other_documents(
 
 def process_pipeline_steps(
     documents: Sequence[Document],
-    processors: Dict[str, Callable[[Document], Optional[Document]]],
-    inplace: bool = False,
-):
-    if not inplace:
-        documents = [type(doc).fromdict(doc.asdict()) for doc in documents]
+    processors: Dict[str, Callable[[Sequence[Document]], Optional[Sequence[Document]]]],
+) -> Sequence[Document]:
 
-    # do the actual inference
+    # call the processors in the order they are provided
     for step_name, processor in processors.items():
-        print(f"process {step_name} ...")
+        logger.info(f"process {step_name} ...")
         processed_documents = processor(documents)
         if processed_documents is not None:
             documents = processed_documents
@@ -133,12 +130,20 @@ class NerRePipeline:
             ):
                 self.processor_kwargs[inference_pipeline]["show_progress_bar"] = show_progress_bar
 
-    def __call__(self, documents: Sequence[Document], inplace: bool = False):
+    def __call__(self, documents: Sequence[Document], inplace: bool = False) -> Sequence[Document]:
 
-        docs = [type(doc).fromdict(doc.asdict()) for doc in documents]
+        input_docs: Sequence[Document]
+        # we need to keep the original documents to add the gold data back
+        original_docs: Sequence[Document]
+        if inplace:
+            input_docs = documents
+            original_docs = [doc.copy() for doc in documents]
+        else:
+            input_docs = [doc.copy() for doc in documents]
+            original_docs = documents
 
         docs_with_predictions = process_pipeline_steps(
-            documents=docs,
+            documents=input_docs,
             processors={
                 "clear_annotations": partial(
                     process_documents,
@@ -179,11 +184,10 @@ class NerRePipeline:
                 ),
                 "re_add_gold_data": partial(
                     add_annotations_from_other_documents,
-                    other_docs=documents,
+                    other_docs=original_docs,
                     layer_names=[self.entity_layer, self.relation_layer],
                     **self.processor_kwargs.get("re_add_gold_data", {}),
                 ),
             },
-            inplace=inplace,
         )
         return docs_with_predictions

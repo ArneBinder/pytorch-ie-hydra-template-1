@@ -186,27 +186,17 @@ def documents_processor(documents) -> TextBasedDocument:
     return documents
 
 
-@pytest.mark.parametrize("inplace", [True, False])
-def test_process_pipeline_steps(document, inplace):
+def test_process_pipeline_steps(document):
     original_spans = document["labeled_spans"]
     assert len(original_spans) == 3
 
-    docs = process_pipeline_steps(
+    process_pipeline_steps(
         documents=[document],
         processors={"add_span": documents_processor},
-        inplace=inplace,
     )
 
-    doc = docs[0]
-
-    if inplace:
-        original_spans = document["labeled_spans"]
-        assert len(original_spans) == 4
-    else:
-        original_spans = document["labeled_spans"]
-        assert len(original_spans) == 3
-        spans = doc["labeled_spans"]
-        assert len(spans) == 4
+    original_spans = document["labeled_spans"]
+    assert len(original_spans) == 4
 
 
 def test_add_annotations_from_other_documents(document, document_with_relations):
@@ -309,7 +299,7 @@ def test_ner_re_pipeline():
     docs = pipeline(documents=[document])
     assert len(docs) == 1
 
-    doc = docs[0]
+    doc: TextDocumentWithEntitiesAndRelations = docs[0]
 
     # gold entities and relations
     gold_entities = doc.entities
