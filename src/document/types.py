@@ -22,10 +22,9 @@ class Attribute(Annotation):
             raise ValueError("score must be a single float.")
 
     def __str__(self) -> str:
-        if self.target is not None:
-            result = f"label={self.label},annotation={self.annotation}"
-        else:
-            result = f"label={self.label}"
+        result = f"label={self.label}"
+        if self.is_attached:
+            result += f",annotation={self.annotation}"
         if self.type is not None:
             result += f",type={self.type}"
         if self.score is not None:
