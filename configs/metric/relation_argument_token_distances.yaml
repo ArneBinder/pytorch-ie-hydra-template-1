@@ -2,7 +2,7 @@
 # python src/evaluate_documents.py dataset=argmicro_prepared metric=relation_argument_token_distances
 
 _target_: pie_modules.metrics.RelationArgumentDistanceCollector
-title: Relation argument (outer) token distances
+title: Relation argument (${metric.distance_type}) token distances
 layer: binary_relations
 distance_type: outer
 tokenize: true
