@@ -1,0 +1,10 @@
+# Note: This requires documents to be of type pytorch_ie.documents.TextDocumentWithLabeledPartitions, so it
+#  may be necessary to convert the documents first, e.g. by using _convert_documents.yaml with a respective
+#  document_type (e.g. pytorch_ie.documents.TextDocumentWithLabeledSpansBinaryRelationsAndLabeledPartitions).
+
+add_sentences:
+  _processor_: pie_datasets.DatasetDict.map
+  function:
+    # see this for further information and options:
+    # https://github.com/ArneBinder/pie-datasets/blob/main/src/pie_datasets/document/processing/nltk_sentence_splitter.py
+    _target_: pie_modules.document.processing.NltkSentenceSplitter
