@@ -1,4 +1,5 @@
 import pyrootutils
+from pytorch_ie import AutoModel
 
 root = pyrootutils.setup_root(
     search_from=__file__,
@@ -40,7 +41,9 @@ import hydra
 import pytorch_lightning as pl
 from omegaconf import DictConfig
 from pie_datasets import DatasetDict
+from pie_modules.models import *  # noqa: F403
 from pie_modules.models.interface import RequiresTaskmoduleConfig
+from pie_modules.taskmodules import *  # noqa: F403
 from pytorch_ie.core import PyTorchIEModel, TaskModule
 from pytorch_ie.models import *  # noqa: F403
 from pytorch_ie.models.interface import RequiresModelNameOrPath, RequiresNumClasses
@@ -140,8 +143,27 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
 
     # initialize the model
     model: PyTorchIEModel = hydra.utils.instantiate(
-        cfg.model, _convert_="partial", **additional_model_kwargs
+        cfg.model,
+        _convert_="partial",
+        is_from_pretrained=cfg.get("pretrained_pie_model_path", None) is not None,
+        **additional_model_kwargs,
     )
+
+    if "pretrained_pie_model_path" in cfg:
+        pie_model = AutoModel.from_pretrained(cfg["pretrained_pie_model_path"])
+        loaded_state_dict = pie_model.state_dict()
+        if "pretrained_pie_model_prefix_mapping" in cfg:
+            state_dict_to_load = {}
+            for prefix_from, prefix_to in cfg["pretrained_pie_model_prefix_mapping"].items():
+                for name, value in loaded_state_dict.items():
+                    if name.startswith(prefix_from):
+                        new_name = prefix_to + name[len(prefix_from) :]
+                        state_dict_to_load[new_name] = value
+        else:
+            state_dict_to_load = loaded_state_dict
+        model.load_state_dict(
+            state_dict_to_load, strict=("pretrained_pie_model_prefix_mapping" not in cfg)
+        )
 
     log.info("Instantiating callbacks...")
     callbacks: List[Callback] = utils.instantiate_dict_entries(cfg, key="callbacks")

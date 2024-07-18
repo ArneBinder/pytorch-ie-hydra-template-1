@@ -61,6 +61,9 @@ monitor_mode: "max"
 # seed for random number generators in pytorch, numpy and python.random
 seed: null
 
+# path to pretrained pytorch-ie model that updates the weights of base model with pretrained pie model
+pretrained_pie_model_path: null
+
 # simply provide checkpoint path to resume training
 ckpt_path: null
 
