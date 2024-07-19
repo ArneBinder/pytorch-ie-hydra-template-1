@@ -145,6 +145,7 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
     model: PyTorchIEModel = hydra.utils.instantiate(
         cfg.model,
         _convert_="partial",
+        # In the case of loading weights from a pretrained PIE model, we do not need to download the base (transformer) model in the model constructors. We disable that by passing is_from_pretrained=True in these cases.
         is_from_pretrained=cfg.get("pretrained_pie_model_path", None) is not None,
         **additional_model_kwargs,
     )
