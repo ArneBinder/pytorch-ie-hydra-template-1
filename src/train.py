@@ -1,5 +1,4 @@
 import pyrootutils
-from pytorch_ie import AutoModel
 
 root = pyrootutils.setup_root(
     search_from=__file__,
@@ -44,6 +43,7 @@ from pie_datasets import DatasetDict
 from pie_modules.models import *  # noqa: F403
 from pie_modules.models.interface import RequiresTaskmoduleConfig
 from pie_modules.taskmodules import *  # noqa: F403
+from pytorch_ie import AutoModel
 from pytorch_ie.core import PyTorchIEModel, TaskModule
 from pytorch_ie.models import *  # noqa: F403
 from pytorch_ie.models.interface import RequiresModelNameOrPath, RequiresNumClasses
@@ -149,10 +149,11 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
         **additional_model_kwargs,
     )
 
-    if "pretrained_pie_model_path" in cfg:
+    if cfg.get("pretrained_pie_model_path", None) is not None:
         pie_model = AutoModel.from_pretrained(cfg["pretrained_pie_model_path"])
         loaded_state_dict = pie_model.state_dict()
-        if "pretrained_pie_model_prefix_mapping" in cfg:
+        has_prefix_mapping = cfg.get("pretrained_pie_model_prefix_mapping", None) is not None
+        if has_prefix_mapping:
             state_dict_to_load = {}
             for prefix_from, prefix_to in cfg["pretrained_pie_model_prefix_mapping"].items():
                 for name, value in loaded_state_dict.items():
@@ -161,9 +162,7 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
                         state_dict_to_load[new_name] = value
         else:
             state_dict_to_load = loaded_state_dict
-        model.load_state_dict(
-            state_dict_to_load, strict=("pretrained_pie_model_prefix_mapping" not in cfg)
-        )
+        model.load_state_dict(state_dict_to_load, strict=not has_prefix_mapping)
 
     log.info("Instantiating callbacks...")
     callbacks: List[Callback] = utils.instantiate_dict_entries(cfg, key="callbacks")
