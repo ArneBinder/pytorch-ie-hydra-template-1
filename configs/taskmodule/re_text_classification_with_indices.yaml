@@ -1,0 +1,7 @@
+_target_: pie_modules.taskmodules.RETextClassificationWithIndicesTaskModule
+tokenizer_name_or_path: ???
+
+## Long sequence handling
+max_window: ??? # Maximum sequence length, depends on the model (e.g. 512 for BERT)
+
+# see the actual model implementation for all available options and defaults

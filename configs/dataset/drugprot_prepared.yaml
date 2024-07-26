@@ -1,0 +1,7 @@
+defaults:
+  - drugprot_base
+  - _convert_documents
+  - _add_sentences
+
+convert_documents:
+  document_type: pytorch_ie.documents.TextDocumentWithLabeledSpansBinaryRelationsAndLabeledPartitions
