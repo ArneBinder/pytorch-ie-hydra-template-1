@@ -1,0 +1,6 @@
+_target_: src.utils.execute_pipeline
+input:
+  _target_: pie_datasets.DatasetDict.load_dataset
+  path: pie/drugprot
+  name: drugprot_source
+  revision: d0a3f1183bb793f81350c8b5fb56743d7af29d8d

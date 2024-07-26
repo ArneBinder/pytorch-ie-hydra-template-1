@@ -1,0 +1,69 @@
+# @package _global_
+
+# This setup is based on:
+#   Leon Weber, Mario Sänger, Samuele Garda, Fabio Barth, Christoph Alt, Ulf Leser,
+#   Chemical–protein relation extraction with ensembles of carefully tuned pretrained
+#   language models, Database, Volume 2022, 2022, baac098, https://doi.org/10.1093/database/baac098
+# i.e. https://academic.oup.com/database/article/doi/10.1093/database/baac098/6833204
+#
+# The only differences (to our knowledge) are:
+# - we use NLTK sentence splitter instead of FlairSegtokSentenceSplitter, and
+# - we use a different base model (RoBERTa-base). You can use the original model by downloading
+#   RoBERTa-base-PM-M3-Voc-hf from https://github.com/facebookresearch/bio-lm?tab=readme-ov-file#models
+#   and setting base_model_name to the path where you downloaded the model.
+
+# To test this config and execute a debug run (one batch only), call:
+#   python src/train.py experiment=drugprot +trainer.fast_dev_run=true
+
+# To execute the full training run, call:
+#   python src/train.py experiment=drugprot
+
+# Imports all configurations from the specified files (the file extension .yaml can be omitted)
+defaults:
+  - override /dataset: drugprot_prepared
+  - override /datamodule: default
+  - override /taskmodule: re_text_classification_with_indices
+  - override /model: sequence_classification_with_pooler
+  - override /callbacks: default
+  # this requires Weights & Biases (wandb package) to be installed
+  - override /logger: wandb
+  - override /trainer: default
+
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+
+# name of the run determines folder name in logs
+name: "drugprot/re_text_classification_with_indices"
+
+base_model_name: "FacebookAI/roberta-base"
+
+tags: ["dataset=drugprot", "model=sequence_classification_with_pooler"]
+
+seed: 12345
+
+monitor_metric: metric/micro/f1/val
+
+trainer:
+  min_epochs: 3
+  max_epochs: 3
+  # gradient_clip_val: 0.5
+
+datamodule:
+  batch_size: 32
+  num_workers: 8
+
+taskmodule:
+  # overwrite default values of the taskmodule (see taskmodule/re_text_classification_with_indices.yaml)
+  max_window: 256
+  add_type_to_marker: false
+  tokenizer_name_or_path: ${base_model_name}
+  add_candidate_relations: true
+  partition_annotation: labeled_partitions
+  collect_statistics: true
+
+model:
+  # overwrite default values of the model (see model/sequence_classification_with_pooler.yaml)
+  learning_rate: 3e-5
+  task_learning_rate: 3e-5
+  model_name_or_path: ${base_model_name}
+  warmup_proportion: 0.1
