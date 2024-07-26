@@ -13,7 +13,7 @@
 #   and setting base_model_name to the path where you downloaded the model.
 
 # To test this config and execute a debug run (one batch only), call:
-#   python src/train.py experiment=drugprot +train.fast_dev_run=true
+#   python src/train.py experiment=drugprot +trainer.fast_dev_run=true
 
 # To execute the full training run, call:
 #   python src/train.py experiment=drugprot
