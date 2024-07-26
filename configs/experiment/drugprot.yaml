@@ -12,7 +12,10 @@
 #   RoBERTa-base-PM-M3-Voc-hf from https://github.com/facebookresearch/bio-lm?tab=readme-ov-file#models
 #   and setting base_model_name to the path where you downloaded the model.
 
-# To execute this experiment run:
+# To test this config and execute a debug run (one batch only), call:
+#   python src/train.py experiment=drugprot +train.fast_dev_run=true
+
+# To execute the full training run, call:
 #   python src/train.py experiment=drugprot
 
 # Imports all configurations from the specified files (the file extension .yaml can be omitted)
