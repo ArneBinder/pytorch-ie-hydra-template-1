@@ -175,7 +175,7 @@ def test_serialize_annotations(document, gold_label_prefix, prediction_label_pre
         prediction_label_prefix=prediction_label_prefix,
     )
 
-    if gold_label_prefix == "GOLD" and prediction_label_prefix == "PRED":
+    if gold_label_prefix is not None and prediction_label_prefix is not None:
         assert len(serialized_annotations) == 8
         assert serialized_annotations == [
             "T0\tGOLD-PERSON 0 5\tHarry\n",
@@ -187,7 +187,7 @@ def test_serialize_annotations(document, gold_label_prefix, prediction_label_pre
             "R1\tGOLD-works_at Arg1:T0 Arg2:T2\n",
             "R2\tPRED-works_at Arg1:T3 Arg2:T4\n",
         ]
-    elif gold_label_prefix == "GOLD" and prediction_label_prefix is None:
+    elif gold_label_prefix is not None and prediction_label_prefix is None:
         assert len(serialized_annotations) == 8
         assert serialized_annotations == [
             "T0\tGOLD-PERSON 0 5\tHarry\n",
@@ -199,7 +199,7 @@ def test_serialize_annotations(document, gold_label_prefix, prediction_label_pre
             "R1\tGOLD-works_at Arg1:T0 Arg2:T2\n",
             "R2\tworks_at Arg1:T3 Arg2:T4\n",
         ]
-    elif gold_label_prefix is None and prediction_label_prefix == "PRED":
+    elif gold_label_prefix is None and prediction_label_prefix is not None:
         assert len(serialized_annotations) == 3
         assert serialized_annotations == [
             "T0\tPRED-PERSON 0 5\tHarry\n",
