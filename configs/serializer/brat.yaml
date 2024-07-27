@@ -1,4 +1,4 @@
-_target_: src.serializer.JsonSerializer
+_target_: src.serializer.BratSerializer
 path: ${prediction_save_dir}
 split: ${dataset_split}
 
