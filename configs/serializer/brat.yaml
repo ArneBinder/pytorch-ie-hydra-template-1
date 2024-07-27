@@ -1,0 +1,11 @@
+_target_: src.serializer.JsonSerializer
+path: ${prediction_save_dir}
+split: ${dataset_split}
+
+# this needs to be a mapping from annotation layer names
+# to what to serialize, i.e. "gold", "prediction", or "both".
+# For example:
+# layers:
+#   labeled_spans: gold
+#   binary_relations: prediction
+layers: ???
