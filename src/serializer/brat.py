@@ -132,14 +132,15 @@ def serialize_annotations(
 
 
 def serialize_annotation_layers(
-    layers: List[AnnotationLayer],
+    layers: List[Tuple[AnnotationLayer, str]],
     gold_label_prefix: Optional[str] = None,
     prediction_label_prefix: Optional[str] = None,
 ) -> List[str]:
     """Serialize annotations from given annotation layers into a list of strings.
 
     Args:
-        layers (List[AnnotationLayer]): Annotation layers to be serialized.
+        layers (List[Tuple[AnnotationLayer, str]]): Annotation layers to be serialized and what
+            should be serialized, i.e. "gold", "prediction", or "both".
         gold_label_prefix (Optional[str], optional): Prefix to be added to gold labels.
             Defaults to None.
         prediction_label_prefix (Optional[str], optional): Prefix to be added to prediction labels.
@@ -152,9 +153,24 @@ def serialize_annotation_layers(
     gold_annotation2id: Dict[Annotation, str] = {}
     prediction_annotation2id: Dict[Annotation, str] = {}
     indices: Dict[str, int] = defaultdict(int)
-    for layer in layers:
+    for layer, what in layers:
+        if what not in ["gold", "prediction", "both"]:
+            raise ValueError(
+                f'Invalid value for what to serialize: "{what}". Expected "gold", "prediction", or "both".'
+            )
+        if (
+            what == "both"
+            and gold_label_prefix is None
+            and prediction_label_prefix is None
+            and len(layer) > 0
+            and len(layer.predictions) > 0
+        ):
+            raise ValueError(
+                "Cannot serialize both gold and prediction annotations without a label prefix for "
+                "at least one of them. Consider setting gold_label_prefix or prediction_label_prefix."
+            )
         serialized_annotations = []
-        if gold_label_prefix is not None:
+        if what in ["gold", "both"]:
             serialized_gold_annotations, new_gold_ann2id = serialize_annotations(
                 annotations=layer,
                 indices=indices,
@@ -164,16 +180,17 @@ def serialize_annotation_layers(
             )
             serialized_annotations.extend(serialized_gold_annotations)
             gold_annotation2id.update(new_gold_ann2id)
-        serialized_predicted_annotations, new_pred_ann2id = serialize_annotations(
-            annotations=layer.predictions,
-            indices=indices,
-            # Predicted annotations can reference both gold and predicted annotations.
-            # Note that predictions take precedence over gold annotations.
-            annotation2id={**gold_annotation2id, **prediction_annotation2id},
-            label_prefix=prediction_label_prefix,
-        )
-        prediction_annotation2id.update(new_pred_ann2id)
-        serialized_annotations.extend(serialized_predicted_annotations)
+        if what in ["prediction", "both"]:
+            serialized_predicted_annotations, new_pred_ann2id = serialize_annotations(
+                annotations=layer.predictions,
+                indices=indices,
+                # Predicted annotations can reference both gold and predicted annotations.
+                # Note that predictions take precedence over gold annotations.
+                annotation2id={**gold_annotation2id, **prediction_annotation2id},
+                label_prefix=prediction_label_prefix,
+            )
+            prediction_annotation2id.update(new_pred_ann2id)
+            serialized_annotations.extend(serialized_predicted_annotations)
         all_serialized_annotations.extend(serialized_annotations)
     return all_serialized_annotations
 
@@ -188,7 +205,8 @@ class BratSerializer(DocumentSerializer):
     to process documents before serialization.
 
     Attributes:
-        layers: The names of the annotation layers to serialize.
+        layers: A mapping from annotation layer names that should be serialized to what should be
+            serialized, i.e. "gold", "prediction", or "both".
         document_processor: A function or callable object to process documents before serialization.
         gold_label_prefix: If provided, gold annotations are serialized and its labels are prefixed
             with the given string. Otherwise, only predicted annotations are serialized.
@@ -199,7 +217,7 @@ class BratSerializer(DocumentSerializer):
 
     def __init__(
         self,
-        layers: List[str],
+        layers: Dict[str, str],
         document_processor=None,
         prediction_label_prefix=None,
         gold_label_prefix=None,
@@ -230,7 +248,7 @@ class BratSerializer(DocumentSerializer):
     def write(
         cls,
         documents: Sequence[Document],
-        layers: List[str],
+        layers: Dict[str, str],
         path: str,
         metadata_file_name: str = METADATA_FILE_NAME,
         split: Optional[str] = None,
@@ -263,7 +281,7 @@ class BratSerializer(DocumentSerializer):
             metadata_text[f"{file_name}"] = doc.text
             ann_path = os.path.join(realpath, file_name)
             serialized_annotations = serialize_annotation_layers(
-                layers=[doc[layer] for layer in layers],
+                layers=[(doc[layer_name], what) for layer_name, what in layers.items()],
                 gold_label_prefix=gold_label_prefix,
                 prediction_label_prefix=prediction_label_prefix,
             )
