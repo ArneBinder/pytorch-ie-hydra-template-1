@@ -100,7 +100,14 @@ class TextDocumentWithLabeledMultiSpansAndBinaryRelations(TextBasedDocument):
 @pytest.fixture
 def document():
     document = TextDocumentWithLabeledSpansAndBinaryRelations(
-        text="Harry lives in Berlin, Germany. He works at DFKI.", id="tmp"
+        text="Harry lives in Berlin, Germany. He works at DFKI.",
+        id="tmp",
+        metadata={
+            "span_ids": [],
+            "relation_ids": [],
+            "prediction_span_ids": [],
+            "prediction_relation_ids": [],
+        },
     )
     document.labeled_spans.predictions.extend(
         [
@@ -108,6 +115,7 @@ def document():
             LabeledSpan(start=44, end=48, label="ORGANIZATION"),
         ]
     )
+    document.metadata["prediction_span_ids"].extend(["T200", "T201"])
 
     assert str(document.labeled_spans.predictions[0]) == "Harry"
     assert str(document.labeled_spans.predictions[1]) == "DFKI"
@@ -119,6 +127,8 @@ def document():
             LabeledSpan(start=44, end=48, label="ORGANIZATION"),
         ]
     )
+    document.metadata["span_ids"].extend(["T100", "T101", "T102"])
+
     assert str(document.labeled_spans[0]) == "Harry"
     assert str(document.labeled_spans[1]) == "Berlin, Germany"
     assert str(document.labeled_spans[2]) == "DFKI"
@@ -132,6 +142,7 @@ def document():
             ),
         ]
     )
+    document.metadata["prediction_relation_ids"].extend(["R200"])
 
     document.binary_relations.extend(
         [
@@ -147,6 +158,7 @@ def document():
             ),
         ]
     )
+    document.metadata["relation_ids"].extend(["R100", "R101"])
 
     return document
 
@@ -192,6 +204,51 @@ def test_serialize_annotations(document, what):
         raise ValueError(f"Unexpected value for what: {what}")
 
 
+@pytest.mark.parametrize(
+    "what",
+    ["gold", "prediction", "both"],
+)
+def test_serialize_annotations_with_annotation_ids(document, what):
+    serialized_annotations = serialize_annotation_layers(
+        layers=[(document.labeled_spans, what), (document.binary_relations, what)],
+        gold_label_prefix="GOLD",
+        prediction_label_prefix="PRED" if what == "both" else None,
+        gold_annotation_ids=[document.metadata["span_ids"], document.metadata["relation_ids"]],
+        prediction_annotation_ids=[
+            document.metadata["prediction_span_ids"],
+            document.metadata["prediction_relation_ids"],
+        ],
+    )
+
+    if what == "both":
+        assert serialized_annotations == [
+            "T100\tGOLD-PERSON 0 5\tHarry\n",
+            "T101\tGOLD-LOCATION 15 30\tBerlin, Germany\n",
+            "T102\tGOLD-ORGANIZATION 44 48\tDFKI\n",
+            "T200\tPRED-PERSON 0 5\tHarry\n",
+            "T201\tPRED-ORGANIZATION 44 48\tDFKI\n",
+            "R100\tGOLD-lives_in Arg1:T100 Arg2:T101\n",
+            "R101\tGOLD-works_at Arg1:T100 Arg2:T102\n",
+            "R200\tPRED-works_at Arg1:T200 Arg2:T201\n",
+        ]
+    elif what == "gold":
+        assert serialized_annotations == [
+            "T100\tGOLD-PERSON 0 5\tHarry\n",
+            "T101\tGOLD-LOCATION 15 30\tBerlin, Germany\n",
+            "T102\tGOLD-ORGANIZATION 44 48\tDFKI\n",
+            "R100\tGOLD-lives_in Arg1:T100 Arg2:T101\n",
+            "R101\tGOLD-works_at Arg1:T100 Arg2:T102\n",
+        ]
+    elif what == "prediction":
+        assert serialized_annotations == [
+            "T200\tPERSON 0 5\tHarry\n",
+            "T201\tORGANIZATION 44 48\tDFKI\n",
+            "R200\tworks_at Arg1:T200 Arg2:T201\n",
+        ]
+    else:
+        raise ValueError(f"Unexpected value for what: {what}")
+
+
 def test_serialize_annotations_unknown_what(document):
     with pytest.raises(ValueError) as e:
         serialize_annotation_layers(
@@ -215,7 +272,7 @@ def test_serialize_annotations_missing_prefix(document):
     )
 
 
-def document_processor(document) -> TextBasedDocument:
+def append_empty_span_to_labeled_spans(document) -> TextBasedDocument:
     doc = document.copy()
     doc["labeled_spans"].append(LabeledSpan(start=0, end=0, label="empty"))
     return doc
@@ -225,7 +282,7 @@ def test_write(tmp_path, document):
     path = str(tmp_path)
     serializer = BratSerializer(
         path=path,
-        document_processor=document_processor,
+        document_processor=append_empty_span_to_labeled_spans,
         layers={"labeled_spans": "prediction", "binary_relations": "prediction"},
     )
 
@@ -240,6 +297,29 @@ def test_write(tmp_path, document):
         "T0\tPERSON 0 5\tHarry\n",
         "T1\tORGANIZATION 44 48\tDFKI\n",
         "R0\tworks_at Arg1:T0 Arg2:T1\n",
+    ]
+
+
+def test_write_with_annotation_ids(tmp_path, document):
+    path = str(tmp_path)
+    serializer = BratSerializer(
+        path=path,
+        layers={"labeled_spans": "gold", "binary_relations": "prediction"},
+        metadata_gold_id_keys={"labeled_spans": "span_ids"},
+    )
+
+    metadata = serializer(documents=[document])
+    path = metadata["path"]
+    ann_file = os.path.join(path, f"{document.id}.ann")
+
+    with open(ann_file, "r") as file:
+        lines = file.readlines()
+
+    assert lines == [
+        "T100\tPERSON 0 5\tHarry\n",
+        "T101\tLOCATION 15 30\tBerlin, Germany\n",
+        "T102\tORGANIZATION 44 48\tDFKI\n",
+        "R0\tworks_at Arg1:T100 Arg2:T102\n",
     ]
 
 
