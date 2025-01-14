@@ -11,6 +11,7 @@ defaults:
 callbacks:
   save_job_return:
     _target_: src.hydra_callbacks.SaveJobReturnValueCallback
+    integrate_multirun_result: true
     filenames:
       - job_return_value.json
       - job_return_value.md
