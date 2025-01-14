@@ -225,9 +225,9 @@ class MyTokenClassificationTaskModule(TaskModuleType):
             casted_document,
             tokenizer=self.tokenizer,
             result_document_type=tokenized_document_type,
-            partition_layer="labeled_partitions"
-            if self.partition_annotation is not None
-            else None,
+            partition_layer=(
+                "labeled_partitions" if self.partition_annotation is not None else None
+            ),
             strict_span_conversion=False,
             **self.tokenize_kwargs,
         )

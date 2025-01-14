@@ -325,9 +325,11 @@ class BratSerializer(DocumentSerializer):
             layer_names = list(layers)
             if metadata_gold_id_keys is not None:
                 gold_annotation_ids = [
-                    doc.metadata[metadata_gold_id_keys[layer_name]]
-                    if layer_name in metadata_gold_id_keys
-                    else None
+                    (
+                        doc.metadata[metadata_gold_id_keys[layer_name]]
+                        if layer_name in metadata_gold_id_keys
+                        else None
+                    )
                     for layer_name in layer_names
                 ]
             else:
@@ -335,9 +337,11 @@ class BratSerializer(DocumentSerializer):
 
             if metadata_prediction_id_keys is not None:
                 prediction_annotation_ids = [
-                    doc.metadata[metadata_prediction_id_keys[layer_name]]
-                    if layer_name in metadata_prediction_id_keys
-                    else None
+                    (
+                        doc.metadata[metadata_prediction_id_keys[layer_name]]
+                        if layer_name in metadata_prediction_id_keys
+                        else None
+                    )
                     for layer_name in layer_names
                 ]
             else:
