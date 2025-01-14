@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import logging
 from functools import partial
-from typing import Callable, Dict, List, Optional, Sequence, TypeVar
+from typing import Callable, Dict, Iterable, List, Optional, Sequence, Type, TypeVar, Union
 
-from pytorch_ie import AutoPipeline
+from pie_modules.utils import resolve_type
+from pytorch_ie import AutoPipeline, WithDocumentTypeMixin
 from pytorch_ie.core import Document
 
 logger = logging.getLogger(__name__)
@@ -42,8 +43,8 @@ def move_annotations_to_predictions(doc: D, layer_names: List[str]) -> None:
 
 
 def add_annotations_from_other_documents(
-    docs: List[D],
-    other_docs: List[Document],
+    docs: Iterable[D],
+    other_docs: Sequence[Document],
     layer_names: List[str],
     from_predictions: bool = False,
     to_predictions: bool = False,
@@ -96,6 +97,18 @@ def process_documents(
     return result
 
 
+class DummyTaskmodule(WithDocumentTypeMixin):
+    def __init__(self, document_type: Optional[Union[Type[Document], str]]):
+        if isinstance(document_type, str):
+            self._document_type = resolve_type(document_type, expected_super_type=Document)
+        else:
+            self._document_type = document_type
+
+    @property
+    def document_type(self) -> Optional[Type[Document]]:
+        return self._document_type
+
+
 class NerRePipeline:
     def __init__(
         self,
@@ -106,8 +119,10 @@ class NerRePipeline:
         device: Optional[int] = None,
         batch_size: Optional[int] = None,
         show_progress_bar: Optional[bool] = None,
+        document_type: Optional[Union[Type[Document], str]] = None,
         **processor_kwargs,
     ):
+        self.taskmodule = DummyTaskmodule(document_type)
         self.ner_model_path = ner_model_path
         self.re_model_path = re_model_path
         self.processor_kwargs = processor_kwargs or {}

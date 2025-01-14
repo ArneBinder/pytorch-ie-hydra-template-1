@@ -103,9 +103,7 @@ class PieDataModule(LightningDataModule, Generic[DocumentType, InputEncoding, Ta
                 )
             self._data[split] = task_encoding_dataset
 
-    def data_split(
-        self, split: Optional[str] = None
-    ) -> Union[
+    def data_split(self, split: Optional[str] = None) -> Union[
         TaskEncodingDataset[TaskEncoding[DocumentType, InputEncoding, TargetEncoding]],
         IterableTaskEncodingDataset[TaskEncoding[DocumentType, InputEncoding, TargetEncoding]],
     ]:

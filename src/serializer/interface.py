@@ -12,5 +12,4 @@ class DocumentSerializer(ABC):
     """
 
     @abstractmethod
-    def __call__(self, documents: Sequence[Document]) -> Any:
-        ...
+    def __call__(self, documents: Sequence[Document]) -> Any: ...
