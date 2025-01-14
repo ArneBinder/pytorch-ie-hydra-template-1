@@ -3,7 +3,7 @@ import logging
 import os
 import pickle
 from pathlib import Path
-from typing import Any, Dict, Generator, List, Tuple, Union
+from typing import Any, Dict, Generator, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -77,20 +77,50 @@ def _flatten_dict_gen(d, parent_key: Tuple[str, ...] = ()) -> Generator:
             yield new_key, v
 
 
-def flatten_dict(d: Dict[str, Any]) -> Dict[Tuple[str, ...], Any]:
-    return dict(_flatten_dict_gen(d))
+def flatten_dict(d: Dict[str, Any], pad_keys: bool = True) -> Dict[Tuple[str, ...], Any]:
+    """Flattens a dictionary with nested keys. Per default, the keys are padded with np.nan to have
+    the same length.
+
+    Example:
+        >>> d = {'a': {'b': {'c': 1, 'd': 2}, 'e': 3}}
+        >>> flatten_dict(d)
+        {('a', 'b', 'c'): 1, ('a', 'b', 'd'): 2, ('a', 'e', np.nan): 3}
+
+        # with padding the keys
+        >>> d = {'a': {'b': {'c': 1, 'd': 2}, 'e': 3}}
+        >>> flatten_dict(d, pad_keys=False)
+        {('a', 'b', 'c'): 1, ('a', 'b', 'd'): 2, ('a', 'e'): 3}
+    """
+    result = dict(_flatten_dict_gen(d))
+    # pad the keys with np.nan to have the same length. We use np.nan to be pandas-friendly.
+    if pad_keys:
+        max_num_keys = max(len(k) for k in result.keys())
+        result = {
+            tuple(list(k) + [np.nan] * (max_num_keys - len(k))): v for k, v in result.items()
+        }
+    return result
 
 
-def unflatten_dict(d: Dict[Tuple[str, ...], Any]) -> Union[Dict[str, Any], Any]:
-    """Unflattens a dictionary with nested keys.
+def unflatten_dict(
+    d: Dict[Tuple[str, ...], Any], unpad_keys: bool = True
+) -> Union[Dict[str, Any], Any]:
+    """Unflattens a dictionary with nested keys. Per default, the keys are unpadded by removing
+    np.nan values.
 
     Example:
         >>> d = {("a", "b", "c"): 1, ("a", "b", "d"): 2, ("a", "e"): 3}
         >>> unflatten_dict(d)
         {'a': {'b': {'c': 1, 'd': 2}, 'e': 3}}
+
+        # with unpad the keys
+        >>> d = {("a", "b", "c"): 1, ("a", "b", "d"): 2, ("a", "e", np.nan): 3}
+        >>> unflatten_dict(d)
+        {'a': {'b': {'c': 1, 'd': 2}, 'e': 3}}
     """
     result: Dict[str, Any] = {}
     for k, v in d.items():
+        if unpad_keys:
+            k = tuple([ki for ki in k if not pd.isna(ki)])
         if len(k) == 0:
             if len(result) > 1:
                 raise ValueError("Cannot unflatten dictionary with multiple root keys.")
@@ -152,17 +182,24 @@ class SaveJobReturnValueCallback(Callback):
         nested), where the keys are the keys of the job return-values and the values are lists of the corresponding
         values of all jobs. This is useful if you want to access specific values of all jobs in a multi-run all at once.
         Also, aggregated values (e.g. mean, min, max) are created for all numeric values and saved in another file.
+    multirun_aggregator_blacklist: List[str] (default: None)
+        A list of keys to exclude from the aggregation (of multirun results), such as "count" or "25%". If None,
+        all keys are included. See pd.DataFrame.describe() for possible aggregation keys.
+        For numeric values, it is recommended to use ["min", "25%", "50%", "75%", "max"]
+        which will result in keeping only the count, mean and std values.
     """
 
     def __init__(
         self,
         filenames: Union[str, List[str]] = "job_return_value.json",
         integrate_multirun_result: bool = False,
+        multirun_aggregator_blacklist: Optional[List[str]] = None,
     ) -> None:
         self.log = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
         self.filenames = [filenames] if isinstance(filenames, str) else filenames
         self.integrate_multirun_result = integrate_multirun_result
         self.job_returns: List[JobReturn] = []
+        self.multirun_aggregator_blacklist = multirun_aggregator_blacklist
 
     def on_job_end(self, config: DictConfig, job_return: JobReturn, **kwargs: Any) -> None:
         self.job_returns.append(job_return)
@@ -195,6 +232,11 @@ class SaveJobReturnValueCallback(Callback):
             else:
                 # aggregate the numeric values
                 df_described = df_numbers_only.describe()
+                # remove rows in the blacklist
+                if self.multirun_aggregator_blacklist is not None:
+                    df_described = df_described.drop(
+                        self.multirun_aggregator_blacklist, errors="ignore", axis="index"
+                    )
                 # add the aggregation keys (e.g. mean, min, ...) as most inner keys and convert back to dict
                 obj_flat_aggregated = df_described.T.stack().to_dict()
                 # unflatten because _save() works better with nested dicts
@@ -207,20 +249,20 @@ class SaveJobReturnValueCallback(Callback):
             obj_aggregated = None
         output_dir = Path(config.hydra.sweep.dir)
         for filename in self.filenames:
-            self._save(
-                obj=obj,
-                filename=filename,
-                output_dir=output_dir,
-                multi_run_result=self.integrate_multirun_result,
-            )
+            self._save(obj=obj, filename=filename, output_dir=output_dir)
             # if available, also save the aggregated result
             if obj_aggregated is not None:
                 file_base_name, ext = os.path.splitext(filename)
                 filename_aggregated = f"{file_base_name}.aggregated{ext}"
-                self._save(obj=obj_aggregated, filename=filename_aggregated, output_dir=output_dir)
+                self._save(
+                    obj=obj_aggregated,
+                    filename=filename_aggregated,
+                    output_dir=output_dir,
+                    is_aggregated=True,
+                )
 
     def _save(
-        self, obj: Any, filename: str, output_dir: Path, multi_run_result: bool = False
+        self, obj: Any, filename: str, output_dir: Path, is_aggregated: bool = False
     ) -> None:
         self.log.info(f"Saving job_return in {output_dir / filename}")
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -238,21 +280,30 @@ class SaveJobReturnValueCallback(Callback):
             obj_py = to_py_obj(obj)
             obj_py_flat = flatten_dict(obj_py)
 
-            if multi_run_result:
-                # In the case of multi-run, we expect to have multiple values for each key.
-                # We therefore just convert the dict to a pandas DataFrame.
+            if self.integrate_multirun_result and not is_aggregated:
+                # In the case of (not aggregated) integrated multi-run result, we expect to have
+                # multiple values for each key. We therefore just convert the dict to a pandas DataFrame.
                 result = pd.DataFrame(obj_py_flat)
             else:
-                # In the case of a single job, we expect to have only one value for each key.
-                # We therefore convert the dict to a pandas Series and ...
+                # Otherwise, we have only one value for each key. We convert the dict to a pandas Series.
                 series = pd.Series(obj_py_flat)
-                if len(series.index.levels) > 1:
-                    # ... if the Series has multiple index levels, we create a DataFrame by unstacking the last level.
-                    result = series.unstack(-1)
-                else:
-                    # ... otherwise we just unpack the one-entry index values and save the resulting Series.
+                # The series has a MultiIndex because flatten_dict() uses a tuple as key.
+                if len(series.index.levels) <= 1:
+                    # If there is only one level, we just use the first level values as index.
                     series.index = series.index.get_level_values(0)
                     result = series
+                else:
+                    # If there are multiple levels, we unstack the series to get a DataFrame
+                    # providing a better overview.
+                    if is_aggregated:
+                        # If we have aggregated (integrated multi-run) results, we unstack the last level,
+                        # i.e. the aggregation key.
+                        result = series.unstack(-1)
+                    else:
+                        # Otherwise we have a default multi-run result and unstack the first level,
+                        # i.e. the identifier created from the overrides, and transpose the result
+                        # to have the individual jobs as rows.
+                        result = series.unstack(0).T
 
             with open(str(output_dir / filename), "w") as file:
                 file.write(result.to_markdown())

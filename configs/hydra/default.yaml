@@ -11,9 +11,11 @@ defaults:
 callbacks:
   save_job_return:
     _target_: src.hydra_callbacks.SaveJobReturnValueCallback
+    integrate_multirun_result: true
     filenames:
       - job_return_value.json
       - job_return_value.md
+    multirun_aggregator_blacklist: ["min", "25%", "50%", "75%", "max"]
 
 # output directory, generated dynamically on each run
 run:
