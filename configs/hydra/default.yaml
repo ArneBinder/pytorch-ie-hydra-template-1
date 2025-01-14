@@ -15,6 +15,7 @@ callbacks:
     filenames:
       - job_return_value.json
       - job_return_value.md
+    multirun_aggregator_blacklist: ["min", "25%", "50%", "75%", "max"]
 
 # output directory, generated dynamically on each run
 run:
