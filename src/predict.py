@@ -83,8 +83,11 @@ def predict(cfg: DictConfig) -> Tuple[dict, dict]:
         # Per default, the model is loaded with .from_pretrained() which already loads the weights.
         # However, ckpt_path can be used to load different weights from any checkpoint.
         if cfg.ckpt_path is not None:
-            pipeline.model = pipeline.model.load_from_checkpoint(checkpoint_path=cfg.ckpt_path).to(
-                pipeline.device
+            log.info(f"Loading model weights from checkpoint: {cfg.ckpt_path}")
+            pipeline.model = (
+                type(pipeline.model)
+                .load_from_checkpoint(checkpoint_path=cfg.ckpt_path)
+                .to(pipeline.device)
             )
 
         # auto-convert the dataset if the taskmodule specifies a document type
