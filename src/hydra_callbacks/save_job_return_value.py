@@ -187,6 +187,8 @@ class SaveJobReturnValueCallback(Callback):
         all keys are included. See pd.DataFrame.describe() for possible aggregation keys.
         For numeric values, it is recommended to use ["min", "25%", "50%", "75%", "max"]
         which will result in keeping only the count, mean and std values.
+    sort_markdown_columns: bool (default: False)
+        If True, the columns of the markdown table are sorted alphabetically.
     """
 
     def __init__(
@@ -194,12 +196,14 @@ class SaveJobReturnValueCallback(Callback):
         filenames: Union[str, List[str]] = "job_return_value.json",
         integrate_multirun_result: bool = False,
         multirun_aggregator_blacklist: Optional[List[str]] = None,
+        sort_markdown_columns: bool = False,
     ) -> None:
         self.log = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
         self.filenames = [filenames] if isinstance(filenames, str) else filenames
         self.integrate_multirun_result = integrate_multirun_result
         self.job_returns: List[JobReturn] = []
         self.multirun_aggregator_blacklist = multirun_aggregator_blacklist
+        self.sort_markdown_columns = sort_markdown_columns
 
     def on_job_end(self, config: DictConfig, job_return: JobReturn, **kwargs: Any) -> None:
         self.job_returns.append(job_return)
@@ -315,6 +319,9 @@ class SaveJobReturnValueCallback(Callback):
                         # i.e. the identifier created from the overrides, and transpose the result
                         # to have the individual jobs as rows.
                         result = series.unstack(0).T
+
+            if isinstance(result, pd.DataFrame) and self.sort_markdown_columns:
+                result = result.sort_index(axis=1)
 
             with open(str(output_dir / filename), "w") as file:
                 file.write(result.to_markdown())
