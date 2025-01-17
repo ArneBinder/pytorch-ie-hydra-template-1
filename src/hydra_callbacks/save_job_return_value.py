@@ -216,6 +216,8 @@ class SaveJobReturnValueCallback(Callback):
             # also create an aggregated result
             # convert to python object to allow selecting numeric columns
             obj_py = to_py_obj(obj)
+            if not isinstance(obj_py, dict):
+                obj_py = {"value": obj_py}
             obj_flat = flatten_dict(obj_py)
             # create dataframe from flattened dict
             df_flat = pd.DataFrame(obj_flat)
@@ -249,7 +251,7 @@ class SaveJobReturnValueCallback(Callback):
             obj_aggregated = None
         output_dir = Path(config.hydra.sweep.dir)
         for filename in self.filenames:
-            self._save(obj=obj, filename=filename, output_dir=output_dir)
+            self._save(obj=obj, filename=filename, output_dir=output_dir, is_multirun_result=True)
             # if available, also save the aggregated result
             if obj_aggregated is not None:
                 file_base_name, ext = os.path.splitext(filename)
@@ -258,11 +260,18 @@ class SaveJobReturnValueCallback(Callback):
                     obj=obj_aggregated,
                     filename=filename_aggregated,
                     output_dir=output_dir,
-                    is_aggregated=True,
+                    # If we have aggregated (integrated multi-run) results, we unstack the last level,
+                    # i.e. the aggregation key.
+                    unstack_last_index_level=True,
                 )
 
     def _save(
-        self, obj: Any, filename: str, output_dir: Path, is_aggregated: bool = False
+        self,
+        obj: Any,
+        filename: str,
+        output_dir: Path,
+        is_multirun_result: bool = False,
+        unstack_last_index_level: bool = False,
     ) -> None:
         self.log.info(f"Saving job_return in {output_dir / filename}")
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -278,9 +287,11 @@ class SaveJobReturnValueCallback(Callback):
         elif filename.endswith(".md"):
             # Convert PyTorch tensors and numpy arrays to native python types
             obj_py = to_py_obj(obj)
+            if not isinstance(obj_py, dict):
+                obj_py = {"value": obj_py}
             obj_py_flat = flatten_dict(obj_py)
 
-            if self.integrate_multirun_result and not is_aggregated:
+            if is_multirun_result:
                 # In the case of (not aggregated) integrated multi-run result, we expect to have
                 # multiple values for each key. We therefore just convert the dict to a pandas DataFrame.
                 result = pd.DataFrame(obj_py_flat)
@@ -295,7 +306,7 @@ class SaveJobReturnValueCallback(Callback):
                 else:
                     # If there are multiple levels, we unstack the series to get a DataFrame
                     # providing a better overview.
-                    if is_aggregated:
+                    if unstack_last_index_level:
                         # If we have aggregated (integrated multi-run) results, we unstack the last level,
                         # i.e. the aggregation key.
                         result = series.unstack(-1)
