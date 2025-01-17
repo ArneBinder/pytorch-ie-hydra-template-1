@@ -1,5 +1,5 @@
 _target_: pytorch_ie.metrics.F1Metric
 layer: ???
 show_as_markdown: true
-# labels: ???  # all possible labels. if set, calculate per label metrics
+labels: INFERRED # infer set of labels from data and calculate per label metrics
 # label_field: label  # field of the annotation that contains the label, default: label. required if label_field is set
