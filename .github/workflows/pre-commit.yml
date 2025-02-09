@@ -32,4 +32,4 @@ jobs:
             ~/.cache/pre-commit
           key: ${{ runner.os }}-pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
       - name: Execute pre-commit
-        uses: pre-commit/action@v3
+        uses: pre-commit/action@v3.0.1
