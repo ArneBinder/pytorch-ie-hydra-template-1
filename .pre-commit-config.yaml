@@ -64,7 +64,6 @@ repos:
     hooks:
       - id: prettier
         types: [yaml]
-        exclude: "environment.yaml"
 
   # md formatting
   - repo: https://github.com/executablebooks/mdformat
