@@ -197,6 +197,8 @@ class SaveJobReturnValueCallback(Callback):
         all keys are included. See pd.DataFrame.describe() for possible aggregation keys.
         For numeric values, it is recommended to use ["min", "25%", "50%", "75%", "max"]
         which will result in keeping only the count, mean and std values.
+    sort_markdown_columns: bool (default: False)
+        If True, the columns of the markdown table are sorted alphabetically.
     multirun_create_ids_from_overrides: bool (default: True)
         Create job identifiers from the overrides of the jobs in a multi-run. If False, the job index is used as
         identifier.
@@ -211,6 +213,7 @@ class SaveJobReturnValueCallback(Callback):
         filenames: Union[str, List[str]] = "job_return_value.json",
         integrate_multirun_result: bool = False,
         multirun_aggregator_blacklist: Optional[List[str]] = None,
+        sort_markdown_columns: bool = False,
         multirun_create_ids_from_overrides: bool = True,
         markdown_round_digits: Optional[int] = 3,
         multirun_job_id_key: str = "job_id",
@@ -220,6 +223,7 @@ class SaveJobReturnValueCallback(Callback):
         self.integrate_multirun_result = integrate_multirun_result
         self.job_returns: List[JobReturn] = []
         self.multirun_aggregator_blacklist = multirun_aggregator_blacklist
+        self.sort_markdown_columns = sort_markdown_columns
         self.multirun_create_ids_from_overrides = multirun_create_ids_from_overrides
         self.multirun_job_id_key = multirun_job_id_key
         self.markdown_round_digits = markdown_round_digits
@@ -359,6 +363,9 @@ class SaveJobReturnValueCallback(Callback):
                         # i.e. the identifier created from the overrides, and transpose the result
                         # to have the individual jobs as rows.
                         result = series.unstack(0).T
+
+            if isinstance(result, pd.DataFrame) and self.sort_markdown_columns:
+                result = result.sort_index(axis=1)
 
             if self.markdown_round_digits is not None:
                 result = result.round(self.markdown_round_digits)
