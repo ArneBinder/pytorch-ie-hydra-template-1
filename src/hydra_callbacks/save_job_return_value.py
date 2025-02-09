@@ -33,38 +33,48 @@ def to_py_obj(obj):
 def list_of_dicts_to_dict_of_lists_recursive(list_of_dicts):
     """Convert a list of dicts to a dict of lists recursively.
 
-    Example:
+    Examples:
         # works with nested dicts
         >>> list_of_dicts_to_dict_of_lists_recursive([{"a": 1, "b": {"c": 2}}, {"a": 3, "b": {"c": 4}}])
-        {'b': {'c': [2, 4]}, 'a': [1, 3]}
+        {'a': [1, 3], 'b': {'c': [2, 4]}}
         # works with incomplete dicts
         >>> list_of_dicts_to_dict_of_lists_recursive([{"a": 1, "b": 2}, {"a": 3}])
-        {'b': [2, None], 'a': [1, 3]}
+        {'a': [1, 3], 'b': [2, None]}
+
+        # works with nested incomplete dicts
+        >>> list_of_dicts_to_dict_of_lists_recursive([{"a": 1, "b": {"c": 2}}, {"a": 3}])
+        {'a': [1, 3], 'b': {'c': [2, None]}}
+
+        # works with nested incomplete dicts with None values
+        >>> list_of_dicts_to_dict_of_lists_recursive([{"a": 1, "b": {"c": 2}}, {"a": None}])
+        {'a': [1, None], 'b': {'c': [2, None]}}
 
     Args:
         list_of_dicts (List[dict]): A list of dicts.
 
     Returns:
-        dict: A dict of lists.
+        dict: An arbitrarily nested dict of lists.
     """
-    if isinstance(list_of_dicts, list):
-        if len(list_of_dicts) == 0:
-            return {}
-        elif isinstance(list_of_dicts[0], dict):
-            keys = set()
-            for d in list_of_dicts:
-                if not isinstance(d, dict):
-                    raise ValueError("Not all elements of the list are dicts.")
+    if not list_of_dicts:
+        return {}
+
+    # Check if all elements are either None or dictionaries
+    if all(d is None or isinstance(d, dict) for d in list_of_dicts):
+        # Gather all keys from non-None dictionaries
+        keys = set()
+        for d in list_of_dicts:
+            if d is not None:
                 keys.update(d.keys())
-            return {
-                k: list_of_dicts_to_dict_of_lists_recursive(
-                    [d.get(k, None) for d in list_of_dicts]
-                )
-                for k in keys
-            }
-        else:
-            return list_of_dicts
+
+        # Build up the result recursively
+        return {
+            k: list_of_dicts_to_dict_of_lists_recursive(
+                [(d[k] if d is not None and k in d else None) for d in list_of_dicts]
+            )
+            for k in keys
+        }
     else:
+        # If items are not all dict/None, just return the list as is (base case).
         return list_of_dicts
 
 
@@ -189,6 +199,13 @@ class SaveJobReturnValueCallback(Callback):
         which will result in keeping only the count, mean and std values.
     sort_markdown_columns: bool (default: False)
         If True, the columns of the markdown table are sorted alphabetically.
+    multirun_create_ids_from_overrides: bool (default: True)
+        Create job identifiers from the overrides of the jobs in a multi-run. If False, the job index is used as
+        identifier.
+    markdown_round_digits: int (default: 4)
+        The number of digits to round the values in the markdown file. If None, no rounding is applied.
+    multirun_job_id_key: str (default: "job_id")
+        The key to use for the job identifiers in the integrated multi-run result.
     """
 
     def __init__(
@@ -197,6 +214,9 @@ class SaveJobReturnValueCallback(Callback):
         integrate_multirun_result: bool = False,
         multirun_aggregator_blacklist: Optional[List[str]] = None,
         sort_markdown_columns: bool = False,
+        multirun_create_ids_from_overrides: bool = True,
+        markdown_round_digits: Optional[int] = 4,
+        multirun_job_id_key: str = "job_id",
     ) -> None:
         self.log = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
         self.filenames = [filenames] if isinstance(filenames, str) else filenames
@@ -204,6 +224,9 @@ class SaveJobReturnValueCallback(Callback):
         self.job_returns: List[JobReturn] = []
         self.multirun_aggregator_blacklist = multirun_aggregator_blacklist
         self.sort_markdown_columns = sort_markdown_columns
+        self.multirun_create_ids_from_overrides = multirun_create_ids_from_overrides
+        self.multirun_job_id_key = multirun_job_id_key
+        self.markdown_round_digits = markdown_round_digits
 
     def on_job_end(self, config: DictConfig, job_return: JobReturn, **kwargs: Any) -> None:
         self.job_returns.append(job_return)
@@ -212,16 +235,25 @@ class SaveJobReturnValueCallback(Callback):
             self._save(obj=job_return.return_value, filename=filename, output_dir=output_dir)
 
     def on_multirun_end(self, config: DictConfig, **kwargs: Any) -> None:
+        job_ids: Union[List[str], List[int]]
+        if self.multirun_create_ids_from_overrides:
+            job_ids = overrides_to_identifiers([jr.overrides for jr in self.job_returns])
+        else:
+            job_ids = list(range(len(self.job_returns)))
+
         if self.integrate_multirun_result:
             # rearrange the job return-values of all jobs from a multi-run into a dict of lists (maybe nested),
             obj = list_of_dicts_to_dict_of_lists_recursive(
                 [jr.return_value for jr in self.job_returns]
             )
+            if not isinstance(obj, dict):
+                obj = {"value": obj}
+            if self.multirun_create_ids_from_overrides:
+                obj[self.multirun_job_id_key] = job_ids
+
             # also create an aggregated result
             # convert to python object to allow selecting numeric columns
             obj_py = to_py_obj(obj)
-            if not isinstance(obj_py, dict):
-                obj_py = {"value": obj_py}
             obj_flat = flatten_dict(obj_py)
             # create dataframe from flattened dict
             df_flat = pd.DataFrame(obj_flat)
@@ -250,12 +282,18 @@ class SaveJobReturnValueCallback(Callback):
         else:
             # create a dict of the job return-values of all jobs from a multi-run
             # (_save() works better with nested dicts)
-            ids = overrides_to_identifiers([jr.overrides for jr in self.job_returns])
-            obj = {identifier: jr.return_value for identifier, jr in zip(ids, self.job_returns)}
+            obj = {
+                identifier: jr.return_value for identifier, jr in zip(job_ids, self.job_returns)
+            }
             obj_aggregated = None
         output_dir = Path(config.hydra.sweep.dir)
         for filename in self.filenames:
-            self._save(obj=obj, filename=filename, output_dir=output_dir, is_multirun_result=True)
+            self._save(
+                obj=obj,
+                filename=filename,
+                output_dir=output_dir,
+                is_tabular_data=self.integrate_multirun_result,
+            )
             # if available, also save the aggregated result
             if obj_aggregated is not None:
                 file_base_name, ext = os.path.splitext(filename)
@@ -274,7 +312,7 @@ class SaveJobReturnValueCallback(Callback):
         obj: Any,
         filename: str,
         output_dir: Path,
-        is_multirun_result: bool = False,
+        is_tabular_data: bool = False,
         unstack_last_index_level: bool = False,
     ) -> None:
         self.log.info(f"Saving job_return in {output_dir / filename}")
@@ -295,10 +333,16 @@ class SaveJobReturnValueCallback(Callback):
                 obj_py = {"value": obj_py}
             obj_py_flat = flatten_dict(obj_py)
 
-            if is_multirun_result:
+            if is_tabular_data:
                 # In the case of (not aggregated) integrated multi-run result, we expect to have
                 # multiple values for each key. We therefore just convert the dict to a pandas DataFrame.
                 result = pd.DataFrame(obj_py_flat)
+                job_id_column = (self.multirun_job_id_key,) + (np.nan,) * (
+                    result.columns.nlevels - 1
+                )
+                if job_id_column in result.columns:
+                    result = result.set_index(job_id_column)
+                    result.index.name = self.multirun_job_id_key
             else:
                 # Otherwise, we have only one value for each key. We convert the dict to a pandas Series.
                 series = pd.Series(obj_py_flat)
@@ -322,6 +366,9 @@ class SaveJobReturnValueCallback(Callback):
 
             if isinstance(result, pd.DataFrame) and self.sort_markdown_columns:
                 result = result.sort_index(axis=1)
+
+            if self.markdown_round_digits is not None:
+                result = result.round(self.markdown_round_digits)
 
             with open(str(output_dir / filename), "w") as file:
                 file.write(result.to_markdown())
