@@ -202,7 +202,7 @@ class SaveJobReturnValueCallback(Callback):
     multirun_create_ids_from_overrides: bool (default: True)
         Create job identifiers from the overrides of the jobs in a multi-run. If False, the job index is used as
         identifier.
-    markdown_round_digits: int (default: 4)
+    markdown_round_digits: int (default: 3)
         The number of digits to round the values in the markdown file. If None, no rounding is applied.
     multirun_job_id_key: str (default: "job_id")
         The key to use for the job identifiers in the integrated multi-run result.
@@ -223,7 +223,7 @@ class SaveJobReturnValueCallback(Callback):
         multirun_aggregator_blacklist: Optional[List[str]] = None,
         sort_markdown_columns: bool = False,
         multirun_create_ids_from_overrides: bool = True,
-        markdown_round_digits: Optional[int] = 4,
+        markdown_round_digits: Optional[int] = 3,
         multirun_job_id_key: str = "job_id",
         paths_file: Optional[str] = None,
         path_id: Optional[str] = None,
