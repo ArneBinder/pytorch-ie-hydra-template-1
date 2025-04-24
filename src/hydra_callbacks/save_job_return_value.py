@@ -202,10 +202,18 @@ class SaveJobReturnValueCallback(Callback):
     multirun_create_ids_from_overrides: bool (default: True)
         Create job identifiers from the overrides of the jobs in a multi-run. If False, the job index is used as
         identifier.
-    markdown_round_digits: int (default: 4)
+    markdown_round_digits: int (default: 3)
         The number of digits to round the values in the markdown file. If None, no rounding is applied.
     multirun_job_id_key: str (default: "job_id")
         The key to use for the job identifiers in the integrated multi-run result.
+    paths_file: str (default: None)
+        The file to save the paths of the log directories to. If None, the paths are not saved.
+    path_id: str (default: None)
+        A prefix to add to each line in the paths_file separated by a colon. If None, no prefix is added.
+    multirun_paths_file: str (default: None)
+        The file to save the paths of the multi-run log directories to. If None, the paths are not saved.
+    multirun_path_id: str (default: None)
+        A prefix to add to each line in the multirun_paths_file separated by a colon. If None, no prefix is added.
     """
 
     def __init__(
@@ -215,8 +223,12 @@ class SaveJobReturnValueCallback(Callback):
         multirun_aggregator_blacklist: Optional[List[str]] = None,
         sort_markdown_columns: bool = False,
         multirun_create_ids_from_overrides: bool = True,
-        markdown_round_digits: Optional[int] = 4,
+        markdown_round_digits: Optional[int] = 3,
         multirun_job_id_key: str = "job_id",
+        paths_file: Optional[str] = None,
+        path_id: Optional[str] = None,
+        multirun_paths_file: Optional[str] = None,
+        multirun_path_id: Optional[str] = None,
     ) -> None:
         self.log = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
         self.filenames = [filenames] if isinstance(filenames, str) else filenames
@@ -227,10 +239,19 @@ class SaveJobReturnValueCallback(Callback):
         self.multirun_create_ids_from_overrides = multirun_create_ids_from_overrides
         self.multirun_job_id_key = multirun_job_id_key
         self.markdown_round_digits = markdown_round_digits
+        self.multirun_paths_file = multirun_paths_file
+        self.multirun_path_id = multirun_path_id
+        self.paths_file = paths_file
+        self.path_id = path_id
 
     def on_job_end(self, config: DictConfig, job_return: JobReturn, **kwargs: Any) -> None:
         self.job_returns.append(job_return)
         output_dir = Path(config.hydra.runtime.output_dir)  # / Path(config.hydra.output_subdir)
+        if self.paths_file is not None:
+            # append the output_dir to the file
+            with open(self.paths_file, "a") as file:
+                file.write(f"{output_dir}\n")
+
         for filename in self.filenames:
             self._save(obj=job_return.return_value, filename=filename, output_dir=output_dir)
 
@@ -287,6 +308,14 @@ class SaveJobReturnValueCallback(Callback):
             }
             obj_aggregated = None
         output_dir = Path(config.hydra.sweep.dir)
+        if self.multirun_paths_file is not None:
+            # append the output_dir to the file
+            line = f"{output_dir}\n"
+            if self.multirun_path_id is not None:
+                line = f"{self.multirun_path_id}:{line}"
+            with open(self.multirun_paths_file, "a") as file:
+                file.write(line)
+
         for filename in self.filenames:
             self._save(
                 obj=obj,
