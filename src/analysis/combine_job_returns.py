@@ -211,7 +211,9 @@ def main(
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Combine job returns and show as Markdown table")
+    parser = argparse.ArgumentParser(
+        description="Combine job returns and show as Markdown table or Json"
+    )
     parser.add_argument(
         "--paths-file", type=str, help="Path to the file containing the paths to the job returns"
     )
