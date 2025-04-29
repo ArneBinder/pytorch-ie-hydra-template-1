@@ -88,6 +88,7 @@ def predict(cfg: DictConfig) -> Tuple[dict, dict]:
                 type(pipeline.model)
                 .load_from_checkpoint(checkpoint_path=cfg.ckpt_path)
                 .to(pipeline.device)
+                .to(dtype=pipeline.model.dtype)
             )
 
         # auto-convert the dataset if the taskmodule specifies a document type
