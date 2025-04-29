@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Sequence
+from typing import Any, Iterable
 
 from pytorch_ie.core import Document
 
@@ -12,4 +12,4 @@ class DocumentSerializer(ABC):
     """
 
     @abstractmethod
-    def __call__(self, documents: Sequence[Document]) -> Any: ...
+    def __call__(self, documents: Iterable[Document]) -> Any: ...

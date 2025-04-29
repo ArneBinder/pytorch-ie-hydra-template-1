@@ -271,7 +271,7 @@ class BratSerializer(DocumentSerializer):
         self.layers = layers
         self.default_kwargs = kwargs
 
-    def __call__(self, documents: Sequence[Document], **kwargs) -> Dict[str, str]:
+    def __call__(self, documents: Iterable[Document], **kwargs) -> Dict[str, str]:
         if self.document_processor is not None:
             documents = list(map(self.document_processor, documents))
         return self.write_with_defaults(
@@ -287,7 +287,7 @@ class BratSerializer(DocumentSerializer):
     @classmethod
     def write(
         cls,
-        documents: Sequence[Document],
+        documents: Iterable[Document],
         layers: Dict[str, str],
         path: str,
         metadata_file_name: str = METADATA_FILE_NAME,
@@ -301,6 +301,9 @@ class BratSerializer(DocumentSerializer):
         realpath = os.path.realpath(path)
         log.info(f'serialize documents to "{realpath}" ...')
         os.makedirs(realpath, exist_ok=True)
+
+        if not isinstance(documents, Sequence):
+            documents = list(documents)
 
         if len(documents) == 0:
             raise Exception("cannot serialize empty list of documents")

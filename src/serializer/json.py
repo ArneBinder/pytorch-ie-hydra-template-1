@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Dict, List, Optional, Sequence, Type, TypeVar
+from typing import Dict, Iterable, List, Optional, Sequence, Type, TypeVar
 
 from pie_datasets.core.dataset_dict import METADATA_FILE_NAME
 from pytorch_ie.core import Document
@@ -30,7 +30,7 @@ class JsonSerializer(DocumentSerializer):
     @classmethod
     def write(
         cls,
-        documents: Sequence[Document],
+        documents: Iterable[Document],
         path: str,
         file_name: str = "documents.jsonl",
         metadata_file_name: str = METADATA_FILE_NAME,
@@ -40,6 +40,9 @@ class JsonSerializer(DocumentSerializer):
         realpath = os.path.realpath(path)
         log.info(f'serialize documents to "{realpath}" ...')
         os.makedirs(realpath, exist_ok=True)
+
+        if not isinstance(documents, Sequence):
+            documents = list(documents)
 
         # dump metadata including the document_type
         if len(documents) == 0:
@@ -114,5 +117,5 @@ class JsonSerializer(DocumentSerializer):
         all_kwargs = {**self.default_kwargs, **kwargs}
         return self.write(**all_kwargs)
 
-    def __call__(self, documents: Sequence[Document], **kwargs) -> Dict[str, str]:
+    def __call__(self, documents: Iterable[Document], **kwargs) -> Dict[str, str]:
         return self.write_with_defaults(documents=documents, **kwargs)
