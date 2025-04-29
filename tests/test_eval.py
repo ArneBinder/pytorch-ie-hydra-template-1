@@ -27,10 +27,10 @@ def test_train_eval(tmp_path, cfg_train, cfg_eval):
     train_metric_dict, _ = train(cfg_train)
     assert train_metric_dict["train/f1"] > 0.0
 
-    assert path.exists(cfg_train.model_save_dir)
+    assert path.exists(cfg_train.paths.model_save_dir)
 
     with open_dict(cfg_eval):
-        cfg_eval.model_name_or_path = cfg_train.model_save_dir
+        cfg_eval.model_name_or_path = cfg_train.paths.model_save_dir
 
     HydraConfig().set_config(cfg_eval)
     test_metric_dict, _ = evaluate(cfg_eval)

@@ -1,5 +1,5 @@
 _target_: src.serializer.BratSerializer
-path: ${prediction_save_dir}
+path: ${paths.prediction_save_dir}
 split: ${dataset_split}
 
 # this needs to be a mapping from annotation layer names
