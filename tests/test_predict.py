@@ -17,9 +17,11 @@ def test_predict_cpu(tmp_path, cfg_predict):
     predict(cfg_predict)
 
     assert path.exists(
-        path.join(cfg_predict.prediction_save_dir, cfg_predict.dataset_split, "documents.jsonl")
+        path.join(
+            cfg_predict.paths.prediction_save_dir, cfg_predict.dataset_split, "documents.jsonl"
+        )
     )
-    assert path.exists(path.join(cfg_predict.prediction_save_dir, "config.yaml"))
+    assert path.exists(path.join(cfg_predict.paths.prediction_save_dir, "config.yaml"))
 
 
 def test_predict_cpu_fast_dev_run(tmp_path, cfg_predict):
@@ -31,9 +33,11 @@ def test_predict_cpu_fast_dev_run(tmp_path, cfg_predict):
     predict(cfg_predict)
 
     assert path.exists(
-        path.join(cfg_predict.prediction_save_dir, cfg_predict.dataset_split, "documents.jsonl")
+        path.join(
+            cfg_predict.paths.prediction_save_dir, cfg_predict.dataset_split, "documents.jsonl"
+        )
     )
-    assert path.exists(path.join(cfg_predict.prediction_save_dir, "config.yaml"))
+    assert path.exists(path.join(cfg_predict.paths.prediction_save_dir, "config.yaml"))
 
 
 @RunIf(min_gpus=1)
@@ -47,9 +51,11 @@ def test_predict_gpu(tmp_path, cfg_predict):
     predict(cfg_predict)
 
     assert path.exists(
-        path.join(cfg_predict.prediction_save_dir, cfg_predict.dataset_split, "documents.jsonl")
+        path.join(
+            cfg_predict.paths.prediction_save_dir, cfg_predict.dataset_split, "documents.jsonl"
+        )
     )
-    assert path.exists(path.join(cfg_predict.prediction_save_dir, "config.yaml"))
+    assert path.exists(path.join(cfg_predict.paths.prediction_save_dir, "config.yaml"))
 
 
 @pytest.mark.slow
@@ -65,10 +71,10 @@ def test_train_predict(tmp_path, cfg_train, cfg_predict):
     HydraConfig().set_config(cfg_train)
     train_metric_dict, _ = train(cfg_train)
 
-    assert path.exists(cfg_train.model_save_dir)
+    assert path.exists(cfg_train.paths.model_save_dir)
 
     with open_dict(cfg_predict):
-        cfg_predict.model_name_or_path = cfg_train.model_save_dir
+        cfg_predict.model_name_or_path = cfg_train.paths.model_save_dir
         # disable serialization
         cfg_predict.serializer = None
 
@@ -90,6 +96,8 @@ def test_serialize_only(tmp_path, cfg_predict):
     predict(cfg_predict)
 
     assert path.exists(
-        path.join(cfg_predict.prediction_save_dir, cfg_predict.dataset_split, "documents.jsonl")
+        path.join(
+            cfg_predict.paths.prediction_save_dir, cfg_predict.dataset_split, "documents.jsonl"
+        )
     )
-    assert path.exists(path.join(cfg_predict.prediction_save_dir, "config.yaml"))
+    assert path.exists(path.join(cfg_predict.paths.prediction_save_dir, "config.yaml"))

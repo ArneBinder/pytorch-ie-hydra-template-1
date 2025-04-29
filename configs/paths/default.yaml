@@ -20,3 +20,9 @@ save_dir: ${paths.root_dir}
 
 # path to working directory
 work_dir: ${hydra:runtime.cwd}
+
+# where to save the trained model and taskmodule
+model_save_dir: ${paths.save_dir}/models/${name}/${now:%Y-%m-%d_%H-%M-%S}
+
+# predefined path that can be used as output path for the serializer
+prediction_save_dir: ${paths.save_dir}/predictions/${name}/${now:%Y-%m-%d_%H-%M-%S}
