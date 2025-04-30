@@ -47,8 +47,10 @@ def predict_and_serialize(
     batch_iter: Union[Sequence[Iterable[Document]], Iterable[Sequence[Document]]]
     if document_batch_size is None:
         batch_iter = [dataset]
+        append = False
     else:
         batch_iter = document_batch_iter(dataset=dataset, batch_size=document_batch_size)
+        append = True
     for docs_batch in batch_iter:
         if pipeline is not None:
             t_start = timeit.default_timer()
@@ -57,15 +59,9 @@ def predict_and_serialize(
 
         # serialize the documents
         if serializer is not None:
-            if document_batch_size is not None:
-                raise NotImplementedError(
-                    "serializer does not support appending to existing files yet. "
-                    "Please set document_batch_size=None to serialize the documents in one batch."
-                )
-
             # the serializer should not return the serialized documents, but write them to disk
             # and instead return some metadata such as the path to the serialized documents
-            serializer_result = serializer(docs_batch)
+            serializer_result = serializer(docs_batch, append=append)
             if "serializer" in result and result["serializer"] != serializer_result:
                 log.warning(
                     f"serializer result changed from {result['serializer']} to {serializer_result}"
