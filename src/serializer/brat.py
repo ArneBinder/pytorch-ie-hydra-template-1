@@ -271,7 +271,11 @@ class BratSerializer(DocumentSerializer):
         self.layers = layers
         self.default_kwargs = kwargs
 
-    def __call__(self, documents: Iterable[Document], **kwargs) -> Dict[str, str]:
+    def __call__(
+        self, documents: Iterable[Document], append: bool = False, **kwargs
+    ) -> Dict[str, str]:
+        if append:
+            raise NotImplementedError("append mode is not yet implemented for BratSerializer")
         if self.document_processor is not None:
             documents = list(map(self.document_processor, documents))
         return self.write_with_defaults(
