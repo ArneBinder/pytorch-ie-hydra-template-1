@@ -57,6 +57,12 @@ def predict_and_serialize(
 
         # serialize the documents
         if serializer is not None:
+            if document_batch_size is not None:
+                raise NotImplementedError(
+                    "serializer does not support appending to existing files yet. "
+                    "Please set document_batch_size=None to serialize the documents in one batch."
+                )
+
             # the serializer should not return the serialized documents, but write them to disk
             # and instead return some metadata such as the path to the serialized documents
             serializer_result = serializer(docs_batch)
