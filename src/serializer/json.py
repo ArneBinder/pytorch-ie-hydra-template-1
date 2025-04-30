@@ -117,5 +117,9 @@ class JsonSerializer(DocumentSerializer):
         all_kwargs = {**self.default_kwargs, **kwargs}
         return self.write(**all_kwargs)
 
-    def __call__(self, documents: Iterable[Document], **kwargs) -> Dict[str, str]:
+    def __call__(
+        self, documents: Iterable[Document], append: bool = False, **kwargs
+    ) -> Dict[str, str]:
+        if append:
+            raise NotImplementedError("append mode is not yet implemented for JsonSerializer")
         return self.write_with_defaults(documents=documents, **kwargs)
