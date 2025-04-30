@@ -1,0 +1,5 @@
+defaults:
+  - _from_pretrained
+
+pretrained_model_name_or_path: ${paths.model_save_dir}
+batch_size: ${datamodule.batch_size}

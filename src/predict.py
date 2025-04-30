@@ -34,7 +34,7 @@ root = pyrootutils.setup_root(
 # ------------------------------------------------------------------------------------ #
 
 import os
-from typing import Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 import hydra
 import pytorch_lightning as pl
@@ -42,7 +42,9 @@ from omegaconf import DictConfig, OmegaConf
 from pie_datasets import DatasetDict
 from pie_modules.models import *  # noqa: F403
 from pie_modules.taskmodules import *  # noqa: F403
-from pytorch_ie import Pipeline
+from pytorch_ie import Document, Pipeline
+from pytorch_ie.models import *  # noqa: F403
+from pytorch_ie.taskmodules import *  # noqa: F403
 
 from src import utils
 from src.models import *  # noqa: F403
@@ -105,27 +107,19 @@ def predict(cfg: DictConfig) -> Tuple[dict, dict]:
     # select the dataset split for prediction
     dataset_predict = dataset[cfg.dataset_split]
 
-    if pipeline is not None:
-        log.info("Starting inference!")
-        documents = pipeline(dataset_predict, inplace=False)
-    else:
-        log.warning("No prediction pipeline is defined, skip inference!")
-        documents = list(dataset_predict)
-
     object_dict = {
         "cfg": cfg,
         "dataset": dataset,
         "pipeline": pipeline,
         "serializer": serializer,
-        "documents": documents,
     }
-    result = {}
-
-    # serialize the documents
-    if serializer is not None:
-        # the serializer should not return the serialized documents, but write them to disk
-        # and instead return some metadata such as the path to the serialized documents
-        result["serializer"] = serializer(documents)
+    # predict and serialize
+    result: Dict[str, Any] = utils.predict_and_serialize(
+        pipeline=pipeline,
+        serializer=serializer,
+        dataset=dataset_predict,
+        document_batch_size=cfg.get("document_batch_size", None),
+    )
 
     # serialize config with resolved paths
     if cfg.get("config_out_path"):

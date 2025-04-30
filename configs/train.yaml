@@ -29,6 +29,10 @@ defaults:
   # debugging config (enable through command line, e.g. `python train.py debug=default)
   - debug: null
 
+  # inference pipeline config (only used when inference is enabled via predict=true)
+  - pipeline: from_pretrained_after_training.yaml
+  - serializer: json.yaml
+
 # task name, determines output directory path
 pipeline_type: "training"
 
@@ -46,13 +50,20 @@ tags: ["dev"]
 # set False to skip model training
 train: True
 
+# evaluate on validation set, using best model weights achieved during training
+# lightning chooses best weights based on the metric specified in checkpoint callback
+validate: True
+
 # evaluate on test set, using best model weights achieved during training
 # lightning chooses best weights based on the metric specified in checkpoint callback
 test: False
 
-# evaluate on validation set, using best model weights achieved during training
-# lightning chooses best weights based on the metric specified in checkpoint callback
-validate: True
+# do inference on the test with the saved model. Depending on the inference pipeline, this requires
+# to set pipeline.pretrained_model_name_or_path=${paths.model_save_dir} on the command line
+predict: False
+# per default, the test split defined in the datamodule will be used. Set the following value to
+# use a different split.
+# predict_split: test
 
 # metric with mode (minimize or maximize) to monitor for checkpointing and early stopping callbacks
 monitor_metric: "val/f1"
