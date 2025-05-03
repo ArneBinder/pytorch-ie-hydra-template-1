@@ -89,18 +89,15 @@ class PieDataModule(LightningDataModule, Generic[DocumentType, InputEncoding, Ta
         for split in split_names:
             if split is None or split not in self.dataset:
                 continue
-            task_encoding_dataset = self.taskmodule.encode(
+            task_encodings = self.taskmodule.encode(
                 self.dataset[split],
                 encode_target=True,
-                as_dataset=True,
                 show_progress=self.show_progress_for_encode,
             )
-            if not isinstance(
-                task_encoding_dataset, (TaskEncodingDataset, IterableTaskEncodingDataset)
-            ):
-                raise TypeError(
-                    f"taskmodule.encode did not return a (Iterable)TaskEncodingDataset, but: {type(task_encoding_dataset)}"
-                )
+            if isinstance(task_encodings, Sequence):
+                task_encoding_dataset = TaskEncodingDataset(task_encodings)
+            else:
+                task_encoding_dataset = IterableTaskEncodingDataset(task_encodings)
             self._data[split] = task_encoding_dataset
 
     def data_split(self, split: Optional[str] = None) -> Union[
