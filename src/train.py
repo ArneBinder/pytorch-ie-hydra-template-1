@@ -256,6 +256,9 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
         metric_dict["model_save_dir"] = cfg.paths.model_save_dir
 
     if cfg.get("predict"):
+        # Per default, we use the test split used in the datamodule for prediction.
+        # This can be overridden by the `predict_split` config parameter.
+        split = cfg.get("predict_split", datamodule.test_split)
         # Init the inference pipeline
         pipeline: Optional[Pipeline] = None
         if cfg.get("pipeline") and cfg.pipeline.get("_target_"):
@@ -265,11 +268,8 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
         serializer: Optional[DocumentSerializer] = None
         if cfg.get("serializer") and cfg.serializer.get("_target_"):
             log.info(f"Instantiating serializer <{cfg.serializer._target_}>")
-            serializer = hydra.utils.instantiate(cfg.serializer, _convert_="partial")
+            serializer = hydra.utils.instantiate(cfg.serializer, split=split, _convert_="partial")
         # Predict and serialize
-        # Per default, we use the test split used in the datamodule for prediction.
-        # This can be overridden by the `predict_split` config parameter.
-        split = cfg.get("predict_split", datamodule.test_split)
         predict_metrics: Dict[str, Any] = utils.predict_and_serialize(
             pipeline=pipeline,
             serializer=serializer,
