@@ -91,16 +91,17 @@ def test_train_resume(tmp_path, cfg_train):
     assert metric_dict_2["train/loss"] < metric_dict_1["train/loss"]
 
 
-def test_predict_after_train(cfg_train, tmp_path):
+def test_train_val_predict(cfg_train, tmp_path):
     """Run for 1 train, val and test step."""
     HydraConfig().set_config(cfg_train)
     with open_dict(cfg_train):
         cfg_train.seed = 12345
         cfg_train.trainer.max_epochs = 1
         cfg_train.trainer.limit_train_batches = 2
+        cfg_train.trainer.limit_val_batches = 2
         cfg_train.trainer.accelerator = "cpu"
 
-        cfg_train.validate = False
+        cfg_train.validate = True
         cfg_train.predict = True
         # only predict just the first two batches
         cfg_train.pipeline.fast_dev_run = True
