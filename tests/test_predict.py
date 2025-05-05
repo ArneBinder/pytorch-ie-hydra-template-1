@@ -5,6 +5,7 @@ from hydra.core.hydra_config import HydraConfig
 from omegaconf import open_dict
 
 from src.predict import predict
+from src.serializer.interface import DocumentSerializer
 from src.train import train
 from tests.helpers.run_if import RunIf
 
@@ -79,7 +80,7 @@ def test_train_predict(tmp_path, cfg_train, cfg_predict):
     HydraConfig().set_config(cfg_predict)
     _, object_dict = predict(cfg_predict)
 
-    serializer = object_dict["serializer"]
+    serializer: DocumentSerializer = object_dict["serializer"]
     documents = serializer.read(
         path=cfg_predict.paths.prediction_save_dir, split=cfg_predict.dataset_split
     )
