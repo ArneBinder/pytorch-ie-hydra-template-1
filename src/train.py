@@ -264,11 +264,13 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
         if cfg.get("pipeline") and cfg.pipeline.get("_target_"):
             log.info(f"Instantiating inference pipeline <{cfg.pipeline._target_}>")
             pipeline = hydra.utils.instantiate(cfg.pipeline, _convert_="partial")
+            object_dict["pipeline"] = pipeline
         # Init the serializer
         serializer: Optional[DocumentSerializer] = None
         if cfg.get("serializer") and cfg.serializer.get("_target_"):
             log.info(f"Instantiating serializer <{cfg.serializer._target_}>")
             serializer = hydra.utils.instantiate(cfg.serializer, split=split, _convert_="partial")
+            object_dict["serializer"] = serializer
         # Predict and serialize
         predict_metrics: Dict[str, Any] = utils.predict_and_serialize(
             pipeline=pipeline,
