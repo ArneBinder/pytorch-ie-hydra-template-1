@@ -76,7 +76,14 @@ def cfg_predict_global(overrides=None) -> DictConfig:
 # each test generates its own temporary logging path
 @pytest.fixture(scope="function")
 def cfg_train(tmp_path) -> DictConfig:
-    cfg = cfg_train_global()
+    # use bert tiny for all tests
+    base_model = "prajjwal1/bert-tiny"
+    cfg = cfg_train_global(
+        overrides=[
+            f"model.model_name_or_path={base_model}",
+            f"taskmodule.tokenizer_name_or_path={base_model}",
+        ]
+    )
 
     with open_dict(cfg):
         cfg.paths.output_dir = str(tmp_path)
