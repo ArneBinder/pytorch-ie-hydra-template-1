@@ -1,11 +1,10 @@
 import os
-from pathlib import Path
 
 import pytest
 from hydra.core.hydra_config import HydraConfig
 from omegaconf import open_dict
 
-from src.serializer import JsonSerializer
+from src.serializer.interface import DocumentSerializer
 from src.train import train
 from tests.helpers.run_if import RunIf
 
@@ -106,9 +105,13 @@ def test_train_val_predict(cfg_train, tmp_path):
         cfg_train.validate = True
         cfg_train.predict = True
 
-    result_dict, _ = train(cfg_train)
-    # The default serializer is JsonSerializer, so we can use it to read the documents back
-    serializer = JsonSerializer()
+    result_dict, object_dict = train(cfg_train)
+    # assert that the serializer returned the same path as the one in the config
+    assert result_dict["serializer/path"] == cfg_train.paths.prediction_save_dir
+    # assert that the serializer returned the same split as the test split used in the datamodule
+    assert result_dict["serializer/split"] == object_dict["trainer"].datamodule.test_split
+    # get the serializer from the object dict
+    serializer: DocumentSerializer = object_dict["serializer"]
     annotated_documents = serializer.read(
         path=result_dict["serializer/path"], split=result_dict["serializer/split"]
     )
