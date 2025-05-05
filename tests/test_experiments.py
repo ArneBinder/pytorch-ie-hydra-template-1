@@ -13,7 +13,7 @@ ext = ".yaml"
 AVAILABLE_EXPERIMENTS = [
     exp_yaml.replace(ext, "")
     for exp_yaml in os.listdir("configs/experiment")
-    if exp_yaml.endswith(ext)
+    if exp_yaml.endswith(ext) and not exp_yaml.startswith("_")
 ]
 
 EXPERIMENTS = AVAILABLE_EXPERIMENTS
