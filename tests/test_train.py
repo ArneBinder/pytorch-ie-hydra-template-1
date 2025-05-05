@@ -1,9 +1,11 @@
 import os
+from pathlib import Path
 
 import pytest
 from hydra.core.hydra_config import HydraConfig
 from omegaconf import open_dict
 
+from src.serializer import JsonSerializer
 from src.train import train
 from tests.helpers.run_if import RunIf
 
@@ -87,3 +89,32 @@ def test_train_resume(tmp_path, cfg_train):
     metric_dict_2, _ = train(cfg_train)
 
     assert metric_dict_2["train/loss"] < metric_dict_1["train/loss"]
+
+
+def test_predict_after_train(cfg_train, tmp_path):
+    """Run for 1 train, val and test step."""
+    HydraConfig().set_config(cfg_train)
+    with open_dict(cfg_train):
+        cfg_train.seed = 12345
+        cfg_train.trainer.max_epochs = 1
+        cfg_train.trainer.limit_train_batches = 2
+        cfg_train.trainer.accelerator = "cpu"
+
+        cfg_train.validate = False
+        cfg_train.predict = True
+        # only predict just the first two batches
+        cfg_train.pipeline.fast_dev_run = True
+
+    metric_dict_1, _ = train(cfg_train)
+    # Get the path to the serialized documents
+    serializer_path = Path(metric_dict_1["serializer/path"])
+    # The default serializer is JsonSerializer, so we can use it to read the documents
+    serializer = JsonSerializer()
+    # The parent directory of the serializer path is the directory where the metadata is stored,
+    # so we use that to read the documents. The subdirectory is the split name.
+    annotated_data = serializer.read(path=str(serializer_path.parent), split=serializer_path.name)
+    # get the first document
+    assert len(annotated_data) > 0
+    doc = annotated_data[0]
+    # Check that the document has predictions
+    assert len(doc.labeled_spans.predictions) > 0
