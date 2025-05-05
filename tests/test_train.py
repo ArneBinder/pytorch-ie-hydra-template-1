@@ -106,16 +106,14 @@ def test_train_val_predict(cfg_train, tmp_path):
         cfg_train.validate = True
         cfg_train.predict = True
 
-    metric_dict_1, _ = train(cfg_train)
-    # Get the path to the serialized documents
-    serializer_path = Path(metric_dict_1["serializer/path"])
-    # The default serializer is JsonSerializer, so we can use it to read the documents
+    result_dict, _ = train(cfg_train)
+    # The default serializer is JsonSerializer, so we can use it to read the documents back
     serializer = JsonSerializer()
-    # The parent directory of the serializer path is the directory where the metadata is stored,
-    # so we use that to read the documents. The subdirectory is the split name.
-    annotated_data = serializer.read(path=str(serializer_path.parent), split=serializer_path.name)
+    annotated_documents = serializer.read(
+        path=result_dict["serializer/path"], split=result_dict["serializer/split"]
+    )
     # get the first document
-    assert len(annotated_data) > 0
-    doc = annotated_data[0]
+    assert len(annotated_documents) > 0
+    doc = annotated_documents[0]
     # Check that the document has predictions
     assert len(doc.labeled_spans.predictions) > 0
