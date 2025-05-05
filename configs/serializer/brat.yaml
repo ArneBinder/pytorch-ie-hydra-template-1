@@ -1,6 +1,5 @@
 _target_: src.serializer.BratSerializer
 path: ${paths.prediction_save_dir}
-split: ${dataset_split}
 
 # this needs to be a mapping from annotation layer names
 # to what to serialize, i.e. "gold", "prediction", or "both".
