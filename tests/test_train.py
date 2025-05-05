@@ -99,12 +99,12 @@ def test_train_val_predict(cfg_train, tmp_path):
         cfg_train.trainer.max_epochs = 1
         cfg_train.trainer.limit_train_batches = 2
         cfg_train.trainer.limit_val_batches = 2
+        # only predict the first two batches
+        cfg_train.pipeline.fast_dev_run = True
         cfg_train.trainer.accelerator = "cpu"
 
         cfg_train.validate = True
         cfg_train.predict = True
-        # only predict just the first two batches
-        cfg_train.pipeline.fast_dev_run = True
 
     metric_dict_1, _ = train(cfg_train)
     # Get the path to the serialized documents
