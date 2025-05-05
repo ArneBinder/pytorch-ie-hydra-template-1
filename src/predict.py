@@ -98,7 +98,9 @@ def predict(cfg: DictConfig) -> Tuple[dict, dict]:
     serializer: Optional[DocumentSerializer] = None
     if cfg.get("serializer") and cfg.serializer.get("_target_"):
         log.info(f"Instantiating serializer <{cfg.serializer._target_}>")
-        serializer = hydra.utils.instantiate(cfg.serializer, _convert_="partial")
+        serializer = hydra.utils.instantiate(
+            cfg.serializer, split=cfg.dataset_split, _convert_="partial"
+        )
 
     # select the dataset split for prediction
     dataset_predict = dataset[cfg.dataset_split]

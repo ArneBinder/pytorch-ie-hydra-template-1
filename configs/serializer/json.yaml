@@ -1,3 +1,2 @@
 _target_: src.serializer.JsonSerializer
 path: ${paths.prediction_save_dir}
-split: ${dataset_split}
