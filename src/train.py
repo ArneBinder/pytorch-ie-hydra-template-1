@@ -43,7 +43,8 @@ from pie_datasets import DatasetDict
 from pie_modules.models import *  # noqa: F403
 from pie_modules.models.interface import RequiresTaskmoduleConfig
 from pie_modules.taskmodules import *  # noqa: F403
-from pytorch_ie import AutoModel
+from pie_modules.utils.dictionary import flatten_dict
+from pytorch_ie import AutoModel, Pipeline
 from pytorch_ie.core import PyTorchIEModel, TaskModule
 from pytorch_ie.models import *  # noqa: F403
 from pytorch_ie.models.interface import RequiresModelNameOrPath, RequiresNumClasses
@@ -55,6 +56,7 @@ from pytorch_lightning.loggers import Logger
 from src import utils
 from src.datamodules import PieDataModule
 from src.models import *  # noqa: F403
+from src.serializer.interface import DocumentSerializer
 from src.taskmodules import *  # noqa: F403
 
 log = utils.get_pylogger(__name__)
@@ -252,6 +254,31 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
     # if we use hydra_callbacks.SaveJobReturnValueCallback
     if cfg.paths.get("model_save_dir") is not None:
         metric_dict["model_save_dir"] = cfg.paths.model_save_dir
+
+    if cfg.get("predict"):
+        # Per default, we use the test split used in the datamodule for prediction.
+        # This can be overridden by the `predict_split` config parameter.
+        split = cfg.get("predict_split", datamodule.test_split)
+        # Init the inference pipeline
+        pipeline: Optional[Pipeline] = None
+        if cfg.get("pipeline") and cfg.pipeline.get("_target_"):
+            log.info(f"Instantiating inference pipeline <{cfg.pipeline._target_}>")
+            pipeline = hydra.utils.instantiate(cfg.pipeline, _convert_="partial")
+        # Init the serializer
+        serializer: Optional[DocumentSerializer] = None
+        if cfg.get("serializer") and cfg.serializer.get("_target_"):
+            log.info(f"Instantiating serializer <{cfg.serializer._target_}>")
+            serializer = hydra.utils.instantiate(cfg.serializer, split=split, _convert_="partial")
+        # Predict and serialize
+        predict_metrics: Dict[str, Any] = utils.predict_and_serialize(
+            pipeline=pipeline,
+            serializer=serializer,
+            dataset=dataset[split],
+            document_batch_size=cfg.get("document_batch_size", None),
+        )
+        # flatten the predict_metrics dict
+        predict_metrics_flat = flatten_dict(predict_metrics, sep="/")
+        metric_dict.update(predict_metrics_flat)
 
     return metric_dict, object_dict
 

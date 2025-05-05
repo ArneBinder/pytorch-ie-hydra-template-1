@@ -7,7 +7,7 @@ from pytorch_ie.core import Document
 from pytorch_ie.utils.hydra import resolve_optional_document_type, serialize_document_type
 
 from src.serializer.interface import DocumentSerializer
-from src.utils import get_pylogger
+from src.utils.logging_utils import get_pylogger
 
 log = get_pylogger(__name__)
 
