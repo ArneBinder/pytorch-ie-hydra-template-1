@@ -5,6 +5,7 @@ from hydra.core.hydra_config import HydraConfig
 from omegaconf import open_dict
 
 from src.predict import predict
+from src.serializer import JsonSerializer
 from src.train import train
 from tests.helpers.run_if import RunIf
 
@@ -75,13 +76,15 @@ def test_train_predict(tmp_path, cfg_train, cfg_predict):
 
     with open_dict(cfg_predict):
         cfg_predict.model_name_or_path = cfg_train.paths.model_save_dir
-        # disable serialization
-        cfg_predict.serializer = None
 
     HydraConfig().set_config(cfg_predict)
     _, object_dict = predict(cfg_predict)
 
-    predicted_entities = [list(doc.labeled_spans.predictions) for doc in object_dict["documents"]]
+    serializer = object_dict["serializer"]
+    documents = serializer.read(
+        path=cfg_predict.paths.prediction_save_dir, split=cfg_predict.dataset_split
+    )
+    predicted_entities = [list(doc.labeled_spans.predictions) for doc in documents]
     num_predicted_entities = sum([len(preds) for preds in predicted_entities])
     assert num_predicted_entities > 0
 
