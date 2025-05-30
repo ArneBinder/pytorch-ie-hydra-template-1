@@ -44,7 +44,7 @@ from pie_modules.models import *  # noqa: F403
 from pie_modules.models.interface import RequiresTaskmoduleConfig
 from pie_modules.taskmodules import *  # noqa: F403
 from pie_modules.utils.dictionary import flatten_dict
-from pytorch_ie import AutoModel, Pipeline
+from pytorch_ie import AutoModel, PieDataModule, Pipeline
 from pytorch_ie.core import PyTorchIEModel, TaskModule
 from pytorch_ie.models import *  # noqa: F403
 from pytorch_ie.models.interface import RequiresModelNameOrPath, RequiresNumClasses
@@ -54,7 +54,6 @@ from pytorch_lightning import Callback, Trainer
 from pytorch_lightning.loggers import Logger
 
 from src import utils
-from src.datamodules import PieDataModule
 from src.models import *  # noqa: F403
 from src.serializer.interface import DocumentSerializer
 from src.taskmodules import *  # noqa: F403

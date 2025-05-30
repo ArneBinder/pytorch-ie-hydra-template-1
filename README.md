@@ -102,7 +102,6 @@ The directory structure of new project looks like this:
 ├── scripts                <- Shell scripts
 │
 ├── src                    <- Source code
-│   ├── datamodules              <- Lightning datamodules
 │   ├── models                   <- Pytorch-IE models
 │   ├── taskmodules              <- Pytorch-IE taskmodules
 │   ├── utils                    <- Utility scripts
