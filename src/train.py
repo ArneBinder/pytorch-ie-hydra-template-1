@@ -112,7 +112,7 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
     )
 
     # auto-convert the dataset if the taskmodule specifies a document type
-    dataset = taskmodule.convert_dataset(dataset)
+    dataset = dataset.to_document_type(taskmodule, downcast=False)
 
     # Init pytorch-ie datamodule
     log.info(f"Instantiating datamodule <{cfg.datamodule._target_}>")

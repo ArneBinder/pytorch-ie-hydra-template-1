@@ -71,7 +71,7 @@ def evaluate_documents(cfg: DictConfig) -> Tuple[dict, dict]:
     metric: DocumentMetric = hydra.utils.instantiate(cfg.metric, _convert_="partial")
 
     # auto-convert the dataset if the metric specifies a document type
-    dataset = metric.convert_dataset(dataset)
+    dataset = dataset.to_document_type(metric, downcast=False)
 
     # Init lightning loggers
     loggers = utils.instantiate_dict_entries(cfg, "logger")
