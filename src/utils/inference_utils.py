@@ -47,10 +47,10 @@ def predict_and_serialize(
     batch_iter: Union[Sequence[Iterable[Document]], Iterable[Sequence[Document]]]
     if document_batch_size is None:
         batch_iter = [dataset]
-        append = False
     else:
         batch_iter = document_batch_iter(dataset=dataset, batch_size=document_batch_size)
-        append = True
+
+    append = False
     for docs_batch in batch_iter:
         if pipeline is not None:
             t_start = timeit.default_timer()
@@ -68,6 +68,7 @@ def predict_and_serialize(
                     " during prediction. Only the last result is returned."
                 )
             result["serializer"] = serializer_result
+            append = True
 
     if prediction_time is not None:
         result["prediction_time"] = prediction_time
