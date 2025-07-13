@@ -55,7 +55,7 @@ def test_save_and_load_with_dataset_dict(tmp_path, document):
     serializer = JsonSerializer(path=path)
 
     serializer(documents=[document], split="train")
-    serializer(documents=[document], split="test")
+    serializer(documents=[document], split="test", append=True)
 
     loaded_dataset = DatasetDict.from_json(data_dir=path)
     assert set(loaded_dataset) == {"train", "test"}
