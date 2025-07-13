@@ -31,9 +31,7 @@ class JsonSerializer(DocumentSerializer):
                 documents = Dataset.from_documents(documents)
 
         dataset_dict = DatasetDict({split: documents})
-        # TODO: pass append to DatasetDict.to_json,
-        #  requires https://github.com/ArneBinder/pie-datasets/issues/158
-        dataset_dict.to_json(path=path)
+        dataset_dict.to_json(path=path, mode="a" if append else "w")
         return {"path": path, "split": split}
 
     @classmethod
