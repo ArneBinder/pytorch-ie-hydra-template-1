@@ -1,6 +1,7 @@
 import os
 
 import pytest
+import torch
 from hydra.core.hydra_config import HydraConfig
 from omegaconf import open_dict
 
@@ -120,3 +121,44 @@ def test_train_val_predict(cfg_train, tmp_path):
     doc = annotated_documents[0]
     # Check that the document has predictions
     assert len(doc.labeled_spans.predictions) > 0
+
+
+@pytest.mark.slow
+def test_eval(tmp_path, cfg_eval):
+
+    HydraConfig().set_config(cfg_eval)
+    test_metric_dict, _ = train(cfg_eval)
+
+    expected = {"test/f1": torch.tensor(0.96206), "test/loss": torch.tensor(0.005253)}
+    test_metric_dict_filtered = {k: v for k, v in test_metric_dict.items() if k in expected}
+    torch.testing.assert_close(test_metric_dict_filtered, expected)
+
+
+@pytest.mark.slow
+def test_train_eval(tmp_path, cfg_train, cfg_eval):
+    """Train for 1 epoch with `train.py` and evaluate with `eval.py`"""
+    assert str(tmp_path) == cfg_train.paths.save_dir
+
+    with open_dict(cfg_train):
+        cfg_train.trainer.max_epochs = 1
+        cfg_train.test = True
+        cfg_train.trainer.limit_train_batches = 10
+        # ensure reproducibility
+        cfg_train.seed = 42
+        cfg_train.trainer.deterministic = True
+
+    HydraConfig().set_config(cfg_train)
+    train_metric_dict, _ = train(cfg_train)
+    assert train_metric_dict["train/f1"] > 0.0
+
+    assert os.path.exists(cfg_train.paths.model_save_dir)
+
+    with open_dict(cfg_eval):
+        cfg_eval.model_name_or_path = cfg_train.paths.model_save_dir
+
+    HydraConfig().set_config(cfg_eval)
+    test_metric_dict, _ = train(cfg_eval)
+
+    assert len(test_metric_dict) > 0
+    for k in test_metric_dict:
+        assert torch.isclose(train_metric_dict[k], test_metric_dict[k])
