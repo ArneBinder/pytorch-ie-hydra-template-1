@@ -120,13 +120,7 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
         cfg.datamodule, dataset=dataset, taskmodule=taskmodule, _convert_="partial"
     )
     # Use the train dataset split to prepare the taskmodule
-    # TODO: remove if case when using pie-core which already checks if the taskmodule is prepared
-    if not taskmodule.is_prepared:
-        taskmodule.prepare(dataset[datamodule.train_split])
-    else:
-        log.info(
-            "Do not prepare taskmodule with the train dataset split, because it is already prepared."
-        )
+    taskmodule.prepare(dataset[datamodule.train_split])
 
     # Init the pytorch-ie model
     log.info(f"Instantiating model <{cfg.model._target_}>")
