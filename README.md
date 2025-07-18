@@ -1441,7 +1441,7 @@ See [config/dataset/](configs/dataset/) for available datasets.
 **Have a look into the [evaluate.yaml](configs/evaluate.yaml) config to see all available options.**
 
 ```bash
-python src/evaluate.py dataset=conll2003 model_name_or_path=pie/example-ner-spanclf-conll03
+python src/train.py --config-name=evaluate dataset=conll2003 model_name_or_path=pie/example-ner-spanclf-conll03
 ```
 
 Notes:

@@ -126,21 +126,28 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
     log.info(f"Instantiating model <{cfg.model._target_}>")
     # get additional model arguments
     additional_model_kwargs: Dict[str, Any] = {}
-    model_cls = hydra.utils.get_class(cfg.model["_target_"])
-    # NOTE: MODIFY THE additional_model_kwargs IF YOUR MODEL REQUIRES ANY MORE PARAMETERS FROM THE TASKMODULE!
-    # SEE EXAMPLES BELOW.
-    if issubclass(model_cls, RequiresNumClasses):
-        additional_model_kwargs["num_classes"] = len(taskmodule.label_to_id)
-    if issubclass(model_cls, RequiresModelNameOrPath):
-        if "model_name_or_path" not in cfg.model:
-            raise Exception(
-                f"Please specify model_name_or_path in the model config for {model_cls.__name__}."
-            )
-    if isinstance(taskmodule, ChangesTokenizerVocabSize):
-        additional_model_kwargs["tokenizer_vocab_size"] = len(taskmodule.tokenizer)
+    try:
+        model_cls = hydra.utils.get_class(cfg.model["_target_"])
+        # NOTE: MODIFY THE additional_model_kwargs IF YOUR MODEL REQUIRES ANY MORE PARAMETERS FROM THE TASKMODULE!
+        # SEE EXAMPLES BELOW.
+        if issubclass(model_cls, RequiresNumClasses):
+            additional_model_kwargs["num_classes"] = len(taskmodule.label_to_id)
+        if issubclass(model_cls, RequiresModelNameOrPath):
+            if "model_name_or_path" not in cfg.model:
+                raise Exception(
+                    f"Please specify model_name_or_path in the model config for {model_cls.__name__}."
+                )
+        if isinstance(taskmodule, ChangesTokenizerVocabSize):
+            additional_model_kwargs["tokenizer_vocab_size"] = len(taskmodule.tokenizer)
 
-    if issubclass(model_cls, RequiresTaskmoduleConfig):
-        additional_model_kwargs["taskmodule_config"] = taskmodule.config
+        if issubclass(model_cls, RequiresTaskmoduleConfig):
+            additional_model_kwargs["taskmodule_config"] = taskmodule.config
+
+    except ValueError as e:
+        log.warning(
+            f"Could not get the model class from the config _target_ '{cfg.model._target_}':\n{e}\n"
+            "No additional model kwargs will be constructed from the taskmodule."
+        )
 
     # initialize the model
     model: PyTorchIEModel = hydra.utils.instantiate(

@@ -1,35 +1,28 @@
 # @package _global_
 
 defaults:
+  - train
   - _self_
-  - dataset: conll2003
-  - datamodule: default
-  - taskmodule: from_pretrained
-  - model: from_pretrained
-  - callbacks: null
-  - logger: null
-  - trainer: default.yaml
-  - paths: default.yaml
-  - extras: default.yaml
-  - hydra: default.yaml
+  - override taskmodule: from_pretrained
+  - override model: from_pretrained
+  - override callbacks: none
 
 pipeline_type: "evaluation"
 
-name: "default"
+train: false
+validate: false
+test: true
 
-tags: ["dev"]
-
-ignore_warnings: False
-
-print_config: True
-
-seed: null
+# disable saving of the model after evaluation
+paths:
+  model_save_dir: null
 
 # This should be the value of save_dir from the train config
 # or the url to huggingface hub where the taskmodule and model was pushed to.
 # It is used in the from_pretrained taskmodule and model configs.
 model_name_or_path: pie/example-ner-spanclf-conll03
 
+# TODO: This is not yet implemented for the new eval setup via train.py.
 # Per default, the model is loaded with .from_pretrained() which already loads the weights.
 # However, ckpt_path can be used to load different weights from any checkpoint.
 ckpt_path: null
