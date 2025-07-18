@@ -36,6 +36,7 @@ def cfg_experiment(tmp_path, request) -> DictConfig:
 
 
 @pytest.mark.slow
+@pytest.mark.veryslow
 def test_experiment(cfg_experiment):
     """Run for 1 train, val and test step."""
     HydraConfig().set_config(cfg_experiment)
