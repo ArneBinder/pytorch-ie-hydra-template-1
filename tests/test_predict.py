@@ -11,6 +11,7 @@ from tests.helpers.run_if import RunIf
 
 
 @pytest.mark.slow
+@pytest.mark.veryslow
 def test_predict_cpu(tmp_path, cfg_predict):
     """Run inference on CPU."""
 
@@ -60,6 +61,7 @@ def test_predict_gpu(tmp_path, cfg_predict):
 
 
 @pytest.mark.slow
+@pytest.mark.veryslow
 def test_train_predict(tmp_path, cfg_train, cfg_predict):
     """Train for 1 epoch with `train.py` and predict with `predict.py`"""
     assert str(tmp_path) == cfg_train.paths.save_dir
