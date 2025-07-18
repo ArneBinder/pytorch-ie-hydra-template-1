@@ -130,8 +130,7 @@ def test_eval(tmp_path, cfg_eval):
     test_metric_dict, _ = train(cfg_eval)
 
     expected = {"test/f1": torch.tensor(0.96206), "test/loss": torch.tensor(0.005253)}
-    test_metric_dict_filtered = {k: v for k, v in test_metric_dict.items() if k in expected}
-    torch.testing.assert_close(test_metric_dict_filtered, expected)
+    torch.testing.assert_close(test_metric_dict, expected)
 
 
 @pytest.mark.slow
