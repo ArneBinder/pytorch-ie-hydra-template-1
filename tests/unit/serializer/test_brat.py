@@ -83,11 +83,15 @@ def test_serialize_binary_relation():
 
 def test_serialize_unknown_annotation():
 
+    @dataclasses.dataclass(frozen=True)
+    class InvalidAnnotation(Annotation):
+        pass
+
     with pytest.raises(Warning) as w:
-        serialize_annotation(annotation=Annotation(), annotation2id={})
+        serialize_annotation(annotation=InvalidAnnotation(), annotation2id={})
     assert (
         str(w.value)
-        == "annotation has unknown type: <class 'pytorch_ie.core.document.Annotation'>"
+        == "annotation has unknown type: <class 'tests.unit.serializer.test_brat.test_serialize_unknown_annotation.<locals>.InvalidAnnotation'>"
     )
 
 
@@ -334,11 +338,15 @@ def test_write_with_exceptions_and_warnings(tmp_path, caplog, document):
         serializer(documents=[])
     assert str(e.value) == "cannot serialize empty list of documents"
 
+    @dataclass
+    class InvalidDocument(Document):
+        pass
+
     # List of documents with type unexpected Document type
     with pytest.raises(TypeError) as type_error:
-        serializer(documents=[Document()])
+        serializer(documents=[InvalidDocument()])
     assert str(type_error.value) == (
-        "Document doc_0 has unexpected type: <class 'pytorch_ie.core.document.Document'>. "
+        "Document doc_0 has unexpected type: <class 'tests.unit.serializer.test_brat.test_write_with_exceptions_and_warnings.<locals>.InvalidDocument'>. "
         "BratSerializer can only serialize TextBasedDocuments."
     )
 
