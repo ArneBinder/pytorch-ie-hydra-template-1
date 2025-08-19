@@ -5,51 +5,68 @@ build-backend = "poetry.core.masonry.api"
 [project]
 name = "your-project"
 version = "0.0.1"
-description = "does cool things"
+description = "Describe Your Cool Project"
 authors = [
-    {name = "Your Name",email = "you@example.com"}
+    {name = "Your Name", email = "you@example.com"}
 ]
 license = {text = "MIT"}
 readme = "README.md"
 requires-python = ">=3.9,<4.0"
 dependencies = [
+    # --------- pytorch-ie --------- #
     "pytorch-ie (>=0.31.10,<0.32.0)",
     "pie-datasets (>=0.10.10,<0.11.0)",
     "pie-modules (>=0.12.1,<0.13.0)",
+
+    # --------- hydra --------- #
     "hydra-core (>=1.3.0)",
     "hydra-colorlog (>=1.2.0)",
     "hydra-optuna-sweeper (>=1.2.0)",
-    "pre-commit (>=4.3.0,<5.0.0)",
-    "black (>=25.1.0,<26.0.0)",
-    "isort (>=6.0.1,<7.0.0)",
-    "flake8 (>=7.3.0,<8.0.0)",
-    "nbstripout (>=0.8.1,<0.9.0)",
-    "pyrootutils (>=1.0.4,<2.0.0)",
-    "python-dotenv (>=1.1.1,<2.0.0)",
-    "rich (>=14.1.0,<15.0.0)",
-    "pytest (>=8.4.1,<9.0.0)",
-    "pytest-cov (>=6.2.1,<7.0.0)",
-    "sh (>=2.2.2,<3.0.0)",
-    "pudb (>=2025.1,<2026.0)",
-    "tabulate (>=0.9.0,<0.10.0)",
-    "plotext (>=5.3.2,<6.0.0)"
+
+    # --------- loggers --------- #
+    # "wandb",
+    # "neptune-client",
+    # "mlflow",
+    # "comet-ml",
+    # "tensorboard",
+    # "aim",
+
+    # --------- linters --------- #
+    "pre-commit (>=4.3.0,<5.0.0)",      # hooks for applying linters on commit
+    "black (>=25.1.0,<26.0.0)",         # code formatting
+    "isort (>=6.0.1,<7.0.0)",           # import sorting
+    "flake8 (>=7.3.0,<8.0.0)",          # code analysis
+    "nbstripout (>=0.8.1,<0.9.0)",      # remove output from jupyter notebooks
+
+    # --------- others --------- #
+    "pyrootutils (>=1.0.4,<2.0.0)",     # standardizing the project root setup
+    "python-dotenv (>=1.1.1,<2.0.0)",   # loading env variables from .env file
+    "rich (>=14.1.0,<15.0.0)",          # beautiful text formatting in terminal
+    "pytest (>=8.4.1,<9.0.0)",          # tests
+    "pytest-cov (>=6.2.1,<7.0.0)",      # test coverage
+    "sh (>=2.2.2,<3.0.0)",              # for running bash commands in some tests
+    "pudb (>=2025.1,<2026.0)",          # debugger
+    "tabulate (>=0.9.0,<0.10.0)",       # show statistics as markdown
+    "plotext (>=5.3.2,<6.0.0)",         # show statistics as plots
+    # "huggingface-hub (>=0.13)"          # interaction with HF hub
 ]
 
 [project.urls]
 homepage = "https://your-project.com"
 repository = "https://github.com/user/project"
 
+[tool.poetry]
+# Uncomment this to use Poetry only for dependency management but not for packaging
+# package-mode = false
+packages = [
+    {include = "src"},
+]
+
 [tool.isort]
 line_length = 99
 profile = "black"
 filter_files = true
 
-[tool.flake8]
-max_line_length = "99"
-show_source = "True"
-format = "pylint"
-ignore = "\nF401\nW504\nF841\nE501\nE704"
-exclude = "\n.git\n__pycache__\ndata/*\ntests/*\nnotebooks/*\nlogs/*"
 
 [tool.pytest.ini_options]
 testpaths = [
@@ -69,6 +86,3 @@ filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore::UserWarning",
 ]
-
-[tool.setuptools]
-include-package-data = false

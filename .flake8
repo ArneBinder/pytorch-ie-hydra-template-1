@@ -1,9 +1,3 @@
-[isort]
-line_length = 99
-profile = black
-filter_files = True
-
-
 [flake8]
 max_line_length = 99
 show_source = True
@@ -26,18 +20,3 @@ exclude =
     tests/*
     notebooks/*
     logs/*
-
-
-[tool:pytest]
-testpaths = tests/
-log_cli = True
-markers =
-    slow
-    veryslow
-addopts =
-    --durations=0
-    --strict-markers
-    --doctest-modules
-filterwarnings =
-    ignore::DeprecationWarning
-    ignore::UserWarning
