@@ -1508,5 +1508,5 @@ pre-commit install
 
 ```bash
 # run tests
-pytest -k "not slow" --cov --cov-report term-missing
+pytest -m "not slow" --cov --cov-report term-missing
 ```
