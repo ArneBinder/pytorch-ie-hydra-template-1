@@ -44,6 +44,7 @@ dependencies = [
     "rich (>=14.1.0,<15.0.0)",          # beautiful text formatting in terminal
     "pytest (>=8.4.1,<9.0.0)",          # tests
     "pytest-cov (>=6.2.1,<7.0.0)",      # test coverage
+    "pytest-xdist (>=3.8.0,<4.0.0)",    # use more cores for tests
     "sh (>=2.2.2,<3.0.0)",              # for running bash commands in some tests
     "pudb (>=2025.1,<2026.0)",          # debugger
     "tabulate (>=0.9.0,<0.10.0)",       # show statistics as markdown
@@ -67,6 +68,34 @@ line_length = 99
 profile = "black"
 filter_files = true
 
+[tool.coverage.paths]
+source = ["src"]
+tests = ["tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["src"]
+
+[tool.coverage.report]
+show_missing = true
+# Uncomment to fail if minimum coverage is not reached
+# fail_under = 40
+exclude_lines = [
+    # Have to re-enable the standard pragma
+    "pragma: no cover",
+
+    # Don't complain about missing debug-only code:
+    "def __repr__",
+    "if self.debug",
+
+    # Don't complain if tests don't hit defensive assertion code:
+    "raise AssertionError",
+    "raise NotImplementedError",
+
+    # Don't complain if non-runnable code isn't run:
+    "if 0:",
+    "if __name__ == .__main__.:",
+]
 
 [tool.pytest.ini_options]
 testpaths = [
@@ -80,7 +109,8 @@ markers = [
 addopts = [
     "--durations=0",
     "--strict-markers",
-    "--doctest-modules"
+    "--doctest-modules",
+    "-n=auto"
 ]
 filterwarnings = [
     "ignore::DeprecationWarning",

@@ -114,13 +114,14 @@ The directory structure of new project looks like this:
 ├── tests                  <- Tests of any kind
 │
 ├── .env.example              <- Template of the file for storing private environment variables
+├── .flake8                   <- Configuration of flake8 code analyser tool
 ├── .gitignore                <- List of files/folders ignored by git
 ├── .pre-commit-config.yaml   <- Configuration of pre-commit hooks for code formatting
 ├── Makefile                  <- Makefile with commands like `make train` or `make test`
-├── requirements.txt          <- File for installing python dependencies
-├── setup.cfg                 <- Configuration of linters and pytest
-├── setup.py                  <- File for installing project as a package
-└── README.md
+├── poetry.lock               <- Lockfile with specific dependency versions automatically managed by Poetry
+├── pyproject.toml            <- Project configuration including dependencies, settings for linters and pytest, and building project as a package
+├── README.md
+└── setup_symlinks.sh         <- Script for automatically creating symlinks to log and model folders in case you want to put them anywhere outside of a project
 ```
 
 <br>
@@ -132,21 +133,32 @@ The directory structure of new project looks like this:
 git clone https://github.com/ChristophAlt/pytorch-ie-hydra-template.git
 cd pytorch-ie-hydra-template
 
-# [OPTIONAL] create conda environment
-conda create -n myenv python=3.9
-conda activate myenv
+# [OPTIONAL] Setup virtual environment with a tool of your choice
+# There are some options:
+# Poetry env - https://python-poetry.org/docs/managing-environments
+# Python venv - https://docs.python.org/3/library/venv.html
+# Pyenv + virtualenv plugin - https://github.com/pyenv/pyenv
+#                           - https://github.com/pyenv/pyenv-virtualenv
 
-# install pytorch according to instructions
+
+# [OPTIONAL] Check the pyproject.toml config file
+# - Check if dependency versions fit your needs
+# - Uncomment logger you want to use
+# - Add your own dependencies manually or with `poetry add abc==1.2.3`
+# - Change pytorch version in pyproject.toml to fit your system, see
 # https://pytorch.org/get-started/
 
-# install requirements
-pip install -r requirements.txt
+
+# Install project and dependencies
+poetry install
+
 
 # [OPTIONAL] symlink log directories and the default model directory to
-# "$HOME/experiments/my-project" since they can grow a lot
+# "$HOME/experiments/my-project" since they can grow a lot (change path to place where you have enough storage)
 bash setup_symlinks.sh $HOME/experiments/my-project
 
 # [OPTIONAL] set any environment variables by creating an .env file
+# Variables from this file are automatically loaded by train/predict/evaluate_documents scripts via `pyrootutils.setup_root()`
 # 1. copy the provided example file:
 cp .env.example .env
 # 2. edit the .env file for your needs!
@@ -1370,15 +1382,15 @@ What it does
 git clone https://github.com/your-github-name/your-project-name.git
 cd your-project-name
 
-# [OPTIONAL] create conda environment
-conda create -n your-project-name python=3.9
-conda activate your-project-name
+# [OPTIONAL] Setup virtual environment with a tool of your choice
+# There are some options:
+# Poetry env - https://python-poetry.org/docs/managing-environments
+# Python venv - https://docs.python.org/3/library/venv.html
+# Pyenv + virtualenv plugin - https://github.com/pyenv/pyenv
+#                           - https://github.com/pyenv/pyenv-virtualenv
 
-# install PyTorch according to instructions
-# https://pytorch.org/get-started/
-
-# install remaining requirements
-pip install -r requirements.txt
+# Install project and dependencies
+poetry install
 
 # [OPTIONAL] symlink log directories and the default model directory to
 # "$HOME/experiments/your-project-name" since they can grow a lot
@@ -1490,7 +1502,9 @@ predictions. However, it could be used with statistical metrics such as
 ```bash
 # run pre-commit: code formatting, code analysis, static type checking, and more (see .pre-commit-config.yaml)
 pre-commit run -a
+# you could also install pre-commit hook which will automatically run checks every time you create a commit  by running
+pre-commit install
 
 # run tests
-pytest -k "not slow" --cov --cov-report term-missing
+pytest -m "not slow" --cov --cov-report term-missing
 ```

@@ -20,6 +20,7 @@ def test_train_fast_dev_run(cfg_train):
 
 
 @RunIf(min_gpus=1)
+@pytest.mark.slow
 def test_train_fast_dev_run_gpu(cfg_train):
     """Run for 1 train, val and test step on GPU."""
     HydraConfig().set_config(cfg_train)
@@ -30,6 +31,7 @@ def test_train_fast_dev_run_gpu(cfg_train):
 
 
 @RunIf(min_gpus=1)
+@pytest.mark.slow
 def test_train_epoch_gpu_amp(cfg_train):
     """Train 1 epoch on GPU with mixed-precision."""
     HydraConfig().set_config(cfg_train)
@@ -41,6 +43,7 @@ def test_train_epoch_gpu_amp(cfg_train):
 
 
 @RunIf(min_gpus=1)
+@pytest.mark.slow
 def test_train_epoch_double_val_loop(cfg_train):
     """Train 1 epoch with validation loop twice per epoch."""
     HydraConfig().set_config(cfg_train)
@@ -93,6 +96,7 @@ def test_train_resume(tmp_path, cfg_train):
     assert metric_dict_2["train/loss"] < metric_dict_1["train/loss"]
 
 
+@pytest.mark.slow
 def test_train_val_predict(cfg_train, tmp_path):
     """Run for 1 train, val and test step."""
     HydraConfig().set_config(cfg_train)
