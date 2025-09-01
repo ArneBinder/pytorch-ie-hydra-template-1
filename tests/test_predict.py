@@ -43,7 +43,6 @@ def test_predict_cpu_fast_dev_run(tmp_path, cfg_predict):
 
 
 @RunIf(min_gpus=1)
-@pytest.mark.slow
 def test_predict_gpu(tmp_path, cfg_predict):
     """Run inference on GPU."""
 
