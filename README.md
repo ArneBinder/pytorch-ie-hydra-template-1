@@ -133,13 +133,6 @@ The directory structure of new project looks like this:
 git clone https://github.com/ChristophAlt/pytorch-ie-hydra-template.git
 cd pytorch-ie-hydra-template
 
-# [OPTIONAL] Setup virtual environment with a tool of your choice
-# There are some options:
-# Poetry env - https://python-poetry.org/docs/managing-environments
-# Python venv - https://docs.python.org/3/library/venv.html
-# Pyenv + virtualenv plugin - https://github.com/pyenv/pyenv
-#                           - https://github.com/pyenv/pyenv-virtualenv
-
 
 # [OPTIONAL] Check the pyproject.toml config file
 # - Check if dependency versions fit your needs
@@ -151,6 +144,10 @@ cd pytorch-ie-hydra-template
 
 # Install project and dependencies
 poetry install
+
+# Poetry will create a virtual environment for installation by default, unless you have manually disabled it.
+# To activate virtual environment, run:
+eval $(poetry env activate)
 
 
 # [OPTIONAL] symlink log directories and the default model directory to
@@ -1382,21 +1379,21 @@ What it does
 git clone https://github.com/your-github-name/your-project-name.git
 cd your-project-name
 
-# [OPTIONAL] Setup virtual environment with a tool of your choice
-# There are some options:
-# Poetry env - https://python-poetry.org/docs/managing-environments
-# Python venv - https://docs.python.org/3/library/venv.html
-# Pyenv + virtualenv plugin - https://github.com/pyenv/pyenv
-#                           - https://github.com/pyenv/pyenv-virtualenv
 
 # Install project and dependencies
 poetry install
+
+# Poetry will create a virtual environment for installation by default, unless you have manually disabled it.
+# To activate virtual environment, run:
+eval $(poetry env activate)
+
 
 # [OPTIONAL] symlink log directories and the default model directory to
 # "$HOME/experiments/your-project-name" since they can grow a lot
 bash setup_symlinks.sh $HOME/experiments/your-project-name
 
 # [OPTIONAL] set any environment variables by creating an .env file
+# Variables from this file are automatically loaded by train/predict/evaluate_documents scripts via `pyrootutils.setup_root()`
 # 1. copy the provided example file:
 cp .env.example .env
 # 2. edit the .env file for your needs!
@@ -1506,5 +1503,5 @@ pre-commit run -a
 pre-commit install
 
 # run tests
-pytest -m "not slow" --cov --cov-report term-missing
+pytest -k "not slow" --cov --cov-report term-missing
 ```
