@@ -16,7 +16,7 @@ dependencies = [
     # --------- pytorch-ie --------- #
     "pytorch-ie (>=0.31.10,<0.32.0)",
     "pie-datasets (>=0.10.10,<0.11.0)",
-    "pie-modules (>=0.12.1,<0.13.0)",
+    "pie-modules (>=0.15.10,<0.16.0)",
 
     # --------- hydra --------- #
     "hydra-core (>=1.3.0)",
@@ -48,7 +48,8 @@ dependencies = [
     "pudb (>=2025.1,<2026.0)",          # debugger
     "tabulate (>=0.9.0,<0.10.0)",       # show statistics as markdown
     "plotext (>=5.3.2,<6.0.0)",         # show statistics as plots
-    # "huggingface-hub (>=0.13)"          # interaction with HF hub
+    # "huggingface-hub (>=0.13)",         # interaction with HF hub
+    "nltk (>=3.9.1,<4.0.0)",             # sentence splitter
 ]
 
 [project.urls]
