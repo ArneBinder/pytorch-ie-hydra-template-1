@@ -19,7 +19,7 @@ dependencies = [
     "pie-modules (>=0.15.10,<0.16.0)",
 
     # ------- reprocessing -------- #
-    "nltk (>=3.9.1,<4.0.0)",           # sentence splitter (currently just for some slow tests)
+    "nltk (>=3.9.1,<4.0.0)",           # sentence splitter (just for drugprot.yaml experiment which dry-runs in slow tests, remove if not needed)
 
     # --------- hydra --------- #
     "hydra-core (>=1.3.0)",
