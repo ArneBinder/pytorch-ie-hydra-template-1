@@ -133,14 +133,12 @@ The directory structure of new project looks like this:
 git clone https://github.com/ChristophAlt/pytorch-ie-hydra-template.git
 cd pytorch-ie-hydra-template
 
-
 # [OPTIONAL] Check the pyproject.toml config file
 # - Check if dependency versions fit your needs
 # - Uncomment logger you want to use
 # - Add your own dependencies manually or with `poetry add abc==1.2.3`
 # - Change pytorch version in pyproject.toml to fit your system, see
 # https://pytorch.org/get-started/
-
 
 # Install project and dependencies
 poetry install
@@ -1379,14 +1377,12 @@ What it does
 git clone https://github.com/your-github-name/your-project-name.git
 cd your-project-name
 
-
 # Install project and dependencies
 poetry install
 
 # Poetry will create a virtual environment for installation by default, unless you have manually disabled it.
 # To activate virtual environment, run:
 eval $(poetry env activate)
-
 
 # [OPTIONAL] symlink log directories and the default model directory to
 # "$HOME/experiments/your-project-name" since they can grow a lot
