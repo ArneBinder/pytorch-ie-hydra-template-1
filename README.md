@@ -1497,11 +1497,16 @@ predictions. However, it could be used with statistical metrics such as
 ## Development
 
 ```bash
-# run pre-commit: code formatting, code analysis, static type checking, and more (see .pre-commit-config.yaml)
+# run code formatting, code analysis, static type checking, and more (see .pre-commit-config.yaml)
 pre-commit run -a
-# you could also install pre-commit hook which will automatically run checks every time you create a commit  by running
-pre-commit install
+```
 
+```bash
+# or you can install the pre-commit git hook (this will automatically run checks every time you create a commit) by running
+pre-commit install
+```
+
+```bash
 # run tests
 pytest -k "not slow" --cov --cov-report term-missing
 ```
