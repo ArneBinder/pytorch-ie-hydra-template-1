@@ -873,8 +873,12 @@ This approach doesn't support advanced techniques like prunning - for more sophi
 
 Template comes with CI workflows implemented in Github Actions:
 
-- `.github/workflows/tests.yaml`: running tests that are not marked as "slow"
-- `.github/workflows/pre-commit.yaml`: running code quality checks, see [.pre-commit-config.yaml](.pre-commit-config.yaml) for configured entries
+- `.github/actions/init-env`: Set up poetry environment for workflow
+- `.github/workflows/code_quality_and_tests.yaml`:
+  - `pre-commit`: code quality checks, see [.pre-commit-config.yaml](.pre-commit-config.yaml) for configured entries
+  - `pytest`:
+    - running tests that are not marked as "slow" in PRs
+    - running all tests on push to main branch
 
 > **Note**: You need to enable the GitHub Actions from the settings in your repository.
 
