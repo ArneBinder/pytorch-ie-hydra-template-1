@@ -114,13 +114,14 @@ The directory structure of new project looks like this:
 ├── tests                  <- Tests of any kind
 │
 ├── .env.example              <- Template of the file for storing private environment variables
+├── .flake8                   <- Configuration of flake8 code analyser tool
 ├── .gitignore                <- List of files/folders ignored by git
 ├── .pre-commit-config.yaml   <- Configuration of pre-commit hooks for code formatting
 ├── Makefile                  <- Makefile with commands like `make train` or `make test`
-├── requirements.txt          <- File for installing python dependencies
-├── setup.cfg                 <- Configuration of linters and pytest
-├── setup.py                  <- File for installing project as a package
-└── README.md
+├── poetry.lock               <- Lockfile with specific dependency versions automatically managed by Poetry
+├── pyproject.toml            <- Project configuration including dependencies, settings for linters and pytest, and building project as a package
+├── README.md
+└── setup_symlinks.sh         <- Script for automatically creating symlinks to log and model folders in case you want to put them anywhere outside of a project
 ```
 
 <br>
@@ -132,21 +133,27 @@ The directory structure of new project looks like this:
 git clone https://github.com/ChristophAlt/pytorch-ie-hydra-template.git
 cd pytorch-ie-hydra-template
 
-# [OPTIONAL] create conda environment
-conda create -n myenv python=3.9
-conda activate myenv
-
-# install pytorch according to instructions
+# [OPTIONAL] Check the pyproject.toml config file
+# - Check if dependency versions fit your needs
+# - Uncomment logger you want to use
+# - Add your own dependencies manually or with `poetry add abc==1.2.3`
+# - Change pytorch version in pyproject.toml to fit your system, see
 # https://pytorch.org/get-started/
 
-# install requirements
-pip install -r requirements.txt
+# Install project and dependencies
+poetry install
+
+# Poetry will create a virtual environment for installation by default, unless you have manually disabled it.
+# To activate virtual environment, run:
+eval $(poetry env activate)
+
 
 # [OPTIONAL] symlink log directories and the default model directory to
-# "$HOME/experiments/my-project" since they can grow a lot
+# "$HOME/experiments/my-project" since they can grow a lot (change path to place where you have enough storage)
 bash setup_symlinks.sh $HOME/experiments/my-project
 
 # [OPTIONAL] set any environment variables by creating an .env file
+# Variables from this file are automatically loaded by train/predict/evaluate_documents scripts via `pyrootutils.setup_root()`
 # 1. copy the provided example file:
 cp .env.example .env
 # 2. edit the .env file for your needs!
@@ -866,8 +873,12 @@ This approach doesn't support advanced techniques like prunning - for more sophi
 
 Template comes with CI workflows implemented in Github Actions:
 
-- `.github/workflows/tests.yaml`: running tests that are not marked as "slow"
-- `.github/workflows/pre-commit.yaml`: running code quality checks, see [.pre-commit-config.yaml](.pre-commit-config.yaml) for configured entries
+- `.github/actions/init-env`: Set up poetry environment for workflow
+- `.github/workflows/code_quality_and_tests.yaml`:
+  - `pre-commit`: code quality checks, see [.pre-commit-config.yaml](.pre-commit-config.yaml) for configured entries
+  - `pytest`:
+    - running tests that are not marked as "slow" in PRs
+    - running all tests on push to main branch
 
 > **Note**: You need to enable the GitHub Actions from the settings in your repository.
 
@@ -1370,21 +1381,19 @@ What it does
 git clone https://github.com/your-github-name/your-project-name.git
 cd your-project-name
 
-# [OPTIONAL] create conda environment
-conda create -n your-project-name python=3.9
-conda activate your-project-name
+# Install project and dependencies
+poetry install
 
-# install PyTorch according to instructions
-# https://pytorch.org/get-started/
-
-# install remaining requirements
-pip install -r requirements.txt
+# Poetry will create a virtual environment for installation by default, unless you have manually disabled it.
+# To activate virtual environment, run:
+eval $(poetry env activate)
 
 # [OPTIONAL] symlink log directories and the default model directory to
 # "$HOME/experiments/your-project-name" since they can grow a lot
 bash setup_symlinks.sh $HOME/experiments/your-project-name
 
 # [OPTIONAL] set any environment variables by creating an .env file
+# Variables from this file are automatically loaded by train/predict/evaluate_documents scripts via `pyrootutils.setup_root()`
 # 1. copy the provided example file:
 cp .env.example .env
 # 2. edit the .env file for your needs!
@@ -1488,9 +1497,16 @@ predictions. However, it could be used with statistical metrics such as
 ## Development
 
 ```bash
-# run pre-commit: code formatting, code analysis, static type checking, and more (see .pre-commit-config.yaml)
+# run code formatting, code analysis, static type checking, and more (see .pre-commit-config.yaml)
 pre-commit run -a
+```
 
+```bash
+# or you can install the pre-commit git hook (this will automatically run checks every time you create a commit) by running
+pre-commit install
+```
+
+```bash
 # run tests
 pytest -k "not slow" --cov --cov-report term-missing
 ```
