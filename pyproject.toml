@@ -47,6 +47,7 @@ dependencies = [
     "rich (>=14.1.0,<15.0.0)",          # beautiful text formatting in terminal
     "pytest (>=8.4.1,<9.0.0)",          # tests
     "pytest-cov (>=6.2.1,<7.0.0)",      # test coverage
+    "pytest-xdist (>=3.8.0,<4.0.0)",    # use more cores for tests
     "sh (>=2.2.2,<3.0.0)",              # for running bash commands in some tests
     "pudb (>=2025.1,<2026.0)",          # debugger
     "tabulate (>=0.9.0,<0.10.0)",       # show statistics as markdown
@@ -110,7 +111,8 @@ markers = [
 addopts = [
     "--durations=0",
     "--strict-markers",
-    "--doctest-modules"
+    "--doctest-modules",
+    "-n=auto"
 ]
 filterwarnings = [
     "ignore::DeprecationWarning",

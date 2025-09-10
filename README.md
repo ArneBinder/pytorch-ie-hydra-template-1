@@ -452,7 +452,15 @@ pytest
 pytest tests/test_train.py
 
 # run all tests except the ones marked as slow
-pytest -k "not slow"
+pytest -m "not slow"
+
+# we are using pytest-xdist to run tests in parallel
+# by default tests will create as many workers as there are cores available
+# run tests with only 4 workers
+pytest -n=4
+
+# disable this feature completely and run tests as usual
+pytest -n=0
 ```
 
 </details>
@@ -774,7 +782,15 @@ pytest
 pytest tests/test_train.py
 
 # run all tests except the ones marked as slow
-pytest -k "not slow"
+pytest -m "not slow"
+
+# we are using pytest-xdist to run tests in parallel
+# by default tests will create as many workers as there are cores available
+# run tests with only 4 workers
+pytest -n=4
+
+# disable this feature completely and run tests as usual
+pytest -n=0
 ```
 
 Most of the implemented tests don't check for any specific output - they exist to simply verify that executing some commands doesn't end up in throwing exceptions. You can execute them once in a while to speed up the development.
@@ -1508,5 +1524,5 @@ pre-commit install
 
 ```bash
 # run tests
-pytest -k "not slow" --cov --cov-report term-missing
+pytest -m "not slow" --cov --cov-report term-missing
 ```
