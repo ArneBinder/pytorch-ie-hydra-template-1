@@ -2937,13 +2937,15 @@ cli = ["click (>=5.0)"]
 
 [[package]]
 name = "pytorch-ie"
-version = "0.32.0"
+version = "0.33.0"
 description = "State-of-the-art Information Extraction in PyTorch"
 optional = false
-python-versions = ">=3.10,<4.0"
+python-versions = "<4.0,>=3.10"
 groups = ["main"]
-files = []
-develop = false
+files = [
+    {file = "pytorch_ie-0.33.0-py3-none-any.whl", hash = "sha256:f0361b968ab4921886ed789e2d6e043cbde3119f27d19defec9129af6f01fdb5"},
+    {file = "pytorch_ie-0.33.0.tar.gz", hash = "sha256:b38b4c33187f74d77b6fcf3c91d57e8f5dbfc64f4c7e42b44df73254cd680c18"},
+]
 
 [package.dependencies]
 pie-core = ">=0.2.1,<0.4.0"
@@ -2952,12 +2954,6 @@ pytorch-lightning = ">=2,<3"
 torch = ">=1.10"
 torchmetrics = {version = ">=1.5,<2", extras = ["text"]}
 transformers = ">=4.35.0,<4.37.0"
-
-[package.source]
-type = "git"
-url = "https://github.com/ArneBinder/pytorch-ie"
-reference = "main"
-resolved_reference = "3f6fab08e78a973be5ada2da5b3e01cff319318b"
 
 [[package]]
 name = "pytorch-lightning"
@@ -4644,4 +4640,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<4.0"
-content-hash = "73617fe18c56ba7169a6e760decc9b6b50e4690a05bc5c3676fdb77b4e94d05f"
+content-hash = "5bd7118efaae27c55a7f5c015b7e03bfcd36816344f230b2a2241f159f15f971"
