@@ -94,7 +94,7 @@ def predict(cfg: DictConfig) -> Tuple[dict, dict]:
             )
 
         # auto-convert the dataset if the taskmodule specifies a document type
-        dataset = pipeline.taskmodule.convert_dataset(dataset)
+        dataset = dataset.to_document_type(pipeline.taskmodule, downcast=False)
 
     # Init the serializer
     serializer: Optional[DocumentSerializer] = None
