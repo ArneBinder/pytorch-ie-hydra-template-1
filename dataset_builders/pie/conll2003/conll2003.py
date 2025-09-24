@@ -3,11 +3,10 @@ from typing import List, Sequence, Tuple
 
 import datasets
 from pie_core import AnnotationLayer, annotation_field
+from pie_datasets import GeneratorBasedBuilder
 from pie_documents.annotations import LabeledSpan
 from pie_documents.documents import TextBasedDocument, TextDocumentWithLabeledSpans
 from pie_documents.utils.sequence_tagging import tag_sequence_to_token_spans
-
-from pie_datasets import GeneratorBasedBuilder
 
 
 def tokens_and_tags_to_text_and_labeled_spans(
