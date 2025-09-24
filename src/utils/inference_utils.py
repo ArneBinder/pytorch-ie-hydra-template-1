@@ -2,7 +2,7 @@ import timeit
 from collections.abc import Iterable, Sequence
 from typing import Any, Dict, Optional, Union
 
-from pytorch_ie import Document, Pipeline
+from pie_core import AnnotationPipeline, Document
 
 from src.serializer.interface import DocumentSerializer
 from src.utils.logging_utils import get_pylogger
@@ -30,7 +30,7 @@ def document_batch_iter(
 
 
 def predict_and_serialize(
-    pipeline: Optional[Pipeline],
+    pipeline: Optional[AnnotationPipeline],
     serializer: Optional[DocumentSerializer],
     dataset: Iterable[Document],
     document_batch_size: Optional[int] = None,

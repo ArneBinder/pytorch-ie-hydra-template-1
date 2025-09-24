@@ -2,6 +2,7 @@ from typing import Any, Dict, Optional, Tuple
 
 import torch
 import torchmetrics
+from pie_core import Model
 from pytorch_ie.core import PyTorchIEModel
 from pytorch_ie.models.interface import RequiresModelNameOrPath, RequiresNumClasses
 from torch import Tensor, nn
@@ -22,7 +23,7 @@ VALIDATION = "val"
 TEST = "test"
 
 
-@PyTorchIEModel.register()
+@Model.register()
 class MyTransformerTokenClassificationModel(
     PyTorchIEModel, RequiresModelNameOrPath, RequiresNumClasses
 ):

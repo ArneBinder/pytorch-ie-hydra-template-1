@@ -39,10 +39,10 @@ from typing import Any, Dict, List, Optional, Tuple
 import hydra
 import pytorch_lightning as pl
 from omegaconf import DictConfig
+from pie_core import AnnotationPipeline, AutoModel, TaskModule
 from pie_core.utils.dictionary import flatten_dict_s
 from pie_datasets import DatasetDict
-from pytorch_ie import AutoModel, PieDataModule, Pipeline
-from pytorch_ie.core import PyTorchIEModel, TaskModule
+from pytorch_ie import PieDataModule, PyTorchIEModel
 from pytorch_ie.models import *  # noqa: F403
 from pytorch_ie.models.interface import (
     RequiresModelNameOrPath,
@@ -267,7 +267,7 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
         # This can be overridden by the `predict_split` config parameter.
         split = cfg.get("predict_split", datamodule.test_split)
         # Init the inference pipeline
-        pipeline: Optional[Pipeline] = None
+        pipeline: Optional[AnnotationPipeline] = None
         if cfg.get("pipeline") and cfg.pipeline.get("_target_"):
             log.info(f"Instantiating inference pipeline <{cfg.pipeline._target_}>")
             pipeline = hydra.utils.instantiate(cfg.pipeline, _convert_="partial")

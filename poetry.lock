@@ -2958,7 +2958,7 @@ transformers = ">=4.35.0,<4.37.0"
 type = "git"
 url = "https://github.com/ArneBinder/pytorch-ie"
 reference = "main"
-resolved_reference = "39a25be9913becf2cea1f3275fb591e74576e35a"
+resolved_reference = "3f6fab08e78a973be5ada2da5b3e01cff319318b"
 
 [[package]]
 name = "pytorch-lightning"

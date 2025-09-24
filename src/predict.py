@@ -39,8 +39,8 @@ from typing import Any, Dict, Optional, Tuple
 import hydra
 import pytorch_lightning as pl
 from omegaconf import DictConfig, OmegaConf
+from pie_core import AnnotationPipeline
 from pie_datasets import DatasetDict
-from pytorch_ie import Document, Pipeline
 from pytorch_ie.models import *  # noqa: F403
 from pytorch_ie.taskmodules import *  # noqa: F403
 
@@ -75,7 +75,7 @@ def predict(cfg: DictConfig) -> Tuple[dict, dict]:
     # Init pytorch-ie pipeline
     # The pipeline, and therefore the inference step, is optional to allow for easy testing
     # of the dataset creation and processing.
-    pipeline: Optional[Pipeline] = None
+    pipeline: Optional[AnnotationPipeline] = None
     if cfg.get("pipeline") and cfg.pipeline.get("_target_"):
         log.info(f"Instantiating pipeline <{cfg.pipeline._target_}> from {cfg.model_name_or_path}")
         pipeline = hydra.utils.instantiate(cfg.pipeline, _convert_="partial")
