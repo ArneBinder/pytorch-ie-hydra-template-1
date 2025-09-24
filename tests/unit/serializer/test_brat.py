@@ -3,10 +3,10 @@ import os
 from dataclasses import dataclass
 
 import pytest
-from pie_modules.annotations import BinaryRelation, LabeledMultiSpan, LabeledSpan
-from pie_modules.documents import TextBasedDocument
 from pytorch_ie import Annotation, AnnotationLayer, Document
+from pytorch_ie.annotations import BinaryRelation, LabeledMultiSpan, LabeledSpan
 from pytorch_ie.core import annotation_field
+from pytorch_ie.documents import TextBasedDocument
 
 from src.serializer import BratSerializer
 from src.serializer.brat import (

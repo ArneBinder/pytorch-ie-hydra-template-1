@@ -1,4 +1,4 @@
-_target_: pie_modules.models.SequenceClassificationModelWithPooler
+_target_: pytorch_ie.models.SequenceClassificationModelWithPooler
 
 model_name_or_path: ???
 # see the actual model implementation for all available options and defaults

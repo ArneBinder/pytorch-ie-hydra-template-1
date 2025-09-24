@@ -5,13 +5,13 @@ from typing import Any, Dict, List
 
 import pytest
 import torch
-from pie_modules.annotations import LabeledSpan
-from pie_modules.documents import (
+from pytorch_ie import AnnotationLayer, annotation_field
+from pytorch_ie.annotations import LabeledSpan
+from pytorch_ie.documents import (
+    TextBasedDocument,
     TextDocumentWithLabeledSpans,
     TextDocumentWithLabeledSpansAndLabeledPartitions,
 )
-from pytorch_ie import AnnotationLayer, annotation_field
-from pytorch_ie.documents import TextBasedDocument
 from transformers import BatchEncoding
 
 from src.taskmodules import MyTokenClassificationTaskModule

@@ -7,4 +7,4 @@ add_sentences:
   function:
     # see this for further information and options:
     # https://github.com/ArneBinder/pie-datasets/blob/main/src/pie_datasets/document/processing/nltk_sentence_splitter.py
-    _target_: pie_modules.document.processing.NltkSentenceSplitter
+    _target_: pie_documents.document.processing.NltkSentenceSplitter

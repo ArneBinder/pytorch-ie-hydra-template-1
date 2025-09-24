@@ -964,14 +964,14 @@ The following code is an example of loading model from checkpoint and running pr
 ```python
 from dataclasses import dataclass
 
+from pytorch_ie import PyTorchIEPipeline
 from pytorch_ie.annotations import LabeledSpan
-from pytorch_ie.auto import AutoPipeline
-from pytorch_ie.core import AnnotationList, annotation_field
+from pytorch_ie.core import AnnotationLayer, annotation_field
 from pytorch_ie.documents import TextDocument
 
 @dataclass
 class ExampleDocument(TextDocument):
-    entities: AnnotationList[LabeledSpan] = annotation_field(target="text")
+    entities: AnnotationLayer[LabeledSpan] = annotation_field(target="text")
 
 
 def predict():
@@ -986,7 +986,7 @@ def predict():
    )
 
    # model path can be set to a location at huggingface as shown below or local path to the training result serialized to out_path
-   ner_pipeline = AutoPipeline.from_pretrained("pie/example-ner-spanclf-conll03", device=-1, num_workers=0)
+   ner_pipeline = PyTorchIEPipeline.from_pretrained("pie/example-ner-spanclf-conll03", device=-1, num_workers=0)
 
    ner_pipeline(document)
 

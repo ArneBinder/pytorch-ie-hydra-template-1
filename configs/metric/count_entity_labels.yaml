@@ -7,4 +7,4 @@ field: labeled_spans
 labels: INFERRED
 show_histogram: true
 show_as_markdown: true
-document_type: pie_modules.documents.TextDocumentWithLabeledSpans
+document_type: pie_documents.documents.TextDocumentWithLabeledSpans

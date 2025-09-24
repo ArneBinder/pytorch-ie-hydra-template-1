@@ -1,16 +1,39 @@
 from dataclasses import dataclass
+from typing import List, Sequence, Tuple
 
 import datasets
+from pie_core import AnnotationLayer, annotation_field
 from pie_datasets import GeneratorBasedBuilder
-from pytorch_ie.annotations import LabeledSpan
-from pytorch_ie.core import AnnotationList, annotation_field
-from pytorch_ie.documents import TextBasedDocument, TextDocumentWithLabeledSpans
-from pytorch_ie.utils.span import tokens_and_tags_to_text_and_labeled_spans
+from pie_documents.annotations import LabeledSpan
+from pie_documents.documents import TextBasedDocument, TextDocumentWithLabeledSpans
+from pie_documents.utils.sequence_tagging import tag_sequence_to_token_spans
+
+
+def tokens_and_tags_to_text_and_labeled_spans(
+    tokens: Sequence[str], tags: Sequence[str]
+) -> Tuple[str, Sequence[LabeledSpan]]:
+    start = 0
+    token_offsets: List[Tuple[int, int]] = []
+    for token in tokens:
+        end = start + len(token)
+        token_offsets.append((start, end))
+        # we add a space after each token
+        start = end + 1
+
+    text = " ".join(tokens)
+
+    spans: List[LabeledSpan] = []
+    for label, (start, end) in tag_sequence_to_token_spans(tag_sequence=tags):
+        spans.append(
+            LabeledSpan(start=token_offsets[start][0], end=token_offsets[end][1], label=label)
+        )
+
+    return text, spans
 
 
 @dataclass
 class CoNLL2003Document(TextBasedDocument):
-    entities: AnnotationList[LabeledSpan] = annotation_field(target="text")
+    entities: AnnotationLayer[LabeledSpan] = annotation_field(target="text")
 
 
 class Conll2003(GeneratorBasedBuilder):

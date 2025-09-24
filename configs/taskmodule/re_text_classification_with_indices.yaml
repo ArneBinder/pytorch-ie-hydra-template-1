@@ -1,4 +1,4 @@
-_target_: pie_modules.taskmodules.RETextClassificationWithIndicesTaskModule
+_target_: pytorch_ie.taskmodules.RETextClassificationWithIndicesTaskModule
 tokenizer_name_or_path: ???
 
 ## Long sequence handling
