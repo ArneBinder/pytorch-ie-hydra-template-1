@@ -15,7 +15,7 @@ requires-python = ">=3.10,<4.0"
 dependencies = [
     # --------- pytorch-ie --------- #
     # TODO: "pytorch-ie (>=0.33.0,<0.34.0)" when released on pypi
-    "pytorch-ie @ git+https://github.com/ArneBinder/pytorch-ie@add-models-and-taskmodules-from-pie-modules",
+    "pytorch-ie @ git+https://github.com/ArneBinder/pytorch-ie@main",
     "pie-datasets (>=0.11.0,<0.12.0)",
 
     # ------- reprocessing -------- #
