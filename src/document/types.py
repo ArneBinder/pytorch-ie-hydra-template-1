@@ -2,7 +2,7 @@ import dataclasses
 from typing import Optional
 
 from pytorch_ie.annotations import LabeledSpan
-from pytorch_ie.core import Annotation, AnnotationList, annotation_field
+from pytorch_ie.core import Annotation, AnnotationLayer, annotation_field
 from pytorch_ie.documents import TextBasedDocument
 
 # =========================== Annotation Types ============================= #
@@ -37,5 +37,5 @@ class Attribute(Annotation):
 
 @dataclasses.dataclass
 class TextDocumentWithLabeledEntitiesAndEntityAttributes(TextBasedDocument):
-    entities: AnnotationList[LabeledSpan] = annotation_field(target="text")
-    entity_attributes: AnnotationList[Attribute] = annotation_field(target="entities")
+    entities: AnnotationLayer[LabeledSpan] = annotation_field(target="text")
+    entity_attributes: AnnotationLayer[Attribute] = annotation_field(target="entities")
