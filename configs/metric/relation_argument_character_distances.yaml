@@ -1,10 +1,10 @@
 # example call:
 # python src/evaluate_documents.py dataset=argmicro_prepared metric=relation_argument_character_distances
 
-_target_: pie_modules.metrics.RelationArgumentDistanceCollector
+_target_: pie_documents.metrics.RelationArgumentDistanceCollector
 title: Relation argument (${metric.distance_type}) character distances
 layer: binary_relations
 distance_type: outer
 show_histogram: true
 show_as_markdown: true
-document_type: pie_modules.documents.TextDocumentWithLabeledSpansAndBinaryRelations
+document_type: pie_documents.documents.TextDocumentWithLabeledSpansAndBinaryRelations

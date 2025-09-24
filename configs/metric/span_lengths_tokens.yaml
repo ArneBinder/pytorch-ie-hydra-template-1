@@ -9,7 +9,7 @@ tokenizer: bert-base-uncased
 tokenize_kwargs:
   add_special_tokens: false
   # strict_span_conversion: false
-tokenized_document_type: pie_modules.documents.TokenDocumentWithLabeledSpans
+tokenized_document_type: pie_documents.documents.TokenDocumentWithLabeledSpans
 show_histogram: true
 show_as_markdown: true
-document_type: pie_modules.documents.TextDocumentWithLabeledSpans
+document_type: pie_documents.documents.TextDocumentWithLabeledSpans
