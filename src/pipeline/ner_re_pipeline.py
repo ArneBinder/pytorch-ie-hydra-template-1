@@ -4,7 +4,7 @@ import logging
 from functools import partial
 from typing import Callable, Dict, Iterable, List, Optional, Sequence, Type, TypeVar, Union
 
-from pie_modules.utils import resolve_type
+from pie_core.utils.hydra import resolve_type
 from pytorch_ie import AutoPipeline, WithDocumentTypeMixin
 from pytorch_ie.core import Document
 

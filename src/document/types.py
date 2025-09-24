@@ -1,7 +1,7 @@
 import dataclasses
 from typing import Optional
 
-from pie_modules.annotations import LabeledSpan
+from pytorch_ie.annotations import LabeledSpan
 from pytorch_ie.core import Annotation, AnnotationList, annotation_field
 from pytorch_ie.documents import TextBasedDocument
 

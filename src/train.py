@@ -39,15 +39,16 @@ from typing import Any, Dict, List, Optional, Tuple
 import hydra
 import pytorch_lightning as pl
 from omegaconf import DictConfig
+from pie_core.utils.dictionary import flatten_dict_s
 from pie_datasets import DatasetDict
-from pie_modules.models import *  # noqa: F403
-from pie_modules.models.interface import RequiresTaskmoduleConfig
-from pie_modules.taskmodules import *  # noqa: F403
-from pie_modules.utils.dictionary import flatten_dict
 from pytorch_ie import AutoModel, PieDataModule, Pipeline
 from pytorch_ie.core import PyTorchIEModel, TaskModule
 from pytorch_ie.models import *  # noqa: F403
-from pytorch_ie.models.interface import RequiresModelNameOrPath, RequiresNumClasses
+from pytorch_ie.models.interface import (
+    RequiresModelNameOrPath,
+    RequiresNumClasses,
+    RequiresTaskmoduleConfig,
+)
 from pytorch_ie.taskmodules import *  # noqa: F403
 from pytorch_ie.taskmodules.interface import ChangesTokenizerVocabSize
 from pytorch_lightning import Callback, Trainer
@@ -285,7 +286,7 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
             document_batch_size=cfg.get("document_batch_size", None),
         )
         # flatten the predict_metrics dict
-        predict_metrics_flat = flatten_dict(predict_metrics, sep="/")
+        predict_metrics_flat = flatten_dict_s(predict_metrics, sep="/")
         metric_dict.update(predict_metrics_flat)
 
     return metric_dict, object_dict

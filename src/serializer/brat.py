@@ -4,9 +4,9 @@ from collections import defaultdict
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple, TypeVar, Union
 
 from pie_datasets.core.dataset_dict import METADATA_FILE_NAME
-from pie_modules.annotations import BinaryRelation, LabeledMultiSpan, LabeledSpan
-from pie_modules.documents import TextBasedDocument
+from pytorch_ie.annotations import BinaryRelation, LabeledMultiSpan, LabeledSpan
 from pytorch_ie.core import Annotation, AnnotationLayer, Document
+from pytorch_ie.documents import TextBasedDocument
 from pytorch_ie.utils.hydra import serialize_document_type
 
 from src.serializer.interface import DocumentSerializer

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 import pytest
 from pie_datasets import DatasetDict
-from pie_modules.annotations import BinaryRelation, LabeledSpan
+from pytorch_ie.annotations import BinaryRelation, LabeledSpan
 from pytorch_ie.core import AnnotationList, annotation_field
 from pytorch_ie.documents import TextBasedDocument
 

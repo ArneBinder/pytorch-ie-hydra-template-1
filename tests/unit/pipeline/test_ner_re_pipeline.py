@@ -1,10 +1,10 @@
 import dataclasses
 
 import pytest
-from pie_modules.annotations import BinaryRelation, LabeledSpan
-from pie_modules.documents import TextBasedDocument
 from pytorch_ie import AnnotationLayer
+from pytorch_ie.annotations import BinaryRelation, LabeledSpan
 from pytorch_ie.core import annotation_field
+from pytorch_ie.documents import TextBasedDocument
 
 from src.pipeline.ner_re_pipeline import (
     NerRePipeline,

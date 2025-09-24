@@ -3,8 +3,8 @@ from importlib.util import find_spec
 from typing import List, Optional, Union
 
 from omegaconf import DictConfig, OmegaConf
-from pie_modules.models.interface import RequiresTaskmoduleConfig
 from pytorch_ie import PyTorchIEModel, TaskModule
+from pytorch_ie.models.interface import RequiresTaskmoduleConfig
 from pytorch_lightning.loggers import Logger
 from pytorch_lightning.utilities import rank_zero_only
 

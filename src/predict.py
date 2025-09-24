@@ -40,8 +40,6 @@ import hydra
 import pytorch_lightning as pl
 from omegaconf import DictConfig, OmegaConf
 from pie_datasets import DatasetDict
-from pie_modules.models import *  # noqa: F403
-from pie_modules.taskmodules import *  # noqa: F403
 from pytorch_ie import Document, Pipeline
 from pytorch_ie.models import *  # noqa: F403
 from pytorch_ie.taskmodules import *  # noqa: F403
