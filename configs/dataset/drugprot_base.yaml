@@ -3,4 +3,5 @@ input:
   _target_: pie_datasets.DatasetDict.load_dataset
   path: pie/drugprot
   name: drugprot_source
-  revision: d0a3f1183bb793f81350c8b5fb56743d7af29d8d
+  # see https://huggingface.co/datasets/pie/drugprot/commit/4bd6fdca925d5a04cea8f1ed6f74de8653c93e27
+  revision: 4bd6fdca925d5a04cea8f1ed6f74de8653c93e27
