@@ -24,6 +24,10 @@ name: "default"
 # or the url to huggingface hub where the taskmodule and model was pushed to.
 # It is used in the pipeline config.
 model_name_or_path: pie/example-ner-spanclf-conll03
+# required for "old" PyTorch-IE models that do not have a pipeline_type key in their config.json.
+# Saving a model with AnnotationPipeline.push_to_hub will automatically add this key to the config.json
+pipeline:
+  pipeline_type: pytorch-ie
 
 # to override model weights with content of a checkpoint
 ckpt_path: null
