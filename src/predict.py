@@ -41,6 +41,7 @@ import pytorch_lightning as pl
 from omegaconf import DictConfig, OmegaConf
 from pie_core import AnnotationPipeline
 from pie_datasets import DatasetDict
+from pytorch_ie import PyTorchIEPipeline
 from pytorch_ie.models import *  # noqa: F403
 from pytorch_ie.taskmodules import *  # noqa: F403
 
@@ -84,6 +85,10 @@ def predict(cfg: DictConfig) -> Tuple[dict, dict]:
         # However, ckpt_path can be used to load different weights from any checkpoint.
         if cfg.ckpt_path is not None:
             log.info(f"Loading model weights from checkpoint: {cfg.ckpt_path}")
+            if not isinstance(pipeline, PyTorchIEPipeline):
+                raise ValueError(
+                    "The pipeline has to be of type PyTorchIEPipeline to load a checkpoint."
+                )
             pipeline.model = (
                 type(pipeline.model)
                 .load_from_checkpoint(checkpoint_path=cfg.ckpt_path)
