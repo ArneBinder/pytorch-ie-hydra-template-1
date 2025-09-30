@@ -4,9 +4,8 @@ import logging
 from functools import partial
 from typing import Callable, Dict, Iterable, List, Optional, Sequence, Type, TypeVar, Union
 
+from pie_core import AutoAnnotationPipeline, Document, WithDocumentTypeMixin
 from pie_core.utils.hydra import resolve_type
-from pytorch_ie import PyTorchIEPipeline, WithDocumentTypeMixin
-from pytorch_ie.core import Document
 
 logger = logging.getLogger(__name__)
 
@@ -166,7 +165,7 @@ class NerRePipeline:
                     layer_names=[self.entity_layer, self.relation_layer],
                     **self.processor_kwargs.get("clear_annotations", {}),
                 ),
-                "ner_pipeline": PyTorchIEPipeline.from_pretrained(
+                "ner_pipeline": AutoAnnotationPipeline.from_pretrained(
                     self.ner_model_path, **self.processor_kwargs.get("ner_pipeline", {})
                 ),
                 "use_predicted_entities": partial(
@@ -181,7 +180,7 @@ class NerRePipeline:
                 #        **self.processor_kwargs.get("create_candidate_relations", {})
                 #    ),
                 # ),
-                "re_pipeline": PyTorchIEPipeline.from_pretrained(
+                "re_pipeline": AutoAnnotationPipeline.from_pretrained(
                     self.re_model_path, **self.processor_kwargs.get("re_pipeline", {})
                 ),
                 # otherwise we can not move the entities back to predictions

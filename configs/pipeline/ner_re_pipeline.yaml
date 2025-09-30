@@ -10,5 +10,9 @@ show_progress_bar: true
 device: -1
 ner_pipeline:
   batch_size: 1
+  # uncomment for "old" PyTorch-IE models that do not have a pipeline_type key in their config.json
+  # pipeline_type: pytorch-ie
 re_pipeline:
   batch_size: 1
+  # uncomment for "old" PyTorch-IE models that do not have a pipeline_type key in their config.json
+  # pipeline_type: pytorch-ie
