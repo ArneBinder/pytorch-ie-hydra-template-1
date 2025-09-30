@@ -206,6 +206,10 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
         log.warning("the taskmodule is not saved because no save_dir is specified")
 
     if cfg.get("train"):
+        # Set model in training mode (since pytorch-lightning 2.2.0 the model is not set
+        # to train mode automatically in trainer.fit). To just partly train the model
+        # (e.g. only some layers), override the train() method in your model.
+        model.train()
         log.info("Starting training!")
         trainer.fit(model=model, datamodule=datamodule, ckpt_path=cfg.get("ckpt_path"))
 
