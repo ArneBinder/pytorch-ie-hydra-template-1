@@ -2439,18 +2439,18 @@ setuptools = "*"
 
 [[package]]
 name = "pie-core"
-version = "0.3.0"
+version = "0.3.1"
 description = "Core modules of PyTorch-IE"
 optional = false
 python-versions = "<4.0,>=3.9"
 groups = ["main"]
 files = [
-    {file = "pie_core-0.3.0-py3-none-any.whl", hash = "sha256:0c2f6c91457c0a05826ccf127b3c40d4f4afb2862a56b82cab6f52d43066719c"},
-    {file = "pie_core-0.3.0.tar.gz", hash = "sha256:ee3892ad3eee414e194005ef1eb453ec1698d37e5a0d80c5583b40f1bb4e8cca"},
+    {file = "pie_core-0.3.1-py3-none-any.whl", hash = "sha256:749030e1a6e16972a7f729ad29804cabbfd4b5c06899797a9af93e991f97f059"},
+    {file = "pie_core-0.3.1.tar.gz", hash = "sha256:8d86eabf4302236108829f7ba1a5bc9732232b3dfa9003dc518dfc0bd4f40d1a"},
 ]
 
 [package.dependencies]
-huggingface_hub = ">=0.23.4,<0.26.0"
+huggingface_hub = ">=0.23.4,<0.36.0"
 
 [[package]]
 name = "pie-datasets"
@@ -4640,4 +4640,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<4.0"
-content-hash = "5bd7118efaae27c55a7f5c015b7e03bfcd36816344f230b2a2241f159f15f971"
+content-hash = "5c6ec9ca370ff4d83a00cc2caf7d504ecc62801033edff3d5305c991d735ed8b"
