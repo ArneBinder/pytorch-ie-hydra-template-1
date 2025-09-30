@@ -42,7 +42,7 @@ from omegaconf import DictConfig
 from pie_core import AnnotationPipeline, AutoModel, TaskModule
 from pie_core.utils.dictionary import flatten_dict_s
 from pie_datasets import DatasetDict
-from pytorch_ie import PieDataModule, PyTorchIEModel
+from pytorch_ie import PieDataModule, PyTorchIEModel, PyTorchIEPipeline
 from pytorch_ie.models import *  # noqa: F403
 from pytorch_ie.models.interface import (
     RequiresModelNameOrPath,
@@ -197,14 +197,6 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
         log.info("Logging hyperparameters!")
         utils.log_hyperparameters(logger=logger, model=model, taskmodule=taskmodule, config=cfg)
 
-    if cfg.paths.model_save_dir is not None:
-        log.info(f"Save taskmodule to {cfg.paths.model_save_dir} [push_to_hub={cfg.push_to_hub}]")
-        taskmodule.save_pretrained(
-            save_directory=cfg.paths.model_save_dir, push_to_hub=cfg.push_to_hub
-        )
-    else:
-        log.warning("the taskmodule is not saved because no save_dir is specified")
-
     if cfg.get("train"):
         # Set model in training mode (since pytorch-lightning 2.2.0 the model is not set
         # to train mode automatically in trainer.fit). To just partly train the model
@@ -225,6 +217,7 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
             checkpoint_dir=trainer.checkpoint_callback.dirpath,
         )
 
+    pipeline: Optional[AnnotationPipeline] = None
     if not cfg.trainer.get("fast_dev_run"):
         if cfg.paths.model_save_dir is not None:
             if best_ckpt_path == "":
@@ -232,12 +225,17 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
             else:
                 model = type(model).load_from_checkpoint(best_ckpt_path)
 
-            log.info(f"Save model to {cfg.paths.model_save_dir} [push_to_hub={cfg.push_to_hub}]")
-            model.save_pretrained(
+            log.info(
+                f"Save pipeline (model + taskmodule) to {cfg.paths.model_save_dir} [push_to_hub={cfg.push_to_hub}]"
+            )
+            pipeline = PyTorchIEPipeline(model=model, taskmodule=taskmodule)
+            pipeline.save_pretrained(
                 save_directory=cfg.paths.model_save_dir, push_to_hub=cfg.push_to_hub
             )
         else:
-            log.warning("the model is not saved because no save_dir is specified")
+            log.warning(
+                "the pipeline (model + taskmodule) is not saved because no save_dir is specified"
+            )
 
     if cfg.get("validate"):
         log.info("Starting validation!")
@@ -271,7 +269,6 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
         # This can be overridden by the `predict_split` config parameter.
         split = cfg.get("predict_split", datamodule.test_split)
         # Init the inference pipeline
-        pipeline: Optional[AnnotationPipeline] = None
         if cfg.get("pipeline") and cfg.pipeline.get("_target_"):
             log.info(f"Instantiating inference pipeline <{cfg.pipeline._target_}>")
             pipeline = hydra.utils.instantiate(cfg.pipeline, _convert_="partial")
