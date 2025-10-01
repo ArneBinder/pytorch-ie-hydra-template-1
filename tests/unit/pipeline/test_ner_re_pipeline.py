@@ -284,16 +284,21 @@ def test_ner_re_pipeline():
             ),
         ]
     )
-    re_pipeline_args = {"taskmodule_kwargs": {"create_relation_candidates": True}}
+    re_pipeline_kwargs = {
+        "taskmodule_kwargs": {"create_relation_candidates": True},
+        "pipeline_type": "pytorch-ie",
+    }
+    ner_pipeline_kwargs = {"pipeline_type": "pytorch-ie"}
 
     pipeline = NerRePipeline(
         ner_model_path="pie/example-ner-spanclf-conll03",
         re_model_path="pie/example-re-textclf-tacred",
+        ner_pipeline=ner_pipeline_kwargs,
+        re_pipeline=re_pipeline_kwargs,
         entity_layer="entities",
         relation_layer="relations",
         device=-1,
         batch_size=1,
-        re_pipeline=re_pipeline_args,
         show_progress_bar=False,
     )
     docs = pipeline(documents=[document])
