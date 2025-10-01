@@ -111,19 +111,18 @@ class DummyTaskmodule(WithDocumentTypeMixin):
 class NerRePipeline:
     def __init__(
         self,
-        ner_model_path: str,
-        re_model_path: str,
         entity_layer: str,
         relation_layer: str,
         device: Optional[int] = None,
         batch_size: Optional[int] = None,
         show_progress_bar: Optional[bool] = None,
         document_type: Optional[Union[Type[Document], str]] = None,
+        # deprecated, use processor_kwargs instead
+        ner_model_path: Optional[str] = None,
+        re_model_path: Optional[str] = None,
         **processor_kwargs,
     ):
         self.taskmodule = DummyTaskmodule(document_type)
-        self.ner_model_path = ner_model_path
-        self.re_model_path = re_model_path
         self.processor_kwargs = processor_kwargs or {}
         self.entity_layer = entity_layer
         self.relation_layer = relation_layer
@@ -131,6 +130,27 @@ class NerRePipeline:
         for inference_pipeline in ["ner_pipeline", "re_pipeline"]:
             if inference_pipeline not in self.processor_kwargs:
                 self.processor_kwargs[inference_pipeline] = {}
+
+            # deprecated parameters
+            if inference_pipeline == "ner_pipeline" and ner_model_path is not None:
+                logger.warning(
+                    "Parameter ner_model_path is deprecated. Use individual processor arguments to provide "
+                    "the model path instead, i.e., use ner_pipeline.pretrained_model_name_or_path to set "
+                    "the NER model path."
+                )
+                self.processor_kwargs[inference_pipeline][
+                    "pretrained_model_name_or_path"
+                ] = ner_model_path
+            if inference_pipeline == "re_pipeline" and re_model_path is not None:
+                logger.warning(
+                    "Parameter re_model_path is deprecated. Use individual processor arguments to provide "
+                    "the model path instead, i.e., use re_pipeline.pretrained_model_name_or_path to set "
+                    "the RE model path."
+                )
+                self.processor_kwargs[inference_pipeline][
+                    "pretrained_model_name_or_path"
+                ] = re_model_path
+
             if "device" not in self.processor_kwargs[inference_pipeline] and device is not None:
                 self.processor_kwargs[inference_pipeline]["device"] = device
             if (
@@ -166,7 +186,7 @@ class NerRePipeline:
                     **self.processor_kwargs.get("clear_annotations", {}),
                 ),
                 "ner_pipeline": AutoAnnotationPipeline.from_pretrained(
-                    self.ner_model_path, **self.processor_kwargs.get("ner_pipeline", {})
+                    **self.processor_kwargs.get("ner_pipeline", {})
                 ),
                 "use_predicted_entities": partial(
                     process_documents,
@@ -181,7 +201,7 @@ class NerRePipeline:
                 #    ),
                 # ),
                 "re_pipeline": AutoAnnotationPipeline.from_pretrained(
-                    self.re_model_path, **self.processor_kwargs.get("re_pipeline", {})
+                    **self.processor_kwargs.get("re_pipeline", {})
                 ),
                 # otherwise we can not move the entities back to predictions
                 "clear_candidate_relations": partial(

@@ -1,6 +1,4 @@
 _target_: src.pipeline.NerRePipeline
-ner_model_path: ???
-re_model_path: ???
 entity_layer: labeled_spans
 relation_layer: binary_relations
 
@@ -9,10 +7,12 @@ show_progress_bar: true
 # use the CPU (device: -1) or any GPU (device: >=0)
 device: -1
 ner_pipeline:
-  batch_size: 1
+  pretrained_model_name_or_path: ???
   # uncomment for "old" PyTorch-IE models that do not have a pipeline_type key in their config.json
   # pipeline_type: pytorch-ie
+  batch_size: 1
 re_pipeline:
-  batch_size: 1
+  pretrained_model_name_or_path: ???
   # uncomment for "old" PyTorch-IE models that do not have a pipeline_type key in their config.json
   # pipeline_type: pytorch-ie
+  batch_size: 1
