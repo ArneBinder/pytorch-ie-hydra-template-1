@@ -249,7 +249,8 @@ class TextDocumentWithEntitiesAndRelations(TextBasedDocument):
 
 
 @pytest.mark.slow
-def test_ner_re_pipeline():
+@pytest.mark.parametrize("use_deprecated", [False, True])
+def test_ner_re_pipeline(use_deprecated: bool, caplog):
     # These imports register the respective taskmodules and models for NER and RE
     from pytorch_ie.models import (
         TransformerSpanClassificationModel,
@@ -284,18 +285,54 @@ def test_ner_re_pipeline():
             ),
         ]
     )
-    re_pipeline_args = {"taskmodule_kwargs": {"create_relation_candidates": True}}
-
-    pipeline = NerRePipeline(
-        ner_model_path="pie/example-ner-spanclf-conll03",
-        re_model_path="pie/example-re-textclf-tacred",
+    re_pipeline_kwargs = {
+        "taskmodule_kwargs": {"create_relation_candidates": True},
+        "pipeline_type": "pytorch-ie",
+    }
+    ner_pipeline_kwargs = {"pipeline_type": "pytorch-ie"}
+    pipeline_kwargs = dict(
+        ner_pipeline=ner_pipeline_kwargs,
+        re_pipeline=re_pipeline_kwargs,
         entity_layer="entities",
         relation_layer="relations",
         device=-1,
         batch_size=1,
-        re_pipeline=re_pipeline_args,
         show_progress_bar=False,
     )
+    if use_deprecated:
+        pipeline_kwargs["ner_model_path"] = "pie/example-ner-spanclf-conll03"
+        pipeline_kwargs["re_model_path"] = "pie/example-re-textclf-tacred"
+        # check warnings for deprecated parameters
+        caplog.clear()
+        pipeline = NerRePipeline(**pipeline_kwargs)
+        assert (
+            "Parameter ner_model_path is deprecated. Use individual processor arguments to provide "
+            "the model path instead, i.e., use ner_pipeline.pretrained_model_name_or_path to set "
+            "the NER model path." in caplog.messages
+        )
+        assert (
+            "Parameter re_model_path is deprecated. Use individual processor arguments to provide "
+            "the model path instead, i.e., use re_pipeline.pretrained_model_name_or_path to set "
+            "the RE model path." in caplog.messages
+        )
+    else:
+        pipeline_kwargs["ner_pipeline"][
+            "pretrained_model_name_or_path"
+        ] = "pie/example-ner-spanclf-conll03"
+        pipeline_kwargs["re_pipeline"][
+            "pretrained_model_name_or_path"
+        ] = "pie/example-re-textclf-tacred"
+        caplog.clear()
+        pipeline = NerRePipeline(**pipeline_kwargs)
+        assert (
+            "Parameter ner_model_path is deprecated. Use individual processor arguments to provide the model path instead, i.e., use ner_pipeline.pretrained_model_name_or_path to set the NER model path."
+            not in caplog.messages
+        )
+        assert (
+            "Parameter re_model_path is deprecated. Use individual processor arguments to provide the model path instead, i.e., use re_pipeline.pretrained_model_name_or_path to set the RE model path."
+            not in caplog.messages
+        )
+
     docs = pipeline(documents=[document])
     assert len(docs) == 1
 
