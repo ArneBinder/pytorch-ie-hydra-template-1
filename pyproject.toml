@@ -15,7 +15,9 @@ requires-python = ">=3.10,<4.0"
 dependencies = [
     # --------- python-ie --------- #
     "pytorch-ie (>=0.33.0,<0.34.0)",
-    "pie-datasets (>=0.11.0,<0.12.0)",
+    #"pie-datasets (>=0.11.0,<0.12.0)",
+    # use from branch: https://github.com/ArneBinder/pie-datasets/tree/update-datasets-dependency
+    "pie-datasets @ git+https://github.com/ArneBinder/pie-datasets.git@update-datasets-dependency#egg=pie-datasets",
     "pie-core (>=0.3.1,<0.4.0)",  # to use AutoAnnotationPipeline with old models, see https://github.com/ArneBinder/pie-core/pull/95
 
     # ------- reprocessing -------- #
