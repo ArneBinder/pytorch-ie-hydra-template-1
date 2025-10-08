@@ -1,0 +1,5 @@
+_target_: src.utils.execute_pipeline
+input:
+  _target_: pie_datasets.DatasetDict.load_dataset
+  path: pie/sciarg
+  revision: ad5888136b16308c168aa52f9b1193636ad84cec

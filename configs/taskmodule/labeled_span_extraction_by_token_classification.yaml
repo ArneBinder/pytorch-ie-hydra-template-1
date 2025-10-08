@@ -1,0 +1,14 @@
+_target_: pytorch_ie.taskmodules.LabeledSpanExtractionByTokenClassificationTaskModule
+
+tokenizer_name_or_path: bert-base-uncased
+#span_annotation: entities
+# Long sequence handling
+#max_window: 512
+#window_overlap: 64
+# Alternative to fixed size windowing: use span annotations to partition the input
+# (this requires to add these annotations to the documents beforehand!)
+#partition_annotation: paragraphs
+combine_token_scores_method: product
+# Further parameters (also see the source code of TransformerTokenClassificationTaskModule)
+#show_statistics: true
+#include_ill_formed_predictions: false

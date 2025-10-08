@@ -1,0 +1,14 @@
+# Simple preprocessing pipeline that loads conll2003 and allows to select a subset of documents. Uses all
+# documents per default.
+
+# Usage:
+# Just use dataset=conll2003_select_n and set any "stop" parameter,
+# e.g. dataset.select_n.stop=5 to take only 5 train documents. See _select_n.yaml for further options.
+
+defaults:
+  - sciarg_base
+  - _create_test_split_by_ids
+  - _create_validation_split
+
+create_test_split:
+  ids: ["A32", "A33", "A34", "A35", "A36", "A37", "A38", "A39", "A40"]

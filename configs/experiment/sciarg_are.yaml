@@ -1,0 +1,75 @@
+# @package _global_
+
+# this is for Argumentative Relation Extraction (ARE) on scientific datasets
+# parameters from the command here: https://github.com/ArneBinder/pie-document-level/issues/355#issuecomment-2606980385
+# $HOME/projects/pegasus-bridle/wrapper.sh python src/train.py \
+#experiment=sciarg_relations \
+#dataset=sciarg_prepared_with_fixed_validation_and_more_train \
+#transformer_model=allenai/scibert_scivocab_uncased \
+#model.warmup_proportion=0.1 \
+#taskmodule.collect_statistics=true \
+#trainer.min_epochs=75 \
+#trainer.max_epochs=75 \
+#monitor_metric=metric/micro/f1_without_tn/val \
+#datamodule.batch_size=128 \
+#datamodule.num_workers=12 \
+#trainer=gpu \
+#test=true \
+#name=dataset-sciarg/task-relations/v0.4 \
+#seed=1,12,123 \
+#--multirun
+
+# result from hyperparameter optimization with experiment=sciarg_are and
+# hparams_search=are_scientific_argument_marked_text_classification @1000000 total steps
+
+# to execute this experiment run:
+# python train.py experiment=sciarg_are
+
+defaults:
+  - override /dataset: sciarg_prepared
+  - override /datamodule: default
+  - override /taskmodule: re_text_classification_with_indices
+  - override /model: sequence_classification_with_pooler
+  - override /callbacks: default
+  - override /logger: wandb
+  - override /trainer: default
+
+# name of the run determines folder name in logs
+name: "dataset-sciarg/task-are"
+
+monitor_metric: "metric/micro/f1_without_tn/val"
+monitor_mode: "max"
+
+tags:
+  ["dataset=sciarg", "task=are", "model=argument_marked_text_classification"]
+
+seed: 12345
+
+transformer_model: "allenai/scibert_scivocab_uncased"
+
+taskmodule:
+  tokenizer_name_or_path: ${transformer_model}
+  max_window: 512
+  add_reversed_relations: true
+  add_candidate_relations: true
+  max_argument_distance: 20
+  collect_statistics: true
+  partition_annotation: labeled_partitions
+  symmetric_relations:
+    - semantically_same
+    - parts_of_same
+    - contradicts
+
+model:
+  model_name_or_path: ${transformer_model}
+  learning_rate: 1e-4
+  task_learning_rate: 3e-4
+  warmup_proportion: 0.1
+
+datamodule:
+  batch_size: 8
+
+trainer:
+  min_epochs: 25
+  max_epochs: 25
+  # gradient_clip_val: 0.5
