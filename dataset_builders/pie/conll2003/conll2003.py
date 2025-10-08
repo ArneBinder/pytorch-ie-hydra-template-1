@@ -41,6 +41,7 @@ class Conll2003(GeneratorBasedBuilder):
 
     BASE_DATASET_PATH = "conll2003"
     BASE_DATASET_REVISION = "01ad4ad271976c5258b9ed9b910469a806ff3288"
+    BASE_CONFIG_KWARGS_DICT = {config_name: {"trust_remote_code": True} for config_name in [None, "conll2003"]}
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
