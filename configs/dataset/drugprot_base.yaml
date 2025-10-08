@@ -1,7 +1,6 @@
 _target_: src.utils.execute_pipeline
 input:
   _target_: pie_datasets.DatasetDict.load_dataset
-  path: pie/drugprot
+  # TODO: switch back to remote version when available
+  path: dataset_builders/pie/drugprot
   name: drugprot_source
-  # see https://huggingface.co/datasets/pie/drugprot/commit/4bd6fdca925d5a04cea8f1ed6f74de8653c93e27
-  revision: 4bd6fdca925d5a04cea8f1ed6f74de8653c93e27
