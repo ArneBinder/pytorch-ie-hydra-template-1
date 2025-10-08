@@ -6,6 +6,7 @@ input:
   _target_: pie_datasets.DatasetDict.load_dataset
   path: dataset_builders/pie/conll2003
   ## to use the script from the HuggingFace Hub instead of the local version
+  # TODO: adjust revision when the remote dataset script is updated
   ## (see https://huggingface.co/datasets/pie/conll2003/commit/9d0c6f5807d53e5266dcf1947e4b6bcdbe499fda):
   # path: pie/conll2003
   # revision: 9d0c6f5807d53e5266dcf1947e4b6bcdbe499fda
