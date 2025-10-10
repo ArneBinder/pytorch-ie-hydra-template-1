@@ -1,0 +1,82 @@
+# @package _global_
+
+# This is a replication of the setup for ADU recognition from the paper (minor differences, see below):
+#   Arne Binder, Leonhard Hennig, and Bhuvanesh Verma. 2022. Full-Text Argumentation Mining on Scientific Publications.
+#   In Proceedings of the first Workshop on Information Extraction from Scientific Publications, pages 54–66, Online.
+#   Association for Computational Linguistics.
+
+# Differences to the paper:
+# - In the case that the input exceeds the maximum input length of the PLM, we do not concatenate the output
+#   of the PLM before feeding it to the LSTM. Instead, we process the parts separately until the end. This is
+#   a disadvantage when compared to the paper, but the current version of the PIE framework does not support
+#   this feature yet. In the future, we may use a window_overlap of e.g. 64 to compensate for this.
+# - The paper does not train the base model but this experiment does. However, with a lower learning rate (5e-5).
+# - The paper uses metric/token/macro/f1/val as monitor metric to decide which model should be saved in the end.
+#   This experiment uses metric/span/micro/f1/val.
+# - The paper uses 5 fold cross validation but this experiment uses a fixed validation set.
+
+# Furthermore, this uses hyperparameters that were found as
+# result from hyperparameter optimization with experiment=sciarg_adur and
+# hparams_search=adur_scientific_token_classification_with_crf @400000 total steps
+
+# to execute this experiment run:
+# python train.py experiment=sciarg_adur
+
+defaults:
+  - override /dataset: sciarg_prepared
+  - override /datamodule: default
+  - override /taskmodule: labeled_span_extraction_by_token_classification
+  - override /model: token_classification_with_seq2seq_encoder_and_crf
+  - override /callbacks: default
+  - override /logger: wandb
+  - override /trainer: default
+
+# name of the run determines folder name in logs
+name: "dataset-sciarg/task-adur"
+
+monitor_metric: "metric/span/micro/f1/val"
+
+tags: ["dataset=sciarg", "task=adur", "model=token_classification_with_crf"]
+
+seed: 12345
+
+transformer_model: allenai/scibert_scivocab_uncased
+
+taskmodule:
+  tokenizer_name_or_path: ${transformer_model}
+  tokenize_kwargs:
+    max_length: 512
+    stride: 64
+    return_overflowing_tokens: true
+  partition_annotation: labeled_partitions
+
+model:
+  model_name_or_path: ${transformer_model}
+  freeze_base_model: false
+  seq2seq_encoder:
+    type: sequential
+    drop0:
+      type: dropout
+      p: 0.5
+    lstm0:
+      type: lstm
+      num_layers: 2
+      bidirectional: true
+      hidden_size: 300
+      dropout: 0.4394
+  use_crf: true
+  learning_rate: 0.00003
+  task_learning_rate: 0.00003
+
+datamodule:
+  batch_size: 8
+
+trainer:
+  gradient_clip_val: 7.0
+  gradient_clip_algorithm: norm
+  min_epochs: 20
+  max_epochs: 200
+
+callbacks:
+  early_stopping:
+    patience: 50

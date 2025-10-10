@@ -1,0 +1,7 @@
+defaults:
+  - seq2seq_encoder: none # have a look at the seq2seq_encoder subfolder for predefined seq2seq encoder configs
+
+_target_: pytorch_ie.models.TokenClassificationModelWithSeq2SeqEncoderAndCrf
+model_name_or_path: bert-base-uncased
+# use_crf: false  # disable the crf
+# freeze_base_model: true  # freeze the base model (transformer)

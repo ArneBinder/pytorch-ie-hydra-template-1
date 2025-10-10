@@ -1,0 +1,6 @@
+type: sequential
+lin0:
+  type: linear
+  out_features: 2048
+act0:
+  type: tanh

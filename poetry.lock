@@ -2936,6 +2936,18 @@ files = [
 cli = ["click (>=5.0)"]
 
 [[package]]
+name = "pytorch-crf"
+version = "0.7.2"
+description = "Conditional random field in PyTorch"
+optional = false
+python-versions = ">=3.6, <4"
+groups = ["main"]
+files = [
+    {file = "pytorch-crf-0.7.2.tar.gz", hash = "sha256:e6456e22ccfc99a3d4fe1e03e996103b1b39e9830bf3c7e12e7a9077d3be866d"},
+    {file = "pytorch_crf-0.7.2-py3-none-any.whl", hash = "sha256:1b2d7d5eea3255f6e0cac09ab8b645472e76ff70d9333bc88762cf7317a4992d"},
+]
+
+[[package]]
 name = "pytorch-ie"
 version = "0.33.0"
 description = "State-of-the-art Information Extraction in PyTorch"
@@ -4640,4 +4652,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<4.0"
-content-hash = "5c6ec9ca370ff4d83a00cc2caf7d504ecc62801033edff3d5305c991d735ed8b"
+content-hash = "9e820bf7cb471e6a35b2d1337662128841aff6198fedb1949232b258dee273c3"
