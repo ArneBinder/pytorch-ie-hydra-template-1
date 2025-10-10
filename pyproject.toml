@@ -18,6 +18,9 @@ dependencies = [
     "pie-datasets (>=0.11.0,<0.12.0)",
     "pie-core (>=0.3.1,<0.4.0)",  # to use AutoAnnotationPipeline with old models, see https://github.com/ArneBinder/pie-core/pull/95
 
+    # ---------- models ----------- #
+    "pytorch-crf (>=0.7.2,<0.8.0)",  # for CRF layer in SciArg ADUR experiment
+
     # ------- reprocessing -------- #
     "nltk (>=3.9.1,<4.0.0)",           # sentence splitter (just for drugprot.yaml experiment which dry-runs in slow tests, remove if not needed)
 
